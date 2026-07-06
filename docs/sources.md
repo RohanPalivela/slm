@@ -93,6 +93,25 @@ reliability-first, distillation-based fine-tuning project should reason from.
 - **[kd-lora] KD-LoRA** (2024) — arXiv:2410.20777 — https://arxiv.org/abs/2410.20777
   . LoRA + knowledge distillation as a standard efficient recipe.
 
+### Fact-density crux — history is long-tail and small models fabricate it
+
+- **[mallen] When Not to Trust Language Models** (Mallen et al., ACL 2023;
+  PopQA) — https://arxiv.org/abs/2212.10511 . LM memorization is limited to
+  *popular* facts; scaling barely helps the long tail; retrieval (non-parametric
+  memory) complements parametric memory. Grounds the APUSH fact-density crux and
+  the table-grounding lever (select the outside development, don't free-recall it).
+- **[slm-util] Can Small Language Models Use What They Retrieve?** (2025) —
+  even with *oracle* retrieval, ≤7B models often fail to extract the answer on
+  facts they don't already know (7B ≈ 14.6%); standard instruction-tuning is
+  insufficient for grounding, but RAFT-style fine-tuning fixes utilization. The
+  honest downward pressure on the feasibility confidence, and why grounding must
+  be *trained in*.
+- **[drag] DRAG: Distilling RAG into SLMs** (ACL 2025, arXiv:2506.01954) —
+  https://arxiv.org/abs/2506.01954 . Distilling RAG (evidence + graph grounding)
+  into SLMs cuts hallucination and raises factual accuracy. Supports the
+  distillation-plus-grounding recipe as the SLM-appropriate path to factual
+  reliability.
+
 ### Counter-evidence — sub-4B weaknesses (the risks to design around)
 
 - **[arith-2025] How LLMs Perform Arithmetic Reasoning in 2025** — OpenReview,
@@ -111,6 +130,37 @@ reliability-first, distillation-based fine-tuning project should reason from.
   numeric reasoning; "direct distillation of complex reasoning often fails… better
   with shorter, simpler chains." Basis for capping reasoning at ~2 hops and
   avoiding multi-step numeric stimuli.
+
+### Long-tail recall & grounding (Deliverable 3 — supplementary web research)
+
+These three were added while writing [`03_feasibility_assessment.md`](03_feasibility_assessment.md)
+to ground the two load-bearing APUSH-specific claims: that a fact-dense domain
+stresses small-model factual recall (the SC-KEY crux) and that **grounding the
+answer to the date-tagged developments table** is the decisive mitigation.
+
+- **[mallen] Mallen et al., "When Not to Trust Language Models: Investigating
+  Effectiveness of Parametric and Non-Parametric Memories"** (ACL 2023) —
+  https://aclanthology.org/2023.acl-long.546.pdf . Introduces PopQA; shows LM
+  memorization is limited to **popular** facts and **scaling barely helps the long
+  tail**, while retrieval (non-parametric memory) complements parametric memory
+  (Adaptive Retrieval). *Grounds:* the SC-KEY crux (APUSH is long-tail-heavy) and
+  the table-grounding lever. *Caveat:* open-domain QA on GPT-Neo/OPT/GPT-3, not
+  ≤4B MCQ authoring.
+- **[slm-util] "Can Small Language Models Use What They Retrieve? An Empirical
+  Study of Retrieval Utilization Across Model Scale"** (2025) —
+  arXiv:2603.11513 — https://www.arxiv.org/pdf/2603.11513 . Even with **oracle**
+  retrieval, models ≤7B fail to extract the answer 85–100% of the time on unknown
+  facts (7B: **14.6%**); standard instruction-tuning is insufficient for grounding
+  at small scale, but **RAFT-style fine-tuning fixes utilization**. *Grounds:* the
+  honest downward pressure on the confidence (why 91%, not 95%), the need to
+  *train in* grounding, and the candidate-set fallback. *Caveat:* open-domain QA
+  with instruction-tuned baselines; our task is more constrained.
+- **[drag] "DRAG: Distilling RAG for SLMs from LLMs… via Evidence and
+  Graph-based Distillation"** (ACL 2025) — arXiv:2506.01954 —
+  https://arxiv.org/abs/2506.01954 . Distilling RAG (evidence/graph grounding)
+  into SLMs cuts hallucination and raises factual accuracy (>MiniRAG by up to
+  27.7%). *Grounds:* the distillation + grounding recipe as the SLM-appropriate
+  path to factual reliability. *Caveat:* QA/knowledge tasks, not MCQ authoring.
 
 > **Citation key convention:** bracketed keys (e.g. `[CED-sample]`, `[missed-mcq]`,
 > `[loraland]`) are used inline throughout `docs/01*`, `docs/03`, and the planning

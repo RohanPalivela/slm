@@ -1,336 +1,430 @@
 # SLM Feasibility Assessment — Deliverable 3
 
-> **The one question this answers:** *Can a fine-tuned SMALL model (0.6B–4B, QLoRA
-> SFT + teacher distillation) RELIABLY turn study notes into expert-grade MCAT
-> questions — and at what SCOPE?* This stage does not run the model; it converts
-> the taxonomy (Deliverable 1) and the litmus design (Deliverable 2) into a
-> calibrated **go / narrow / rethink** decision with an explicit confidence and
-> kill-criteria. It is deliberately skeptical: per the spec, the win is
-> **reliability of a constrained behavior**, not raw capability.
+> **The one question this answers:** *Can a fine-tuned SMALL open model (0.6B–4B,
+> QLoRA SFT + frontier-teacher distillation) RELIABLY turn study notes / historical
+> sources into expert-grade AP U.S. History (APUSH) stimulus-based MCQs — and at
+> what SCOPE (which archetypes, which model size)?* This stage runs no model; it
+> converts the taxonomy ([`01`](01_apush_question_taxonomy.md) /
+> [`taxonomy/apush_question_archetypes.json`](../taxonomy/apush_question_archetypes.json))
+> and the litmus design ([`02`](02_litmus_test_prompt.md)) into a calibrated
+> **go / narrow / rethink** decision with an explicit confidence and kill-criteria.
+> It is deliberately skeptical: per the spec, the win is **reliability of a
+> constrained behavior**, not raw capability. Every number below is a *prior* the
+> Day-2 litmus run must confirm before a single training step (§5).
 
 ---
 
 ## 0. Executive verdict
 
 ```
-┌────────────────────────────────────────────────────────────────────────────┐
-│  VERDICT:            BUILD — but NARROW HARD                                  │
-│                                                                              │
-│  RECOMMENDED SIZE:   Qwen3-4B-Instruct (QLoRA SFT + frontier distillation)   │
-│                      → 0.6B is disqualified for a reliability-first spec;     │
-│                        1.7B is a fallback, not the pick.                      │
-│                                                                              │
-│  RECOMMENDED SCOPE:  TWO structurally-determined archetypes —                │
-│                      1. MECHANISM_PERTURBATION   (anchor / fallback)         │
-│                      2. THEORY_PLUS_STUDY        (highest expert value)      │
-│                      Everything else: OUT of v1 scope (see §4).              │
-│                                                                              │
-│  CONFIDENCE:         92%  that tuned Qwen3-4B reliably beats its OWN          │
-│                      prompted base at expert-grade items on this scope,       │
-│                      CONDITIONAL on the §5 preconditions (esp. a             │
-│                      verification pass). Drop THEORY_PLUS_STUDY and the       │
-│                      confidence on MECHANISM_PERTURBATION alone is ~93%.      │
-│                      At 1.7B: ~82%. At 0.6B: ~60% (do NOT greenlight).       │
-│                                                                              │
-│  BIGGEST RISK:       Single-best-answer factual correctness — a keyed        │
-│                      answer that is wrong, or a *second* option that is       │
-│                      also defensible. This is why a verifier is a            │
-│                      precondition, not a nice-to-have.                        │
-└────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  VERDICT:           BUILD — but NARROW HARD                                     │
+│                                                                                │
+│  RECOMMENDED SIZE:  Qwen3-4B-Instruct  (QLoRA SFT + frontier distillation)     │
+│                     → 0.6B is DISQUALIFIED for a reliability-first spec         │
+│                       (documented 0.6B→4B cliff [arith-2025]); 1.7B is a        │
+│                       fallback, not the pick.                                   │
+│                                                                                │
+│  RECOMMENDED SCOPE: TWO date-anchored causation archetypes that share one      │
+│                     deep skill —                                                │
+│                       1. CAUSE_OF_SOURCE   (IN — anchor; crown jewel)           │
+│                       2. EFFECT_OF_SOURCE  (IN; same skill, opposite arrow)     │
+│                     First sanctioned expansion: CONTEXT_SITUATION (§3).         │
+│                     Everything else: Tier-2/3, OUT, or DON'T-BUILD (§3).        │
+│                                                                                │
+│  CONFIDENCE:        91%  that a tuned Qwen3-4B reliably beats its OWN prompted  │
+│                     base at expert-grade items on this scope — CONDITIONAL on   │
+│                     the §5 preconditions (answer GROUNDED to the developments   │
+│                     table + a verification pass + a confirmed teacher ceiling). │
+│                     Strip grounding OR the verifier → ~82%. At 1.7B: ~78%.      │
+│                     At 0.6B: ~55%.  CAUSE_OF_SOURCE alone: ~92%.                │
+│                                                                                │
+│  BIGGEST RISK:      SC-KEY — single-best HISTORICAL correctness. A keyed        │
+│                     answer that is factually wrong, or (worse) a distractor     │
+│                     that is ALSO defensibly "most directly" correct. The date   │
+│                     verifier catches only the wrong-era slice; it CANNOT        │
+│                     certify "most directly." This is why the verifier +         │
+│                     table-grounding are preconditions, not nice-to-haves.       │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**One-sentence thesis.** Feasibility is governed almost entirely by
-**regularity**: archetypes whose *scenario slot* and *distractor set* are
-**structurally determined** (a closed, named menu) convert the three hardest
-sub-capabilities — novel-scenario construction, distractor authoring, and
-answer-key correctness — from open-ended *generation* (an SLM weakness) into
-*templated selection + rule-derivation* (an SLM strength). The two crown-jewel
-structural archetypes are therefore, counter-intuitively, **more** SLM-feasible
-than the free-form ones — including the user's own example #1
-(`CLINICAL_VIGNETTE_TO_DIAGNOSIS`), which this assessment argues *against* for v1.
+**One-sentence thesis.** APUSH's fact-density makes single-best-answer historical
+correctness (SC-KEY) a *worse* crux than any science domain — but APUSH also has
+unusually strong **structural determinacy** (provided stimulus + closed stem menu
++ closed 4-trap distractor menu + a date-tagged verifier), and where those levers
+apply *most completely* — the date-anchored causation archetypes — they convert
+open-ended generation into **templated selection + rule-derivation**, the SLM
+sweet spot. Feasibility is therefore not uniform across the 12 archetypes; it is
+governed by **how much of SC-KEY the structural levers can offload**, which is
+highest for `CAUSE_OF_SOURCE`/`EFFECT_OF_SOURCE` and near-zero for
+`COMPETING_INTERPRETATIONS`.
 
 ---
 
-## 1. What "success" means here (precise reframe of "outperform")
+## 1. What "success" / "outperform" means here
 
-The spec is explicit: *"Your 1B model will not beat a frontier model on raw
-capability… The defensible win is reliable, constrained behavior."* So we grade
-against two bars, only the first of which is required:
+The spec is blunt: *"Your 1B model will not beat a frontier model on raw
+capability… the defensible win is reliable, constrained behavior."* We grade
+against two bars; only the first is required.
 
 | Bar | Definition | Required? | Verdict |
 | :--- | :--- | :--- | :--- |
-| **Primary — base-vs-tuned** | Tuned SLM produces `expert_grade` items (all §7 disqualifying checks pass) at a **higher pass rate and lower run-to-run variance** than the *same model prompted with the maximal litmus prompt*. | **YES** (the spec's midweek gate) | **Achievable with high confidence** on the narrow scope. |
-| **Secondary — rival frontier** | Tuned SLM matches a *prompted frontier* model's pass rate on the one archetype. | No | **Plausible but not guaranteed**; do not stake the project on it. |
+| **Primary — base-vs-tuned** | Tuned SLM produces `expert_grade` items (all disqualifying `quality_checks` pass) at a **higher pass rate AND lower run-to-run variance** than the *same model prompted with the maximal litmus prompt* ([`prompts/litmus_generation_prompt.md`](../prompts/litmus_generation_prompt.md)). | **YES** (spec's midweek gate) | **Winnable at high confidence** on the narrow scope. |
+| **Secondary — beat prompted frontier** | Tuned SLM matches a prompted frontier model's pass rate. | **No** | Not required; do **not** stake the project on it. |
 
-Why the primary bar is winnable. The base SLM, even with the *best* prompt, is
-documented to drift in exactly the ways the §7 checks forbid: it breaks strict
-JSON under load (Qwen3-0.6B hits **1.4%** format compliance in direct-answer
-mode vs 85.8% in its preferred mode [arith-2025]), it "asks the note back to
-itself" (fails familiar-concept/unfamiliar-scenario), it writes filler
-distractors, and it fabricates plausible-but-wrong answer keys (hallucination is
-~1/5 of SLM failures [slm-review]). SFT on a tight, filtered distribution is the
-canonical fix for precisely this class of *reliability* gap — the same regime
-where LoRA-Land fine-tunes beat their base by **+34 points** average and beat
-GPT-4 on narrowly-scoped tasks [loraland], and where structured-blueprint
-distillation adds **+8.1** over unstructured CoT distillation for SLMs
-[struct-sql] and contrastive fallacy-labeled negatives add **+12.5%** on Phi-2
-[ccot]. The base→tuned delta is the easy part; the crux is the *absolute*
-quality bar (§3, SC5).
+**Why the base-vs-tuned delta is winnable — decomposed honestly.** The delta is
+*near-certain on five of six sub-capabilities and conditional on the sixth*:
+
+- The base SLM, even with the *best* prompt, drifts in exactly the ways the
+  quality checks forbid: it **breaks strict JSON** under load (Qwen3-0.6B hits
+  **1.4%** format compliance in direct-answer mode vs 85.8% in its preferred mode
+  [arith-2025]); it **"asks the source back to itself"** (fails
+  `requires_outside_knowledge`); it writes **filler distractors** that match no
+  trap in the menu; and it **fabricates or double-keys** answers (hallucination is
+  ~1/5 of SLM failures [slm-review]). The first three are *format/behavior* gaps —
+  the canonical thing SFT on a tight, filtered distribution fixes reliably and a
+  prompt cannot guarantee. This is the regime where LoRA-Land fine-tunes beat
+  their base by **+34 pts** average [loraland], structured-blueprint distillation
+  adds **+8.1** over unstructured-CoT distillation [struct-sql], and
+  fallacy-labeled contrastive negatives add **+12.5%** on Phi-2 [ccot].
+- The **sixth** — SC-KEY (historical correctness) — is *not* automatically fixed
+  by SFT, because history isn't derivable from first principles. It is the entire
+  reason this verdict is BUILD-**NARROW** and conditional, not BUILD.
+
+So the "outperform" claim is precise: the tuned model wins the required
+base-vs-tuned bar because it captures the format/distractor/skill wins for free
+**and** — via table-grounding + an inference-time verifier — keeps its SC-KEY tail
+from tanking the expert-grade rate, while the prompted base cannot.
 
 ---
 
-## 2. Sub-capability decomposition and per-size feasibility
+## 2. Sub-capability decomposition & per-size feasibility
 
-The task `f(note) → expert MCQ` breaks into six load-bearing sub-capabilities
-(plus one archetype-specific one). Scores are **post-QLoRA-SFT + distillation**
-feasibility on a 0–1 scale (0 = will not do it reliably; 1 = reliable), matching
-the repo's `expert_feel`/`note_seedability` convention. Scores are for the
-**recommended narrow scope**; free-form scope is strictly lower where noted.
+`f(source, note) → expert APUSH MCQ` breaks into seven load-bearing
+sub-capabilities. Scores are **post-QLoRA-SFT + distillation** feasibility, 0–1
+(0 = won't do it reliably; 1 = reliable), for the **recommended narrow scope**.
+Where a capability splits by archetype regularity, `a / b` = *free-form
+archetypes / structurally-determined archetypes*.
 
 | # | Sub-capability | 0.6B | 1.7B | 4B | Bottleneck? | Basis |
 | :--- | :--- | :---: | :---: | :---: | :--- | :--- |
-| SC1 | **Concept extraction** from the note (identify the testable principle) | 0.75 | 0.85 | 0.92 | No | Notes are principle cards that *hand over* the concept; near-read-off. Weakest on messy/multi-concept inputs. |
-| SC2 | **Novel scenario construction** (familiar concept → unfamiliar context) | 0.35 / 0.60\* | 0.55 / 0.75\* | 0.70 / 0.88\* | **Yes (free-form)** | Open-ended creativity is an SLM weak point; but a *templated* archetype slot (perturbation type; follow-up-finding schema) is recombination, not invention. \*second number = structurally-determined archetypes. |
-| SC3 | **Distractor construction** (each wrong option = a named error) | 0.25 / 0.65\* | 0.45 / 0.82\* | 0.60 / 0.90\* | **Yes (free-form); No (structured)** | The #1 expert differentiator. Free-form = invent misconceptions (hard). Structured = *select from a closed named set* (competitive/uncompetitive/…; supports/weakens/not-diagnostic) → a **classification** sub-task, the SLM sweet spot [loraland, struct-sql]. |
-| SC4 | **Strict structured output** (valid JSON schema + rationale block) | 0.80 | 0.90 | 0.96 | No (minor 0.6B risk) | Canonical fine-tuning win (spec's own "structured-output" example). 0.6B retains format fragility under long/nested schemas [arith-2025]. |
-| SC5 | **Single-best-answer factual correctness** (key right; no 2nd-correct) | 0.30 / 0.60\* | 0.45 / 0.72\* | 0.55 / 0.82\* | **YES — TRUE CRUX** | Leans on recall (SLM weak: hallucination [slm-review]). Safe *only* when correctness is **rule-derivable** from the item's own structure, not looked up. Needs a verifier to reach the bar (§5). |
-| SC6 | **Cross-input reliability / low variance** | 0.45 | 0.65 | 0.80 | Partial | SFT on a narrow distribution sharpens consistency — the whole point of the project. Improves monotonically as scope narrows → argues for 1–2 archetypes. |
-| SC7 | **Quantitative / arithmetic correctness** (`QUANTITATIVE_APPLICATION` only) | 0.15 | 0.35 | 0.55 | **Yes → exclude** | Multi-digit/multi-step arithmetic collapses below 4B and is imperfect even at 4B; GSM-Symbolic-style perturbations break it [easymath, arith-2025]. Exclude the archetype or supply numbers pre-computed. |
+| **SC1** | **Source comprehension** (read the *provided* stimulus) | 0.70 | 0.82 | 0.90 | No | Stimulus is given → this is short-passage reading, an SLM strength. Weakest on subtle secondary-source arguments (F5). |
+| **SC2** | **Outside-knowledge retrieval** (recall the correct outside development) | 0.30 / 0.55\* | 0.45 / 0.70\* | 0.58 / 0.82\* | **Yes** | Free recall of history facts is an SLM weak point; the long tail barely improves with scale [mallen]. \*second number = answer **selected from the date-tagged developments table**, not free-recalled → recall becomes selection. |
+| **SC3** | **Distractor authoring as trap-selection** (each wrong option = one named trap) | 0.25 / 0.60\* | 0.45 / 0.78\* | 0.60 / 0.88\* | **Yes (free-form); No (structured)** | The #1 expert differentiator. Free-form = invent misconceptions (hard). Structured = "pick a period-plausible development from the table + label its trap type" → a **classification** task, the SLM sweet spot [loraland, struct-sql]. |
+| **SC4** | **Strict JSON / schema** (valid object + rationale + trap labels) | 0.80 | 0.90 | 0.96 | No (minor 0.6B) | Canonical fine-tuning win (the spec's own "structured-output" example). 0.6B retains format fragility under long schemas [arith-2025]. |
+| **SC-KEY** | **Single-best historical correctness** (key right AND uniquely "most directly") | 0.28 / 0.52\* | 0.42 / 0.68\* | 0.55 / **0.80**\* | **YES — TRUE CRUX** | Two failure modes: keyed answer *factually wrong* (fabrication [slm-review, mallen]) and keyed answer *not uniquely best* (a distractor also defensible). \*with table-grounding + date-check + judge. Even at 4B this tops out ~0.80 because the date-check is **necessary-not-sufficient** (see below). |
+| **SC-CONS** | **Cross-input reliability / low variance** | 0.45 | 0.65 | 0.80 | Partial | SFT on a narrow distribution sharpens consistency — the whole point. Improves monotonically as scope narrows → argues for 2 archetypes, not 8. |
+| **SC-SKILL** | **Command-phrase → skill match** (answer is the KIND the stem demands) | 0.55 | 0.72 | 0.86 | No | The closed stem menu deterministically signals the required answer type; labeled SFT instills the mapping well [struct-sql]. |
 
-\* `a / b` = free-form archetypes / structurally-determined archetypes.
+\* `a / b` = free-form / structurally-determined (or, for SC-KEY/SC2,
+free-recalled / table-grounded).
 
-**True bottleneck(s).** In priority order: **SC5 (answer-key correctness)** is
-the single gating capability, followed by **SC3 and SC2 for free-form
-archetypes**, and **SC7 for anything quantitative**. The decisive move is that
-the *right scope* neutralizes SC2/SC3 (templating) and de-risks SC5 (rule-
-derivable correctness) — leaving a residual SC5 tail that a cheap verification
-pass mops up. SC4/SC1/SC6 are not bottlenecks at 4B.
+**The true bottleneck is SC-KEY, and it is worse than a science domain.** In the
+MCAT analog, a `MECHANISM_PERTURBATION` key was *fully rule-derivable* (a Km↑/Vmax=
+truth table → a deterministic verifier). APUSH has **no** fully rule-derivable
+archetype. Its programmatic verifier — the anachronism date-check against
+[`data/apush_key_developments.json`](../data/apush_key_developments.json) — only
+confirms that the keyed development's date obeys the stem's time direction (cause
+before, effect after) and that a `wrong_era` distractor violates it. That rules
+out the **wrong-era slice** of SC-KEY but **cannot** certify the "most directly"
+uniqueness judgment: for `CAUSE_OF_SOURCE`, both the *specific mechanism* and the
+*broad background condition* predate the source, so both pass the date-check — yet
+only one is keyable. The residual "second-defensible-option" tail is exactly what
+keeps SC-KEY at ~0.80, not ~0.95, even at 4B with the verifier.
+
+**Why grounding matters more than raw scale for SC-KEY.** History is long-tail and
+scaling barely moves tail recall [mallen], so *drawing the outside development from
+the curated table* beats free recall by more than 1.7B→4B does. Honest caveat:
+sub-7B models under-utilize even *oracle* context (a 7B extracts the answer only
+**14.6%** of the time on facts it doesn't already know; plain instruction-tuning
+is insufficient for grounding) — but the fix that same work identifies is
+**fine-tuning for grounding** (RAFT-style), exactly our QLoRA-on-distilled-and-
+grounded recipe, and distilling RAG into SLMs cuts hallucination [slm-util, drag].
+Hence "answer grounded to the table" is a *precondition* (§5), and if SC-KEY still
+stalls the fallback is to shrink the job further — from "select from the table" to
+"**select-and-justify from a provided candidate answer set**" (near-classification).
 
 **The size cliff (why 4B, not 0.6/1.7B).** The most model-specific evidence we
-have is on the exact Qwen3 family the spec recommends: Qwen3-0.6B shows
-**catastrophic** instruction/format collapse (1.4% in one mode), while
-**Qwen3-4B is robust (96%+) across modes, and 4B≈8B** (0.5-pt gap — diminishing
-returns beyond 4B) [arith-2025]. There is a documented **reliability threshold
-between 0.6B and 4B**. For a spec whose entire deliverable is *reliability*,
-paying the modest VRAM cost for 4B is the highest-leverage single decision.
-(Caveat weighed honestly: LoRA-Land's headline wins are **7B** models on
-**classification**, not ≤4B generative quality — so we lean on the Qwen3-specific
-and distillation-specific evidence for the size and generative-quality claims,
-and treat LoRA-Land as directional support for "narrow + tuned wins," not proof.)
+have is on the exact family the spec names: Qwen3-0.6B shows catastrophic
+instruction/format collapse (**1.4%** in one mode) while **Qwen3-4B is robust
+(96%+) and 4B≈8B** (diminishing returns beyond 4B) [arith-2025]. For a
+deliverable whose entire point is *reliability*, paying the modest VRAM for 4B is
+the highest-leverage single decision. 0.6B fails SC4/SC-KEY/SC-CONS
+simultaneously; 1.7B is a below-gate fallback.
 
 ---
 
 ## 3. Scope decision — the central question
 
-Each archetype is scored on the four criteria the task specifies:
-**(a) regularity** of shape + distractor logic (regular = learnable at small
-scale), **(b) factual/computational load** (lower = safer), **(c)
-`note_seedability`**, **(d) `expert_feel`**. "SLM-fit" is the resulting v1
-recommendation.
+Every archetype scored on the four criteria the task specifies:
+**(a) structural regularity / anachronism-verifiability** (how much the levers
+offload), **(b) factual/recall load** (lower = safer for SC-KEY), **(c)
+`note_seedability`** and **(d) `expert_feel`** (from the JSON). "v1" is the
+resulting recommendation.
 
-| Archetype | Family | Regularity | Fact/compute load | Seedability | Expert feel | SLM-fit (v1) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **MECHANISM_PERTURBATION** | F2 | **Very high** (closed inhibition/mutation menu; fixed Km/Vmax signatures) | Low (qualitative) | 0.90 (best-seeded: enzyme-reg gold, LDH-R family) | 0.85 | **IN — anchor** |
-| **THEORY_PLUS_STUDY** | F4/2 | **Very high** (closed evidential set: supports / weakens / not-diagnostic / contradicts-other) | Low–med | 0.85 | **1.00** | **IN — high value** |
-| DATA_TO_CONCLUSION | F4 | High (misreading menu: sign-flip, over-generalize, independence) | Med (must render a coherent data object in text) | 0.70 | 0.90 | Tier-2 (v2 candidate) |
-| EXPERIMENTAL_FIX_OR_FLAW | F3 | Med–high (fix/worsen/irrelevant menu) | **Med–high** (must *know* the real confound & real fix) | 0.70 | 0.95 | Tier-2 (knowledge-dependent; taxonomy crown-jewel but riskier for SLM) |
-| STATISTICAL_INFERENCE | F4 | High (named stat-misconception set) | Med (stat reasoning) | 0.60 | 0.80 | Tier-2 |
-| PRINCIPLE_TO_PREDICTION | F2 | Med (competing-theory distractors) | Med (hold ≥2 theories correctly) | 0.80 | 0.65 | Tier-3 |
-| IDENTIFY_VARIABLES | F3 | High | Low | 0.70 | 0.85 | Tier-3 — likely **DON'T-BUILD** (base may already pass) |
-| DESIGN_THE_TEST | F3 | Med–low (open design space) | Med | 0.75 | 0.85 | Tier-3 |
-| CONCEPT_DISCRIMINATION | F1 | High | Low | 0.90 | 0.50 | **DON'T-BUILD** (prompt likely suffices) |
-| REPRESENTATION_TRANSLATION | F1 | Med | Low | 0.60 | 0.40 | OUT (needs real graphs) |
-| QUANTITATIVE_APPLICATION | F2 | Med | **High (arithmetic)** | 0.75 | 0.70 | **OUT** (SC7 bottleneck) |
-| CLINICAL_VIGNETTE_TO_DIAGNOSIS | F2 | **Low** (open scenario; differentials must be real & feature-sharing) | **Very high (clinical facts)** | 0.85 | 0.85 | **OUT of v1** (user example #1 — see box) |
+| Archetype | Fam | (a) Regularity / date-verifiable | (b) Recall load | (c) Seed | (d) Expert | v1 |
+| :--- | :---: | :--- | :---: | :---: | :---: | :--- |
+| **CAUSE_OF_SOURCE** | F3 | **High** / ✅ (dir. checkable; "most directly" not) | Med | 0.85 | 0.85 | **IN — anchor** |
+| **EFFECT_OF_SOURCE** | F3 | **High** / ✅ (effect postdates; reversed-dir trap) | Med | 0.85 | 0.85 | **IN** |
+| CONTEXT_SITUATION | F2 | High / ✅ (response-to a prior crisis) | **Low–Med** | 0.85 | 0.70 | **IN (safe 3rd / v1.1)** |
+| CONTEXT_INFLUENCED_BY | F2 | High / ✅ (antecedent idea predates) | Med–High | 0.80 | 0.75 | Tier-2 |
+| LONGTERM_LEGACY | F4 | Med–High / ✅ but multi-hop | **High** | 0.75 | 0.85 | Tier-2 |
+| EVIDENCE_SUPPORTS_CLAIM | F5 | Low–Med / ⚠️ loose (period-only; relevance not checkable) | High | 0.75 | **1.0** | Tier-2 (v2 crown) |
+| CONTINUITY_OR_CHANGE | F4 | Med / ⚠️ date-only (challenge-vs-continue not checkable) | Med–High | 0.70 | 0.90 | Tier-3 |
+| COMPARATIVE_ANALOG | F4 | Med / ⚠️ date-only (shared-mechanism not checkable) | High | 0.70 | 0.90 | Tier-3 |
+| SOURCE_POV_PURPOSE | F1 | Med / ❌ not verifiable | Low–Med | 0.80 | 0.55 | Tier-3 |
+| EVIDENCE_UNDERMINES_CLAIM | F5 | Low / ❌ verifier useless for support-vs-undermine | High | 0.70 | **1.0** | **OUT** (SLM trap) |
+| COMPETING_INTERPRETATIONS | F5 | **Low** / ❌ not verifiable; needs 2-source | High | 0.65 | **1.0** | **OUT** (SLM trap) |
+| DEVELOPMENT_ILLUSTRATED | F1 | Med / ❌ | Med | 0.90 | 0.40 | **DON'T-BUILD** |
 
-> **Skeptic's flag — the user's own example #1 is a trap for an SLM.**
-> `CLINICAL_VIGNETTE_TO_DIAGNOSIS` scores high on expert-feel *and* seedability,
-> which makes it tempting. But its correct answer is a **fact** (the real
-> diagnosis), its distractors must be **real differentials that share features**,
-> and the craft is *withholding the giveaway* — i.e. it maximally loads SC5
-> (factual correctness) and SC2/SC3 (open scenario + real-world distractors), the
-> three SLM weak points, with no structural rail to fall back on. This is where a
-> sub-4B model will confidently emit a wrong or double-keyed answer. Include it
-> only later, and only with **retrieval grounding**. Naming it out of v1 is the
-> clearest signal that this assessment is not rubber-stamping.
+### 3a. The recommended v1 scope: the date-anchored causation pair
 
-### 3a. Why the structurally-determined pair is *more* feasible (the core argument)
+**`CAUSE_OF_SOURCE` (anchor) + `EFFECT_OF_SOURCE`.** They are the *same operation
+in opposite temporal directions* — "map the stimulus to the one outside
+development from the date table whose date obeys the required direction and that
+is the *specific*, not background, match." All four levers apply maximally:
 
-The user's criterion asks whether structural determinacy makes the crown jewels
-**more** feasible than free-form archetypes. It does, decisively, and here is the
-mechanism:
+1. **Stimulus provided** → the model reasons over a given source, dodging the
+   biggest fabrication vector (it never invents the source) — applies to all
+   archetypes, but pairs with (4) only here and in F2.
+2. **Closed stem menu** → `cause_of` / `effect_immediate` deterministically fix
+   the required answer *kind* (SC-SKILL).
+3. **Closed 4-trap distractor menu** → distractors become "select a
+   period-plausible development + label its trap," a classification task (SC3).
+4. **Anachronism date-check** → a *programmatic* verifier for the whole class:
+   cause must predate, effect must postdate, and a `wrong_era` distractor must
+   violate it. This is the APUSH analog of a deterministic truth-table — the only
+   archetypes where it fires cleanly are the single-direction causal ones.
 
-- **MECHANISM_PERTURBATION** distractors are a **closed set of inhibition
-  modes**, each with a *deterministic* Km/Vmax (or qualitative) fingerprint:
-  competitive (Km↑, Vmax=), uncompetitive (Km↓, Vmax↓), noncompetitive (Km=,
-  Vmax↓), allosteric activation (Vmax↑), dissociation (ruled out by %-tetramer).
-  The model does not *invent* distractors or *recall* an answer — it **maps a
-  given fingerprint to a label** (classification) and reads the other labels off
-  the same table as distractors, each with its rationale pre-implied by the menu.
-  Our LDH-R gold item is exactly this shape and a *single passage yields a whole
-  family* of such items.
-- **THEORY_PLUS_STUDY** distractors are a **closed set of evidential relations**:
-  {supports · weakens · consistent-but-not-diagnostic · contradicts a *different*
-  claim}. Correctness is a **logical judgment about the finding vs the claim**,
-  not a fact lookup, and the hardest trap ("consistent-but-not-diagnostic") is a
-  *fixed slot* the model learns to place, not an open invention.
+The honest limit (§2): lever 4 is *necessary-not-sufficient* — it kills wrong-era
+errors but not the "most directly" double-key, which only grounding + an LLM-judge
+single-best/accuracy pass can mop up.
 
-Both collapse to the same underlying skill: **"classify a scenario into one of a
-small named set of relations, and justify each option from its fixed
-signature."** That is a *format/constraint* behavior, which is the exact thing
-fine-tuning instills reliably and prompting does not [spec; loraland; struct-sql].
-Free-form archetypes have no such closed set, so they keep the model in
-open-generation territory where small models hallucinate and pick filler
-distractors. **Structural determinacy is the feasibility lever.**
+### 3b. Explicit OUT / DON'T-BUILD calls (the signal this is a real assessment)
 
-Note the crown-jewel labels don't perfectly coincide: the taxonomy marks
-`EXPERIMENTAL_FIX_OR_FLAW` and `THEORY_PLUS_STUDY` as crown jewels, while the
-*structurally-determined* pair is `MECHANISM_PERTURBATION` + `THEORY_PLUS_STUDY`.
-We optimize for **structural determinacy, not the crown-jewel label** — which is
-why `EXPERIMENTAL_FIX_OR_FLAW` ranks Tier-2 (its answer depends on *knowing the
-real confound*, a knowledge dependency that reintroduces SC5 risk) and
-`MECHANISM_PERTURBATION` is promoted to the anchor.
+- **`COMPETING_INTERPRETATIONS` — OUT.** Highest `expert_feel` (1.0) yet the worst
+  SLM target: `anachronism_verifiable = false` (no programmatic safety net at
+  all), it needs a *two-source* stimulus, and the answer is a subtle
+  identify-the-axis-of-disagreement judgment over long-tail historiography. It
+  keeps the model in pure open-generation where small models fail. Defer to v2+.
+- **`EVIDENCE_UNDERMINES_CLAIM` — OUT.** The hardest single item type: telling a
+  *weakener* from a *confirmer* is a logical-relevance judgment the date-check
+  cannot touch, and the tempting confirming-distractor makes double-keying easy.
+- **`COMPARATIVE_ANALOG` / `CONTINUITY_OR_CHANGE` — Tier-3.** Date-verifiable only
+  for the "later" half; the *core* judgment (shared mechanism; challenge-vs-
+  continue) is semantic, not checkable, and both are recall-heavy. Classic
+  free-form, recall-heavy traps.
+- **`DEVELOPMENT_ILLUSTRATED` — DON'T-BUILD.** Lowest `expert_feel` (0.4) and the
+  closest to comprehension; a well-prompted base very likely **already clears it**
+  → the base-vs-tuned delta is small, so fine-tuning earns little (the litmus
+  DON'T-BUILD logic applied at the archetype level). `MAIN_POINT_OF_SOURCE`
+  ([`01b`](01b_taxonomy_supplement.md)) is the same story, more so.
 
-### 3b. Why 1–2 archetypes, not many
+### 3c. Why 2–3 archetypes, not many
 
 - **Spec law:** *"No broad domains. One target, one context. Diffuse data makes a
-  mushy model."* Every added archetype widens the training distribution and
-  raises SC6 variance — directly opposing the deliverable (reliability).
-- **Capacity is the binding constraint at 4B.** Concentrating limited capacity on
-  one reasoning schema maximizes per-item reliability; spreading it across 8
-  schemas is how you get a model that is mediocre at all of them.
-- **Why two, not one.** `MECHANISM_PERTURBATION` and `THEORY_PLUS_STUDY` share
-  the *same* deep skill (closed-set relational classification + per-option
-  justification), so training both **reinforces** the shared behavior rather than
-  diluting it, while hedging our bets: MECH_PERT has the **best seed coverage**
-  (safest), THEORY_PLUS_STUDY has the **highest expert value** (most impressive
-  demo). If a single-archetype maximum-confidence build is preferred, ship
-  **MECHANISM_PERTURBATION alone** (§4 confidence is highest there).
+  mushy model."* Each added archetype widens the training distribution and raises
+  SC-CONS variance — directly opposing the deliverable (reliability).
+- **Capacity concentration.** At 4B, per-item reliability is maximized by pointing
+  limited capacity at *one deep skill*. `CAUSE`/`EFFECT` share that skill, so
+  training both **reinforces** the shared "check the date direction, pick the
+  specific match" behavior rather than diluting it.
+- **Why two (or three), not one.** The pair hedges: `CAUSE_OF_SOURCE` is the
+  crown-jewel anchor; `EFFECT_OF_SOURCE` adds the clean reversed-direction
+  `partially_true` distractor and natural `SET_OF_THREE` cohesion.
+  `CONTEXT_SITUATION` is the **safest single archetype on SC-KEY** (its "response
+  to" answer is usually one dominant, well-known crisis → low double-key risk) and
+  is the sanctioned first expansion once the pair validates.
 
 ---
 
-## 4. Confidence gate and assumptions
+## 4. Confidence gate & assumptions
 
 **Confidence that a fine-tuned Qwen3-4B reliably beats its prompted base at
-expert-grade items, by scope:**
+expert-grade items (higher pass rate + lower variance), by scope and size.** The
+user requires **>90%** to greenlight.
 
-| Scope | Model | Confidence | Gate (>90%)? |
-| :--- | :--- | :---: | :---: |
-| `MECHANISM_PERTURBATION` only | Qwen3-4B | **~93%** | ✅ |
-| `MECHANISM_PERTURBATION` + `THEORY_PLUS_STUDY` | Qwen3-4B | **~92%** (w/ §5 preconditions) | ✅ |
-| Same 2 archetypes | Qwen3-1.7B | ~82% | ❌ (fallback only) |
-| Same 2 archetypes | Qwen3-0.6B | ~60% | ❌ (do not greenlight) |
-| Add a 3rd–4th archetype | Qwen3-4B | ~85% and falling | ❌ (defer to v2) |
-| Any free-form archetype (e.g. vignette) | Qwen3-4B | ~55–65% | ❌ |
+| Scope | Size | Conditions | Confidence | >90%? |
+| :--- | :--- | :--- | :---: | :---: |
+| `CAUSE_OF_SOURCE` only | **4B** | grounded + verifier + teacher-confirmed | **~92%** | ✅ |
+| `CAUSE` + `EFFECT` (the pair) | **4B** | grounded + verifier + teacher-confirmed | **~91%** | ✅ |
+| Pair + `CONTEXT_SITUATION` (3) | 4B | same | ~89% | ❌ (→ v1.1) |
+| The pair | 4B | **no table-grounding** *or* **no verifier** | ~82% | ❌ |
+| The pair | 1.7B | grounded + verifier | ~78% | ❌ (fallback) |
+| The pair | 0.6B | grounded + verifier | ~55% | ❌ (do not greenlight) |
+| Add `EVIDENCE_SUPPORTS_CLAIM` (F5) | 4B | grounded + verifier | ~74% | ❌ (v2) |
+| `EVIDENCE_UNDERMINES` / `COMPETING_INTERP` | 4B | best case | ~60–68% | ❌ |
+| Any free-form, recall-heavy archetype | 4B | grounded + verifier | ~65% | ❌ |
 
-**Greenlight:** the **two-archetype scope at 4B, at 92%**, *conditional on §5*.
-The 92% is a base-vs-tuned claim (the required bar), not a beat-frontier claim.
+**Greenlight:** the **causation pair at 4B, ~91%**, *conditional on §5*
+(`CAUSE_OF_SOURCE` alone is ~92% if a single-archetype maximum-confidence build is
+preferred). **The honest bottom line the fact-density crux forces:** *only the
+grounded + verified, date-anchored causation scope at 4B clears 90%.* Remove
+table-grounding, remove the verifier, drop below 4B, or widen past the pair, and
+it falls under the bar. This is a narrower and more conditional greenlight than a
+science domain would earn, and that is the correct read of an APUSH build.
 
-**The assumptions the 92% rests on** (each is falsifiable and mostly confirmable
-in the Day-2 litmus run *before* training):
+**Falsifiable assumptions the 91% rests on** (each mostly confirmable in the
+Day-2 litmus run *before* training):
 
-1. **Teacher ceiling exists.** A frontier teacher clears **≥70%** expert-grade on
-   these two archetypes (litmus BUILD-zone). If the teacher can't, there are no
-   clean labels to distill → this assumption is the load-bearing one.
-2. **Data quantity/quality.** ≥**600–1,000** hard-filtered distilled items *per
-   archetype* (all §7 disqualifying checks enforced programmatically + by judge).
-   200–1,000+ is the demonstrated effective range [loraland]; quality gate > raw
+1. **Teacher ceiling exists.** A frontier teacher clears **≥70–75%** expert-grade
+   *and* **`key_valid_rate` ≥70–75%** on these two archetypes in the litmus. If
+   the teacher can't key APUSH items correctly and uniquely, there are no clean
+   labels to distill — the single load-bearing assumption.
+2. **Enough filtered data.** ≥**600–1,000** hard-filtered distilled items *per
+   archetype*, every disqualifying `quality_check` enforced (programmatic + judge).
+   200–1,000+ is the demonstrated effective range [loraland]; quality gate ≫ raw
    volume [spec].
-3. **A verification pass is in the loop** (programmatic gates + LLM-judge or
-   self-consistency vote) that *rejects* items failing single-best-answer /
-   double-correct / concept-leak. This converts SC5 from a liability into a gated
-   output; contrastive/negative-labeled training further sharpens it [ccot].
-4. **Items stay qualitative.** Km↑/Vmax= expressed as *relations/words*; any
-   numeric fingerprint is **given data**, never computed by the model (dodges SC7)
-   [easymath].
-5. **Size = 4B.** The confidence is stated for 4B; 1.7B is below-gate, 0.6B far
-   below [arith-2025].
-6. **Eval is base-vs-tuned on held-out notes**, reusing the 82 first-principles
-   cards as seeds and the 30×2 paraphrase set as the transfer/novelty probe.
+3. **A verification pass is in the loop** — programmatic (date-check, option
+   homogeneity, absolute-word regex, source-leak) **plus** an LLM-judge
+   historical-accuracy + single-best check — that *rejects and regenerates* on any
+   disqualifying failure. Converts SC-KEY from a liability into a gated output.
+4. **The keyed outside development is GROUNDED** — selected from
+   [`apush_key_developments.json`](../data/apush_key_developments.json), not
+   free-recalled [mallen, drag, slm-util]. The single biggest SC-KEY lever.
+5. **The stimulus is provided** from the legal corpus
+   ([`seed_stimuli.jsonl`](../data/seed_stimuli.jsonl)) — dodges source
+   fabrication.
+6. **Size = 4B** (1.7B below gate, 0.6B far below) [arith-2025].
+7. **Eval is base-vs-tuned on HELD-OUT sources**, disjoint from training seeds per
+   the `splits.json` firewall; report pass rate **and** run-to-run variance
+   (reliability, not peak).
 
-If assumption 1 or 3 fails, fall back to `MECHANISM_PERTURBATION`-only (still
-≥90% under assumptions 2/4/5/6) or to the RETHINK reframes in §5.
+If assumption 1, 3, or 4 fails, fall back to `CAUSE_OF_SOURCE`-only or the §5
+RETHINK reframes.
 
 ---
 
 ## 5. Preconditions & kill-criteria
 
-**Preconditions — must be true for the 92% to hold:**
+**Preconditions — must hold for the 91% (confirm in the Day-2 litmus, pre-training):**
 
-- **P1.** Litmus run shows the **frontier teacher ≥70%** expert-grade on the two
-  archetypes (clean-label ceiling exists).
-- **P2.** Litmus run shows **prompted base 4B ≤45–55%** on the same (a real gap
-  exists to close — otherwise the litmus fails and we ship a prompt).
-- **P3.** ≥600–1,000 filtered items/archetype; answer-key validity of the
-  *training set* audited (garbage-in kills SC5).
-- **P4.** Inference-time verifier wired in (reject-and-regenerate on any
-  disqualifying check); qualitative-only item policy enforced.
-- **P5.** Held-out eval uses unseen notes + the paraphrase transfer set;
-  report pass rate **and** run-to-run variance (reliability, not peak).
+- **P1.** Litmus shows **frontier teacher ≥70–75%** expert-grade AND
+  **`key_valid_rate` ≥70–75%** on `CAUSE_OF_SOURCE` / `EFFECT_OF_SOURCE`
+  (clean-label ceiling exists).
+- **P2.** Litmus shows **prompted base 4B ≤45–55%** on the same (a real gap to
+  close; otherwise the litmus fails and we ship a prompt, not a fine-tune).
+- **P3.** ≥600–1,000 filtered items/archetype; the *training set's* answer-key
+  validity audited (date-check + a human spot-check slice — LLM judges themselves
+  err on history facts, per [`02`](02_litmus_test_prompt.md) §4b).
+- **P4.** Inference-time verifier wired (reject-and-regenerate on any disqualifying
+  check, incl. the anachronism date-check and a single-best/historical-accuracy
+  judge pass).
+- **P5.** Answer-grounding enforced: the outside development is drawn from the
+  developments table (selection), never free-recalled.
+- **P6.** Held-out eval on unseen sources (splits.json firewall); report pass rate
+  **and** variance.
+- **P7.** v1 inputs = **text primary sources only** (exclude image/map/chart per
+  [`01b`](01b_taxonomy_supplement.md) §3; secondary-source F5 deferred).
 
-**Kill-criteria — a single result that flips the verdict:**
+**Kill-criteria — a single observation that flips the verdict:**
 
-| Observation in the litmus / v1 run | Flips to | Why |
+| Observation (litmus or v1 run) | Flips to | Why |
 | :--- | :--- | :--- |
-| **Prompted base 4B ≥80%** expert-grade on the scope | **DON'T BUILD** | The litmus fails — a prompt already does it reliably; fine-tuning earns nothing [spec §"litmus"]. |
-| **Frontier teacher <50–70%** even with few-shot, on the scope | **RETHINK** | No clean labels to distill. Reframe: (a) supply the data object/passage and have the model *write the item around it* rather than invent the scenario; (b) add retrieval grounding for facts; (c) narrow to `MECHANISM_PERTURBATION` only. |
-| Tuned-4B **single-best-answer correctness stays <~85%** after data iteration **and** with the verifier | **RETHINK scope** | SC5 (the true crux) is unrecoverable at this scope/size → drop to one archetype, add retrieval, or move to a "grade/repair an item" output unit instead of "generate from scratch." |
-| Tuned model beats base on clean notes but **collapses on messy/multi-concept notes** (SC6) | **NARROW inputs** | Constrain to clean principle-card notes for v1; treat robustness as a v2 (adversarial) rung. |
+| **Prompted base 4B ≥80%** expert-grade on the scope | **DON'T BUILD** | A prompt already does it reliably; fine-tuning earns nothing (the spec's litmus). |
+| **Frontier teacher `key_valid_rate` <70%** even with few-shot | **RETHINK** | No clean labels to distill. Reframe: change the output unit to "**repair/grade** an item" or "select-and-justify from a **provided candidate answer set**"; add retrieval grounding; or narrow to `CAUSE_OF_SOURCE` only. |
+| Tuned-4B **SC-KEY stays <~85%** after data iteration **and** with the verifier | **RETHINK scope** | The crux is unrecoverable at this scope/size → drop to one archetype, tighten grounding to a candidate set, or switch to the repair/grade output unit. |
+| Tuned beats base on clean sources but **collapses on terse/adversarial notes** | **NARROW inputs** | Constrain to clean primary-source inputs for v1; treat robustness as a v2 adversarial rung. |
+| Prompted base already ≥80% on `DEVELOPMENT_ILLUSTRATED` | (expected) confirms **DON'T-BUILD** that archetype | Low delta; don't spend capacity on it. |
 
-**The single most decision-relevant result:** whether the **frontier teacher can
-reliably produce expert-grade `MECHANISM_PERTURBATION` / `THEORY_PLUS_STUDY`
-items** in the litmus run. Teacher-can + base-can't = the textbook distillation
-BUILD regime and the 92% holds. Teacher-can't = RETHINK immediately, because
-every downstream number depends on the label quality the teacher provides.
+**The single most decision-relevant number** is the litmus **`key_valid_rate`** of
+the *frontier teacher* on the causation pair. Teacher-can-key + base-can't = the
+textbook distillation BUILD regime and the 91% holds. Teacher-can't-key = RETHINK
+immediately, because every downstream number depends on the label quality the
+teacher provides.
 
 ---
 
-## 6. Evidence ledger (what each source actually supports)
+## 6. Evidence ledger (what each source actually supports — and its caveat)
 
-- **[loraland]** LoRA Land (arXiv:2405.00732): 310 QLoRA fine-tunes (≤8B) beat
-  base by +34 and GPT-4 by +10 avg; best fine-tune 0.756 vs GPT-4 0.661. **But**
-  GPT-4 still wins 6/31 on *broad* tasks (coding, MMLU); fine-tune wins are on
-  *narrow, classification-like* tasks. → Supports "narrow + tuned wins";
-  cautions that these are 7B/classification, not ≤4B generative quality.
 - **[arith-2025]** *How LLMs Perform Arithmetic Reasoning in 2025*: Qwen3-0.6B
-  1.4% vs 85.8% (mode-dependent format collapse); Qwen3-4B/8B robust 96%+;
-  4B≈8B. → Direct basis for the **0.6B→4B reliability cliff** and the size pick.
-- **[easymath]** EasyMath (arXiv:2505.14852): SLMs fail multi-digit/large-number
-  arithmetic; "direct distillation of complex reasoning often fails… they do
-  better with shorter, simpler chains." → Exclude `QUANTITATIVE_APPLICATION`;
-  keep reasoning to ~2 hops.
+  1.4% vs 85.8% (mode-dependent format collapse); Qwen3-4B/8B robust 96%+, 4B≈8B.
+  → **The direct basis for the 0.6B→4B reliability cliff and the 4B pick.**
+  *Caveat:* it's arithmetic/format, not history — but it's the most model-specific
+  evidence for the exact family the spec names.
 - **[slm-review]** *State of the Art… SLMs: A Systematic Review* (MDPI 2025):
-  ~1/5 of SLM failures are hallucination/inconsistency; lean models "fill gaps
-  with plausible fabrications"; **but** MobileLLM-350M matches Llama-2-7B on
-  narrow API-call tasks. → SC5 is the crux; narrow tasks are the exception.
-- **[struct-sql]** *KD with Structured CoT for Text-to-SQL* (arXiv:2512.17053):
-  distilling a **structured blueprint** beats unstructured-CoT distillation by
-  **+8.1**, mainly by cutting syntactic/schema errors in the SLM. → Direct
-  analogue for the closed-set distractor schema argument (§3a).
-- **[ccot]** *Contrastive CoT Fine-Tuning* (Zenodo 2025): pairing correct paths
-  with **labeled fallacies** via LoRA on Phi-2 → −hallucination, **+12.5%**. →
-  Supports distractor-as-named-error training and the DPO/negatives stretch rung.
-- **[kd-qlora]** KD-LoRA / KdQLoRA: QLoRA + KD is a standard, working recipe. →
-  Method feasibility.
-- **In-repo:** 82 first-principle seed cards (well-distributed), 60-concept
-  taxonomy, 169 OpenMCAT items *all with per-choice rationales + common-mistake
-  notes* (~23 mechanism-perturbation-ish, ~20 theory/data-ish; the LDH-R passage
-  is genuinely strong), 30×2 paraphrase transfer items. → Ceiling is non-zero
-  (a capable model *can* write these) and seed/eval scaffolding already exists;
-  says nothing about ≤4B, which the litmus must measure.
+  ~1/5 of SLM failures are factual/consistency hallucinations ("plausible
+  fabrications"); yet MobileLLM-350M matches Llama-2-7B on *narrow* tasks. →
+  **Basis for SC-KEY being the crux** (acute in fact-dense history) and for narrow
+  scope + grounding as the mitigation. *Caveat:* survey-level, domain-general.
+- **[mallen]** Mallen et al., *When Not to Trust Language Models* (ACL 2023, PopQA):
+  memorization is limited to *popular* facts; scaling barely helps the long tail;
+  retrieval (non-parametric memory) complements parametric memory. → **Grounds the
+  fact-density crux** (APUSH is long-tail-heavy) **and the table-grounding lever.**
+  *Caveat:* open-domain QA on GPT-Neo/OPT/GPT-3, not ≤4B item-writing.
+- **[slm-util]** *Can Small Language Models Use What They Retrieve?* (2025): even
+  with **oracle** retrieval, ≤7B models fail to extract the answer 85–100% of the
+  time on unknown facts (7B: **14.6%**); standard instruction-tuning is
+  insufficient for grounding, but **RAFT-style fine-tuning fixes utilization**. →
+  **The honest downward pressure** on the confidence (why 91%, not 95%), and the
+  reason grounding must be *trained in* (our recipe), plus the candidate-set
+  fallback. *Caveat:* open-domain QA, instruction-tuned baselines; our task is more
+  constrained (select-from-table, not extract-from-noisy-passage).
+- **[drag]** *DRAG: Distilling RAG for SLMs* (ACL 2025, arXiv:2506.01954):
+  distilling RAG (evidence + graph grounding) into SLMs cuts hallucination and
+  raises factual accuracy (>MiniRAG by up to 27.7%). → Supports the
+  **distillation + grounding** recipe as the SLM-appropriate path to factual
+  reliability. *Caveat:* QA/knowledge tasks, not MCQ authoring.
+- **[loraland]** *LoRA Land* (arXiv:2405.00732): 310 QLoRA fine-tunes (≤8B) beat
+  base by +34 and GPT-4 by +10 avg, concentrated on **narrow, classification-like**
+  tasks. → Directional support for "narrow + tuned wins" and the
+  **distractor-as-classification** argument (SC3). *Caveat, stated plainly:* the
+  headline wins are **7B and classification**, not ≤4B generative quality — so this
+  is *directional*, not proof for our size/task.
+- **[struct-sql]** *KD with Structured CoT* (arXiv:2512.17053): distilling a
+  **structured blueprint** beats unstructured-CoT distillation by **+8.1**, mainly
+  by cutting schema errors. → Direct analog for the **closed distractor-trap schema
+  + strict JSON** (SC3/SC4/SC-SKILL). *Caveat:* text-to-SQL — supports the *form*,
+  not history-fact recall (SC-KEY).
+- **[ccot]** *Contrastive CoT Fine-Tuning* (Zenodo 2025): pairing correct reasoning
+  with **labeled fallacies** (LoRA on Phi-2) → −hallucination, **+12.5%**. →
+  Supports **"distractor = named trap"** training and the DPO/negatives stretch.
+  *Caveat:* small benchmark; supports the training format, not fact recall.
+- **[kd-lora]** *KD-LoRA* (arXiv:2410.20777): LoRA + KD is a standard, working
+  efficient recipe. → **Method feasibility only.**
+- **[missed-mcq]** APUSH prep-corpus analysis: wrong answers are usually
+  *historically true* (the four traps); "most directly" = specific mechanism vs
+  broad background. → Grounds the **distractor menu** and the key insight that
+  "most directly" is a *reasoning* skill (winnable) even though its *uniqueness* is
+  the SC-KEY residual. *Caveat:* prep source, not peer-reviewed; corroborates CED.
+- **[CED-*]** College Board Course & Exam Description + sample MCQs: exam
+  structure, the six skills / three reasoning processes, periods/themes, and that
+  **every Section I MCQ is stimulus-based** (the basis for lever 1). *Caveat:* used
+  for taxonomy analysis only, never as training data.
+
+**Where external evidence is thin (APUSH-specific reasoning, flagged as such).**
+No public study measures ≤4B models *authoring history MCQs*. The SC-KEY numbers
+in §2 are therefore reasoned from (a) the fact-density + long-tail argument
+[slm-review, mallen]; (b) a first-principles coverage analysis of the date-check
+(necessary-not-sufficient → caps SC-KEY below the format sub-caps); and (c)
+analogy to the MCAT structural argument, discounted because APUSH lacks a
+fully-rule-derivable verifier. All three are assumptions the litmus `key_valid_rate`
+and the base-vs-tuned run will confirm or break (§5).
 
 ---
 
 ## 7. TL;DR
 
-- **BUILD, but narrow to two structurally-determined archetypes**
-  (`MECHANISM_PERTURBATION` + `THEORY_PLUS_STUDY`) on **Qwen3-4B**; **92%**
-  confidence on the required base-vs-tuned bar, conditional on a verification pass.
-- **Structural determinacy — not the "crown-jewel" label — is the feasibility
-  lever.** It turns novel-scenario, distractor, and answer-key work into
-  templated classification, the SLM sweet spot.
-- **Exclude** arithmetic (`QUANTITATIVE_APPLICATION`) and, notably, the user's
-  fact-heavy `CLINICAL_VIGNETTE_TO_DIAGNOSIS` from v1.
-- **The crux and the kill-switch are the same thing:** single-best-answer
-  correctness, gated by a verifier and by confirming the teacher's ceiling in the
-  litmus run before a single training step.
+- **BUILD, but narrow hard** to the two date-anchored causation archetypes
+  (`CAUSE_OF_SOURCE` anchor + `EFFECT_OF_SOURCE`) on **Qwen3-4B**; **~91%**
+  confidence on the required base-vs-tuned bar, **conditional** on table-grounding
+  + a verification pass + a confirmed teacher ceiling. `CONTEXT_SITUATION` is the
+  sanctioned first expansion.
+- **SC-KEY (single-best historical correctness) is the crux, and it is *worse*
+  than a science domain** — history isn't derivable from first principles, fact
+  density is high, and small models fabricate long-tail facts [slm-review, mallen].
+- **Structural determinacy is the counter-lever, but it is *partial*.** Provided
+  stimulus + closed stem menu + closed trap menu turn scenario/distractor/skill
+  work into templated selection (SLM sweet spot); the date-check is a real but
+  *necessary-not-sufficient* verifier — it catches wrong-era, not "most directly."
+- **Only a grounded + verified narrow scope clears 90%.** Strip grounding or the
+  verifier, drop below 4B, or widen past the pair, and confidence falls under the
+  bar.
+- **Explicitly OUT of v1:** `COMPETING_INTERPRETATIONS` and
+  `EVIDENCE_UNDERMINES_CLAIM` (highest expert-feel but no usable verifier and
+  double-key-prone), the recall-heavy `COMPARATIVE_ANALOG` / `CONTINUITY_OR_CHANGE`
+  (Tier-3), and **DON'T-BUILD** `DEVELOPMENT_ILLUSTRATED` (a prompted base likely
+  already passes).
+- **The crux and the kill-switch are the same thing:** single-best historical
+  correctness — gated by a verifier and by confirming the frontier teacher's
+  `key_valid_rate` in the litmus *before* a single training step.
