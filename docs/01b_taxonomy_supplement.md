@@ -1,110 +1,138 @@
-# MCAT Taxonomy Supplement — Additive Research
+# APUSH Taxonomy Supplement — Additive Research
 
-> **Companion to** [`01_mcat_question_taxonomy.md`](01_mcat_question_taxonomy.md) and
-> [`taxonomy/mcat_question_archetypes.json`](../taxonomy/mcat_question_archetypes.json).
-> Patterns found in supplementary AAMC/prep research that are **not yet** standalone
-> archetypes in the JSON catalog. v1 SLM scope intentionally uses only two archetypes;
-> this file preserves the full map for v2+ and agent iteration.
-
----
-
-## Science archetypes not yet in JSON
-
-### SIRS-1 (Knowledge)
-
-- **Conceptual contrast** — similarities/differences between two frameworks (e.g. operant vs classical conditioning); distractors swap direction or attribute features across frameworks.
-- **Stage/classification slot** — assign a case to Piaget stage, extinction type, etc.; neighbors are adjacent stages.
-
-### SIRS-2 (Applied reasoning)
-
-- **Sequence / symbolic application** — apply a rule to a novel string (start codon → count amino acids before stop); between recall and full quantitative application.
-- **Theory selection from model** — which sociological/psych theory best fits a diagram or campaign; rival-theory distractors.
-- **Causal-argument evaluation** — is a causal explanation licensed? Traps: correlation-as-causation, ignored third variables.
-- **Structural prediction (chem/bio)** — what bond/interaction forms if two structures were adjacent? Distinct from mechanism perturbation (no upstream/downstream chain).
-
-### SIRS-3 (Research & experiment)
-
-- **Technique-mechanism** — why SDS-PAGE separates by MW (charge/shape normalized); design logic, not IV/DV labeling.
-- **Research ethics violation** — identify breach of participant rights/safety/privacy (explicit AAMC Skill 3 bullet; **gap in current JSON**).
-- **Sampling & generalizability** — given recruitment method, judge external validity.
-- **Measure reliability/validity** — appropriateness of self-report vs behavioral measures.
-- **Third-variable / confound in correlational design** — name the confound explaining an association.
-- **Association vs causation design cues** — temporality, random assignment, controls.
-- **Method-type identification** — survey vs ethnographic vs experimental.
-
-### SIRS-4 (Data & statistics)
-
-- **Table-pattern → inference** — titration pKa table → which amino acid / side chain; ignore irrelevant columns.
-- **Central tendency choice** — median vs mean under skew (distinct from correlation framing).
-- **Random vs systematic error** — which error type explains a discrepancy.
-- **Claims licensed by study design** — longitudinal vs cross-sectional vs experimental.
-- **Alternative explanation for same data** — different mechanism, not “no conclusion.”
-- **Over-claim / beyond-the-evidence** — inverse of `DATA_TO_CONCLUSION`; pairs with uncertainty calibration.
-
-### Figure families (feed F3/F4)
-
-Recurring AAMC objects: dose–response, time-course, bar + error bars, kinetics/transport curves. Stem patterns: missing control, best additional experiment, saturation/EC50/Km shift.
+> **Companion to** [`01_apush_question_taxonomy.md`](01_apush_question_taxonomy.md)
+> and [`taxonomy/apush_question_archetypes.json`](../taxonomy/apush_question_archetypes.json).
+> Material that is either **out of the primary MCQ scope** (the free-response
+> question types) or **not yet a standalone archetype** in the JSON. v1 SLM scope
+> intentionally uses a subset of MCQ archetypes; this file preserves the full map
+> for v2+ and for agent iteration.
 
 ---
 
-## CARS subtypes (out of primary SLM scope)
+## 1. The free-response question types (out of primary scope)
 
-AAMC CARS skill weights (30/30/40) match our JSON. Missing **named subtypes**:
+The SLM's task ("notes → questions") targets the **machine-checkable MCQ**. The
+three free-response types produce *open-ended prose graded by rubric*, so they
+are not single-best-answer items and are excluded from v1. They are mapped here
+because (a) they share the same skill spine, and (b) a v2 stretch could generate
+**FRQ prompts** (not answers), which *is* a constrained generation task.
 
-**Foundations (30%)**
+### 1a. Short-Answer Question (SAQ) — 3 questions, 40 min, 20%
 
-- Author tone / attitude / bias
-- Passage structure (cause-effect vs chronology vs point-counterpoint)
-- Rhetorical function (local phrase / transition)
+- **Shape:** a prompt with parts **(a), (b), (c)**, each asking for a *brief*
+  identify/describe/explain. Q1 includes 1–2 **secondary** sources; Q2 includes 1
+  **primary** source; Q3/Q4 (student choice) have **no stimulus**. [CED-exam]
+- **Skill spine:** P1 (developments), P3 (claims/evidence), P5 (a reasoning
+  process). A very common SAQ shape is the **secondary-source pair**: *"describe
+  one difference between the two historians' interpretations; explain one piece of
+  evidence that supports each."* — the open-ended twin of the MCQ archetype
+  `COMPETING_INTERPRETATIONS`.
+- **Why v2, not v1:** grading requires a rubric-based LLM-judge on free text
+  (no closed option set), so the answer-key verifier that anchors MCQ feasibility
+  does not apply. Generating *SAQ prompts* is feasible; grading answers is a
+  separate project.
 
-**Reasoning within the text (30%)**
+### 1b. Document-Based Question (DBQ) — 1 question, 60 min, 25%
 
-- Thesis scope traps (too narrow, too broad, reversed stance)
-- Paradox / inconsistency across sections
-- Perspective attribution (author vs quoted views)
-- Argument evaluation (claims, evidence, faulty causality)
+- **Shape:** a prompt + **7 documents**; the student writes a thesis-driven essay
+  using ≥6 documents, ≥1 piece of outside evidence, and document sourcing (POV /
+  purpose / situation / audience for ≥3 docs). Range **1754–1980**. Scored on a
+  7-point rubric (thesis, context, evidence, sourcing, complexity). [CED-exam,
+  CED-sample]
+- **Skill spine:** all of P2, P3, P4, P5, P6 at once — the fullest expression of
+  the discipline.
+- **Relevance to the SLM:** the DBQ is a *goldmine of exemplar stimuli* — its
+  documents are exactly the kind of primary/secondary excerpts our MCQ generator
+  needs. Legally, we source equivalent public-domain documents ourselves rather
+  than reuse College Board's document sets (see
+  [`05_data_sourcing_and_legal.md`](05_data_sourcing_and_legal.md)).
 
-**Reasoning beyond the text (40%)**
+### 1c. Long-Essay Question (LEQ) — choose 1 of 3, 40 min, 15%
 
-AAMC splits **Apply/Extrapolate** and **Incorporation** (not one bucket):
-
-- Apply / extrapolate — extend passage logic to novel scenario
-- Analogy mapping — shared underlying relationship
-- Incorporation support/contradict — new info supports, contradicts, or coexists
-- Incorporation least disruption — which new fact least alters the thesis
-- Author agreement — “author would most likely agree / find troubling”
+- **Shape:** three prompt options at different period bands (1491–1800 /
+  1800–1898 / 1890–2001), **same reasoning process** across all three (all
+  causation, or all comparison, or all CCOT); student writes a thesis essay with
+  **no documents**. 6-point rubric. [CED-exam]
+- **Relevance:** the LEQ prompt itself is a clean, constrained generation target
+  (a well-formed comparison/causation/CCOT prompt at a given period) — a plausible
+  v2 output unit that reuses the reasoning-process menu without needing an
+  answer-key verifier.
 
 ---
 
-## Surface overlays to add (future JSON v2)
+## 2. MCQ archetypes / patterns not yet standalone in the JSON
+
+Recurring MCQ shapes found in the CED sample set and prep-source corpora that are
+folded into existing archetypes today but could be split out for v2:
+
+| Candidate archetype | Skill | Shape | Note |
+| :--- | :--- | :--- | :--- |
+| `MAIN_POINT_OF_SOURCE` | P1/P3 | "the author's main argument is best summarized as…" | pure comprehension; low expert-feel; base model likely already passes → **don't-build** candidate |
+| `POINT_OF_VIEW` | P2 | "the author would most likely agree with…" | currently a `stem_template`; split from `SOURCE_POV_PURPOSE` if needed |
+| `SERVES_AS_EVIDENCE_FOR_CLAIM` | P3 | "best serves as evidence for the [quoted sub-claim]" | narrower than `EVIDENCE_SUPPORTS_CLAIM`; anchors to a quoted phrase (CED Q8) |
+| `PRIMARY_PAIR_COMPARISON` | R1 | two **primary** sources; "these two authors would most disagree about…" | the primary-source twin of `COMPETING_INTERPRETATIONS` |
+| `MAP_DEVELOPMENT` | P4/GEO | described map → "the pattern shown resulted from…" | needs a described map stimulus (see §3) |
+| `CHANGE_OVER_TIME_TABLE` | R3 | described multi-decade table → "which best explains the change from X to Y" | the CCOT twin of the chart-causation item |
+
+These are intentionally **not** in v1 scope; the JSON keeps the catalog tight so
+the SLM trains on a narrow, high-reliability distribution (per the spec's "no
+broad domains" rule).
+
+---
+
+## 3. Text-only handling of image / map / chart stimuli
+
+A 0.6B–4B **text** model cannot see an image. APUSH uses images heavily (cartoons,
+posters, photos, maps, charts). Two options:
+
+1. **Exclude image/map/chart stimuli from v1** (simplest; keeps scope to text
+   primary/secondary sources — recommended for the first build).
+2. **Render the visual as a structured text stimulus** — the way a released exam's
+   *description* would read — so the item is answerable from prose:
+
+```
+STIMULUS (image, described):
+  type: political_cartoon
+  attribution: "Puck magazine, 1901"
+  caption: "<the printed caption, if any>"
+  description: "<2-4 sentences of neutral visual description: who/what is
+    depicted, symbols, labels, and the depicted stance — WITHOUT stating the
+    answer to any question about it>"
+```
+
+The hard rule (JSON overlay `IMAGE_STIMULUS`): the **description must not state
+the answer**; it describes *what is depicted*, and the item still requires outside
+knowledge to interpret. This mirrors how the real exam works (the image + a short
+attribution; the interpretation is the student's job). For v1 we recommend
+**text primary/secondary only**, and treat described-image support as a v2 rung.
+
+---
+
+## 4. Additional surface overlays (future JSON v2)
 
 | Overlay | Rule |
 | :--- | :--- |
-| `BEST_ANSWER` | “Most likely / best supported”; >1 partially true option |
-| `LEAST_SUPPORTED` | Negative framing when all options are plausible |
-| `PASSAGE_BOUND` | CARS: answer must cite passage-only support |
-| `DISCRETE_STEM` | Standalone item (~25% of science section); no passage |
+| `EXCEPT_FRAMING` | "All of the following… EXCEPT" — three era-true developments, one that doesn't fit; the odd-one-out must not be giveaway-obvious |
+| `TWO_SOURCE_SET` | the stimulus is *two* sources; items may compare them (feeds `COMPETING_INTERPRETATIONS` / `PRIMARY_PAIR_COMPARISON`) |
+| `QUOTED_SUBCLAIM` | the stem quotes a specific phrase from the source and asks for its evidence/meaning (CED Q8, Q10) |
+
+Note: APUSH MCQs **rarely** use Roman-numeral or "all of the above" formats
+(unlike some other exams); the dominant format is a single "best-answer" stem with
+four homogeneous options. The generator should default to that.
 
 ---
 
-## AAMC vs generic MCQ (generation heuristics)
+## 5. Notes & corrections vs the authoritative CED
 
-Already encoded in taxonomy §7; additional AAMC-specific markers:
-
-- Passage-integrated novelty — answer not recallable without the passage/data object
-- Partial-truth traps — three competitive wrong answers, not one silly option
-- Experimental subtlety — confounds need domain mechanism (not “increase sample size”)
-- Scope-calibrated correctness — “consistent but not diagnostic” often *correct*
-
----
-
-## Corrections vs authoritative AAMC
-
-| Existing | Issue | Fix |
+| Claim | Status | Note |
 | :--- | :--- | :--- |
-| F1 label “Knowledge & Discrimination” | AAMC: “Knowledge of Scientific Concepts and Principles” | Naming only |
-| SIRS-3 family | Ethics is an explicit Skill 3 bullet | Add `RESEARCH_ETHICS` archetype in v2 |
-| CARS Beyond-the-Text subtypes | Collapsed into strengthen/weaken + apply | Split Apply vs Incorporation per AAMC PDF |
-| Concept count in docs | Stated “60” in places | **`speedrun_concepts.json` has 56** |
+| Theme code for Politics and Power | **PCE** | Some prep sites abbreviate "POL"; the CED uses **PCE**. |
+| MCQ per-skill percentages | **not published** | Unlike MCAT SIRS weights, College Board does not publish a fixed skill-mix for the MCQ; scope decisions use command-phrase frequency + expert-feel, not an official %. |
+| Period ranges overlap | **intended** | e.g., Period 4 ends 1848, Period 5 begins 1844 — thematic, not strict boundaries (CED "note about periodization"). |
+| "Every MCQ is stimulus-based" | **confirmed** | CED exam page: Section I Part A questions appear in sets of 3–4 based on primary/secondary sources, images, graphs, and maps. |
+| Digital format (2025+) | **confirmed** | Exam is delivered in the Bluebook app; structure/timing unchanged. |
 
-Sources: [AAMC SIRS PDF](https://students-residents.aamc.org/media/9061/download), [AAMC CARS PDF](https://students-residents.aamc.org/media/9271/download).
+Sources for this supplement: College Board AP U.S. History CED and Exam page
+[CED-exam, CED-skills, CED-reasoning, CED-content, CED-sample]; see
+[`sources.md`](sources.md) for URLs. Prep-source corpora [missed-mcq,
+reasoning-guide] corroborate the distractor-trap and command-phrase taxonomy.

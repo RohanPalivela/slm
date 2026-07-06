@@ -1,120 +1,117 @@
 # Research Sources
 
-Sources consulted for the MCAT question taxonomy (Deliverable 1). AAMC is the
-primary authority; psychometric guidance grounds the "what makes a good
-question" section; test-prep sources corroborate the surface-form taxonomy.
+Sources for the APUSH question taxonomy (Deliverable 1) and the SLM feasibility
+assessment (Deliverable 3). The College Board Course and Exam Description (CED)
+is the primary authority; prep-source corpora corroborate the distractor-trap and
+command-phrase taxonomy; the feasibility evidence grounds what fine-tuned small
+models can/cannot do reliably.
 
-## Primary — AAMC (official)
+## Primary — College Board (official)
 
-- **Scientific Inquiry and Reasoning Skills** (SIRS 1–4 with worked examples per
-  section) — https://students-residents.aamc.org/media/9061/download
-- **What's on the MCAT Exam?** (full content outline: 10 Foundational Concepts,
-  Content Categories, per-section SIRS distribution 35/45/10/10, discipline
-  percentages) — https://students-residents.aamc.org/media/9261/download
-- **Scientific Inquiry & Reasoning Skills: Overview** —
-  https://students-residents.aamc.org/whats-mcat-exam/scientific-inquiry-reasoning-skills-overview
-- **CARS Section: Overview** (3 skills; 30/30/40 weighting) —
-  https://students-residents.aamc.org/whats-mcat-exam/critical-analysis-and-reasoning-skills-section-overview
-- **CARS Section: Passage Types** —
-  https://students-residents.aamc.org/critical-analysis-and-reasoning-skills/critical-analysis-and-reasoning-skills-section-passage-types
+- **[CED-*] AP U.S. History Course and Exam Description** (the core framework:
+  6 historical thinking skills, 3 reasoning processes with sub-aspects, 9 periods
+  with exam weighting, 8 themes, and a full **Sample Exam Questions** section with
+  official stimulus-based MCQs) —
+  https://apstudents.collegeboard.org/sites/default/files/2019-05/ap-us-history-course-and-exam-description.pdf
+  - `[CED-skills]` Historical Thinking Skills (Developments and Processes; Sourcing
+    and Situation; Claims and Evidence in Sources; Contextualization; Making
+    Connections; Argumentation).
+  - `[CED-reasoning]` Reasoning Processes (Comparison §1.i–iii; Causation §2.i–v;
+    Continuity and Change §3.i–iii).
+  - `[CED-content]` Nine periods (1491–present) with per-unit exam weighting
+    (Units 1 & 9: 4–6% / 6–8%; core Units 3–8: 10–17% each) and eight themes
+    (NAT, WXT, GEO, MIG, PCE, WOR, ARC, SOC).
+  - `[CED-sample]` Sample Exam Questions — official stimulus-based MCQ sets
+    (Declaratory Act 1766; Erie Canal / Larson; Republican platform 1860; 1940s
+    Boeing image; Ford 1974) used in this repo for **taxonomy analysis only**, not
+    as training data.
+- **[CED-exam] AP United States History — Exam page** (section structure, timing,
+  weights; "questions usually appear in sets of 3–4"; primary/secondary sources,
+  images, graphs, maps; SAQ/DBQ/LEQ specifics) —
+  https://apcentral.collegeboard.org/courses/ap-united-states-history/exam
+- **AP U.S. History Course page** (six historical thinking skills summary; eight
+  themes; nine units) —
+  https://apcentral.collegeboard.org/courses/ap-united-states-history
+- **[sg] AP U.S. History Scoring Guidelines (2025)** (DBQ/LEQ rubrics: thesis,
+  contextualization, evidence, sourcing, complexity) —
+  https://apcentral.collegeboard.org/media/pdf/ap25-sg-us-history-set-1.pdf
 
-## Section structure & surface-form taxonomy (test prep, corroborating)
+## MCQ design, distractor architecture & command phrases (prep corpora, corroborating)
 
-- Kaplan — *What's Tested on the MCAT* (section counts; passage vs discrete) —
-  https://www.kaptest.com/study/mcat/whats-tested-on-the-mcat-2/
-- Kaplan — *What's Tested on the MCAT: CARS* (CARS sub-types: Main Idea, Detail,
-  Inference, Definition-in-Context, Function, Strengthen–Weaken, Apply) —
-  https://www.kaptest.com/study/mcat/whats-tested-on-the-mcat-cars/
-- MedSchoolCoach — *The 4 MCAT Sections* —
-  https://www.medschoolcoach.com/mcat-sections/
-- King of the Curve — *Top 5 MCAT Question Types* and *Passage Approach*
-  (data interpretation, experimental design, application, Roman-numeral) —
-  https://kingofthecurve.org/blog/mcat-question-types-strategies
-- schoolbag.info — *General Chemistry Strategy for the MCAT* (three science
-  passage types; Roman-numeral & EXCEPT/LEAST/NOT strategy) —
-  https://schoolbag.info/chemistry/mcat_general_2015/2.html
-- JackWestin — *CARS Strategy (2026)* and *CARS Passage Mapping* —
-  https://jackwestin.com/blog/mcat-cars-strategy-2026/
+- **[missed-mcq] "APUSH Most Missed MCQ Topics: 8 Trap Clusters, Wrong Answer
+  Logic"** — the four distractor traps (wrong-era, historically-true-but-wrong,
+  scope-mismatch, partially-true), the "most directly" specific-vs-background
+  distinction, and worked eliminations —
+  https://www.apushistoryexamprep.com/ap-us-history-most-missed-mcq-topics.html
+- **[reasoning-guide] "AP U.S. History Historical Thinking Skills"** (command
+  phrase → skill mapping; "read the prompt as a skill signal") —
+  https://www.apushistoryexamprep.com/ap-us-history-historical-thinking-skills.html
+- **RevisionDojo — APUSH MCQ approach / exam format 2025** (sets of 2–4 on a
+  stimulus; predict-then-eliminate; wrong-era elimination) —
+  https://www.revisiondojo.com/blog/how-to-approach-apush-multiple-choice-questions-proven-2025-guide
+  and https://www.revisiondojo.com/blog/the-apush-exam-format-explained-complete-2025-guide
+- **UWorld — APUSH exam format** (section table; "many questions include
+  historical sources; interpret and connect") —
+  https://collegeprep.uworld.com/ap/ap-us-history/exam-format-and-information/
+- **APUSH source-analysis guide** (primary vs secondary; POV/audience/purpose;
+  "understand the source AND connect to outside knowledge") —
+  https://www.apushistoryexamprep.com/ap-us-history-primary-vs-secondary-sources.html
+- **Perfection Learning / Barron's** (reasoning processes; themes; core periods
+  ~80%) — https://perfectionlearning.com/nextstep/historical-thinking-skills ;
+  https://www.barronseduc.com/blogs/ap/post/how-to-study-for-ap-us-history-exam
 
-## Item-writing / distractor quality (psychometric authority)
+## Data sourcing & legality
 
-- **Medical Council of Canada** — *Multiple-choice question guidelines*
-  (homogeneous options; plausible distractors from misconceptions; no
-  all/none-of-the-above) — https://mcc.ca/wp-content/uploads/Multiple-choice-question-guidelines.pdf
-- **NBME** guidance as summarized in: *The Art and Science of Item Writing: A
-  Review of Established Guidelines for Multiple Choice Questions* —
-  https://files.eric.ed.gov/fulltext/EJ1494236.pdf
-- *Assessment of distractor functionality in MCQs* (functional distractor = one
-  chosen by >=5% of students; need >=3 functional distractors) —
-  https://journals.lww.com/mjdy/fulltext/2026/02000/assessment_of_distractor_functionality_in_multiple.4.aspx
-- *The Importance of Writing Effective Distractors* (Haladyna & Rodriguez;
-  distractors from novice errors via think-aloud) —
-  https://theelearningcoach.com/elearning_design/tests/the-importance-of-writing-effective-distractors/
+See [`05_data_sourcing_and_legal.md`](05_data_sourcing_and_legal.md) for the full,
+citation-backed legal analysis (OpenStax CC BY, public-domain primary-source
+repositories, College Board copyright/fair-use, and open MCQ datasets).
 
-## In-repo assets (see `prev_data/`)
+## SLM feasibility evidence (Deliverable 3)
 
-- `speedrun_question_bank.json.gz` — 1,586 MCQs (169 OpenMCAT w/ passages &
-  per-choice explanations; 1,417 MMLU MCAT-relevant). Legally reusable
-  (AGPL-3.0 / MIT) per `prev_data/build_question_bank.py` header.
-- `speedrun_concepts.json` — 60-concept content taxonomy across 7 topics.
-- `speedrun_first_principles.json` — hand-authored first-principle cards.
-- `speedrun_paraphrase.json` — 30 cards × 2 reworded transfer items.
-
-## SLM feasibility evidence
-
-Sources consulted for the SLM feasibility assessment (Deliverable 3,
-`docs/03_feasibility_assessment.md`). These ground the claims about what
-fine-tuned small models (0.6B–4B, QLoRA + distillation) can and cannot do
-reliably, and the size/scope decision.
+These ground the claims about what fine-tuned small models (0.6B–4B, QLoRA +
+distillation) can and cannot do reliably, and the size/scope decision. They are
+domain-general SLM findings (not APUSH-specific) and are the same evidence base a
+reliability-first, distillation-based fine-tuning project should reason from.
 
 ### Pro — fine-tuned small models win at narrow, structured tasks
 
-- **LoRA Land: 310 Fine-tuned LLMs that Rival GPT-4** (Zhao et al., 2024) —
-  arXiv:2405.00732 — https://arxiv.org/abs/2405.00732 . 310 QLoRA fine-tunes
-  across 10 base models (≤8B) and 31 tasks; 4-bit LoRA beats base by ~34 pts and
-  GPT-4 by ~10 pts on average (best fine-tune 0.756 vs GPT-4 0.661). *Caveat:*
-  GPT-4 still wins 6/31 on broad/complex tasks (Python, MMLU); fine-tune wins are
-  concentrated in narrow, classification-oriented tasks. Models are 7B, tasks are
-  mostly classification (directional support, not proof, for ≤4B generative
-  quality).
-- **Knowledge Distillation with Structured Chain-of-Thought for Text-to-SQL**
-  (Thaker & Bresler, 2025) — arXiv:2512.17053 —
-  https://arxiv.org/abs/2512.17053 . Distilling a *structured* formal blueprint
-  into an SLM (via QLoRA) beats unstructured-CoT distillation by +8.1 pts,
-  chiefly by cutting syntactic/schema errors — the direct analogue for the
-  closed-set distractor-schema argument.
-- **Mitigating Hallucination in SLMs via Contrastive Chain-of-Thought
-  Fine-Tuning** (Baker & Al-Qrize, 2025) — Zenodo,
-  https://doi.org/10.5281/zenodo.18538736 . Pairing correct reasoning with
-  explicitly labeled logical fallacies (LoRA on Phi-2) reduces hallucination and
-  improves final-answer accuracy by +12.5% vs standard fine-tuning — supports
-  "distractor = named error" training and the DPO/negatives stretch rung.
-- **KD-LoRA: A Hybrid Approach to Efficient Fine-Tuning with LoRA and Knowledge
-  Distillation** (2024) — arXiv:2410.20777 — https://arxiv.org/abs/2410.20777 .
-  Establishes LoRA+KD as a standard efficient recipe (with the JKU "KdQLoRA"
-  thesis, https://epub.jku.at/obvulihs/download/pdf/11767041 , corroborating QLoRA+KD).
+- **[loraland] LoRA Land: 310 Fine-tuned LLMs that Rival GPT-4** (Zhao et al.,
+  2024) — arXiv:2405.00732 — https://arxiv.org/abs/2405.00732 . QLoRA fine-tunes
+  (≤8B) beat base by ~34 pts and GPT-4 by ~10 pts on average, concentrated in
+  **narrow, classification-oriented** tasks. *Caveat:* wins are 7B/classification,
+  so treat as directional support for "narrow + tuned wins," not proof for ≤4B
+  generative quality.
+- **[struct-sql] Knowledge Distillation with Structured Chain-of-Thought**
+  (2025) — arXiv:2512.17053 — https://arxiv.org/abs/2512.17053 . Distilling a
+  *structured blueprint* beats unstructured-CoT distillation by +8.1 pts, chiefly
+  by cutting schema errors — the analogue for the closed distractor-trap schema.
+- **[ccot] Mitigating Hallucination in SLMs via Contrastive CoT Fine-Tuning**
+  (2025) — Zenodo, https://doi.org/10.5281/zenodo.18538736 . Pairing correct
+  reasoning with **explicitly labeled fallacies** (LoRA on Phi-2) reduces
+  hallucination and improves accuracy by +12.5% — supports "distractor = named
+  trap" training and the DPO/negatives stretch.
+- **[kd-lora] KD-LoRA** (2024) — arXiv:2410.20777 — https://arxiv.org/abs/2410.20777
+  . LoRA + knowledge distillation as a standard efficient recipe.
 
 ### Counter-evidence — sub-4B weaknesses (the risks to design around)
 
-- **How Large Language Models Perform Arithmetic Reasoning in 2025** — OpenReview,
-  https://openreview.net/pdf?id=MYEr4iPFMn . Measures the exact Qwen3 family:
-  Qwen3-0.6B collapses to 1.4% accuracy in direct-answer mode (vs 85.8%
-  step-by-step) due to format-compliance failure, while Qwen3-4B/8B are robust
-  (96%+) across modes and 4B≈8B (0.5-pt gap). Direct basis for the documented
-  **0.6B→4B reliability threshold** and the 4B size pick.
-- **EasyMath: A 0-shot Math Benchmark for SLMs** (2025) — arXiv:2505.14852 —
-  https://arxiv.org/abs/2505.14852 . SLMs fail multi-digit/large-number
-  arithmetic and GSM-Symbolic-style perturbations; "direct distillation of
-  complex reasoning often fails to benefit them… they perform better with
-  shorter, simpler chains." Basis for excluding `QUANTITATIVE_APPLICATION` and
-  capping reasoning at ~2 hops.
-- **State of the Art and Future Directions of Small Language Models: A Systematic
-  Review** (MDPI, 2025) — https://www.mdpi.com/2504-2289/9/7/189 . ~1/5 of SLM
-  failures are factual/consistency hallucinations ("plausible-sounding
-  fabrications" from lean embedding spaces); but MobileLLM-350M matches
-  Llama-2-7B on narrow API-call tasks. Basis for treating single-best-answer
-  factual correctness (SC5) as the crux, and narrow scope as the mitigation.
-- **Test-Time Scaling for Multistep Reasoning in SLMs via Search** (2025) —
-  https://openreview.net/pdf/32d6610b7d8a0cd1f7fa9546333922a6e978073c.pdf .
-  Confirms SLM multi-step reasoning compounds early errors and is hallucination-
-  prone; motivates decomposition/verification passes over single forward passes.
+- **[arith-2025] How LLMs Perform Arithmetic Reasoning in 2025** — OpenReview,
+  https://openreview.net/pdf?id=MYEr4iPFMn . Qwen3-0.6B collapses to 1.4% in
+  direct-answer mode (format-compliance failure) vs 85.8% step-by-step, while
+  Qwen3-4B/8B are robust (96%+) and 4B≈8B. Basis for the **0.6B→4B reliability
+  cliff** and the 4B size pick.
+- **[slm-review] State of the Art … Small Language Models: A Systematic Review**
+  (MDPI, 2025) — https://www.mdpi.com/2504-2289/9/7/189 . ~1/5 of SLM failures are
+  **factual/consistency hallucinations** ("plausible-sounding fabrications"); but
+  MobileLLM-350M matches Llama-2-7B on narrow tasks. Basis for treating
+  single-best-answer **factual correctness as the crux** (acute for a fact-dense
+  domain like history) and narrow scope + grounding as the mitigation.
+- **[easymath] EasyMath: A 0-shot Math Benchmark for SLMs** (2025) —
+  arXiv:2505.14852 — https://arxiv.org/abs/2505.14852 . SLMs fail multi-step
+  numeric reasoning; "direct distillation of complex reasoning often fails… better
+  with shorter, simpler chains." Basis for capping reasoning at ~2 hops and
+  avoiding multi-step numeric stimuli.
+
+> **Citation key convention:** bracketed keys (e.g. `[CED-sample]`, `[missed-mcq]`,
+> `[loraland]`) are used inline throughout `docs/01*`, `docs/03`, and the planning
+> docs.

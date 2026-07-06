@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "title": "APUSH stimulus-based MCQ archetype catalog (agent-iterable)",
+  "exam": "AP United States History (College Board)",
+  "note": "Companion to docs/01_apush_question_taxonomy.md. On the AP U.S. History exam EVERY Section I Part A multiple-choice question is stimulus-based: a source (primary text, secondary/historian text, image/cartoon, map, or chart/table) is followed by a SET of 3-4 questions. A concrete item = (stimulus) x (historical-thinking skill / reasoning process) x (stem template) x (period+theme content). Families collapse the College Board practices + reasoning processes into generation buckets; archetypes are the named, generation-ready stem shapes an agent iterates over. The decisive generation levers are two CLOSED menus: (1) stem_templates (the command phrase, which signals the skill) and (2) distractor_traps (the four ways College Board makes a wrong answer plausible). 'expert_feel' and 'note_seedability' are 0-1 design heuristics for scope selection, not College Board data. 'anachronism_verifiable' flags archetypes whose answer key is checkable against a date table.",
+  "content_vocabulary_ref": "../data/apush_periods_themes.json",
+  "developments_table_ref": "../data/apush_key_developments.json",
+  "stimulus_corpus_ref": "../data/seed_stimuli.jsonl",
+
+  "exam_structure": {
+    "section_1a_mcq": { "questions": 55, "minutes": 55, "weight": 0.40, "form": "sets of 3-4 questions per shared stimulus", "note": "stimulus is ALWAYS present; ~every item couples source-interpretation with outside knowledge" },
+    "section_1b_saq": { "questions": 3, "minutes": 40, "weight": 0.20, "form": "3 short parts (a,b,c); Q1 secondary source(s), Q2 primary source, Q3/Q4 no stimulus" },
+    "section_2a_dbq": { "questions": 1, "minutes": 60, "weight": 0.25, "form": "7 documents; write a thesis-driven, evidence-based argument", "range": "1754-1980" },
+    "section_2b_leq": { "questions": 1, "minutes": 40, "weight": 0.15, "form": "choose 1 of 3; thesis-driven essay; one reasoning process", "options_by_period": ["1491-1800", "1800-1898", "1890-2001"] }
+  },
+  "primary_scope": "section_1a_mcq",
+  "out_of_primary_scope": ["section_1b_saq", "section_2a_dbq", "section_2b_leq"],
+  "reason_frq_out_of_scope": "SAQ/DBQ/LEQ are open-ended written answers graded by rubric, not machine-checkable single-best-answer items; see docs/01b for how the same skill spine maps to them.",
+
+  "historical_thinking_skills": [
+    { "id": "P1", "name": "Developments and Processes", "essence": "identify and explain historical developments and processes" },
+    { "id": "P2", "name": "Sourcing and Situation", "essence": "analyze point of view, purpose, historical situation, and audience of a source" },
+    { "id": "P3", "name": "Claims and Evidence in Sources", "essence": "analyze the argument of a source and what evidence supports or undermines it" },
+    { "id": "P4", "name": "Contextualization", "essence": "situate a source/event in the broader historical context that produced or surrounds it" },
+    { "id": "P5", "name": "Making Connections", "essence": "apply a reasoning process (comparison / causation / continuity-and-change) across developments" },
+    { "id": "P6", "name": "Argumentation", "essence": "develop and defend a historical argument (FRQ-facing; not a single-best-answer MCQ skill)" }
+  ],
+  "reasoning_processes": [
+    { "id": "R1", "name": "Comparison", "aspects": ["describe similarities/differences", "explain relevant similarities/differences", "explain relative significance of similarities/differences"] },
+    { "id": "R2", "name": "Causation", "aspects": ["describe causes/effects", "explain relationship of causes and effects", "distinguish primary vs secondary causes and short- vs long-term effects", "explain how context influenced a development", "explain relative significance of causes/effects"] },
+    { "id": "R3", "name": "Continuity and Change", "aspects": ["describe patterns of continuity/change over time", "explain patterns of continuity/change", "explain relative significance within a larger pattern"] }
+  ],
+
+  "content_axis": {
+    "periods": [
+      { "id": 1, "range": "1491-1607", "exam_weight": "4-6%", "core": false },
+      { "id": 2, "range": "1607-1754", "exam_weight": "6-8%", "core": false },
+      { "id": 3, "range": "1754-1800", "exam_weight": "10-17%", "core": true },
+      { "id": 4, "range": "1800-1848", "exam_weight": "10-17%", "core": true },
+      { "id": 5, "range": "1844-1877", "exam_weight": "10-17%", "core": true },
+      { "id": 6, "range": "1865-1898", "exam_weight": "10-17%", "core": true },
+      { "id": 7, "range": "1890-1945", "exam_weight": "10-17%", "core": true },
+      { "id": 8, "range": "1945-1980", "exam_weight": "10-17%", "core": true },
+      { "id": 9, "range": "1980-present", "exam_weight": "4-6%", "core": false }
+    ],
+    "periods_note": "Core periods 3-8 are ~80% of the exam; ranges intentionally overlap (College Board periodization).",
+    "themes": [
+      { "id": "NAT", "name": "American and National Identity" },
+      { "id": "WXT", "name": "Work, Exchange, and Technology" },
+      { "id": "GEO", "name": "Geography and the Environment" },
+      { "id": "MIG", "name": "Migration and Settlement" },
+      { "id": "PCE", "name": "Politics and Power" },
+      { "id": "WOR", "name": "America in the World" },
+      { "id": "ARC", "name": "American and Regional Culture" },
+      { "id": "SOC", "name": "Social Structures" }
+    ]
+  },
+
+  "stimulus_types": [
+    { "id": "primary_text", "feeds_skills": ["P2", "P3", "P4", "R2", "R3", "R1"], "note": "speech, law, letter, platform, court opinion, treaty, pamphlet, diary; author is a historical actor. Richest soil for sourcing + causation." },
+    { "id": "secondary_text", "feeds_skills": ["P3", "R1", "P5"], "note": "historian's interpretation; enables 'support/undermine the argument' and 'competing interpretations' — the crown-jewel argument-evidence items." },
+    { "id": "image_or_cartoon", "feeds_skills": ["P2", "P4", "R2"], "note": "political cartoon, poster, photograph; for a TEXT-ONLY SLM the image must be represented as a caption + prose description (see docs/01b)." },
+    { "id": "map", "feeds_skills": ["P1", "P4", "GEO"], "note": "settlement, expansion, election, migration maps; text-only SLM uses a described map." },
+    { "id": "chart_or_table", "feeds_skills": ["P1", "R3", "R2"], "note": "demographic/economic time-series; the 'pattern -> most direct cause' item lives here." }
+  ],
+
+  "stem_templates": [
+    { "id": "cause_of", "skill": "R2", "phrase": "Which of the following contributed most directly to <the development in the source>?", "answer_time_direction": "before_stimulus", "note": "answer is a CAUSE; keyed option must predate the stimulus." },
+    { "id": "effect_immediate", "skill": "R2", "phrase": "The <action/idea> in the excerpt most immediately led to ...", "answer_time_direction": "after_stimulus_short", "note": "answer is a SHORT-TERM effect." },
+    { "id": "effect_longterm", "skill": "R2", "phrase": "... most directly contributed to which of the following later characteristics/developments?", "answer_time_direction": "after_stimulus_long", "note": "answer is a LONG-TERM effect; borders on CCOT." },
+    { "id": "reflects_or_illustrates", "skill": "P1", "phrase": "The <source/image> most directly reflects / best illustrates which of the following developments?", "answer_time_direction": "contemporaneous", "note": "answer is the broader development the source is an instance of." },
+    { "id": "context_response_to", "skill": "P4", "phrase": "The <remarks/source> were most likely given in response to which of the following?", "answer_time_direction": "before_or_contemporaneous", "note": "answer is the situation that prompted the source." },
+    { "id": "influenced_by", "skill": "P4", "phrase": "The ideas expressed in the excerpt were most directly influenced by ...", "answer_time_direction": "before_stimulus", "note": "answer is an antecedent idea/movement." },
+    { "id": "purpose_intended_to", "skill": "P2", "phrase": "The <source/image> was most likely intended to ...", "answer_time_direction": "contemporaneous", "note": "answer is the author's purpose/goal (sourcing)." },
+    { "id": "point_of_view", "skill": "P2", "phrase": "The author's point of view is best described as / would most likely agree with ...", "answer_time_direction": "contemporaneous", "note": "answer is the stance implied by the source." },
+    { "id": "evidence_supports", "skill": "P3", "phrase": "Which of the following could best be used as evidence to support the argument in the <source>?", "answer_time_direction": "any_consistent", "note": "answer is an outside development that strengthens the source's claim. CROWN JEWEL." },
+    { "id": "evidence_undermines", "skill": "P3", "phrase": "Which of the following could best be used as evidence to challenge/undermine the argument in the <source>?", "answer_time_direction": "any_consistent", "note": "answer is an outside development that weakens the source's claim. CROWN JEWEL." },
+    { "id": "serves_as_evidence_for_claim", "skill": "P3", "phrase": "Which of the following best serves as evidence for the claim that <quoted claim>?", "answer_time_direction": "any_consistent", "note": "answer is the specific fact that grounds a quoted sub-claim." },
+    { "id": "similar_effect", "skill": "R1", "phrase": "Which of the following later developments had an effect most similar to that described in the excerpt?", "answer_time_direction": "after_stimulus", "note": "answer is a cross-time analog. Comparison + CCOT." },
+    { "id": "continuation_or_challenge", "skill": "R3", "phrase": "In <later decade>, the <activity/idea> would be most challenged by / most continued by ...", "answer_time_direction": "after_stimulus", "note": "answer is a later development that breaks or extends the pattern." },
+    { "id": "differs_from", "skill": "R1", "phrase": "The view in the excerpt differs from <other group/source> most significantly in that ...", "answer_time_direction": "contemporaneous", "note": "answer is the axis of difference between two positions." }
+  ],
+
+  "distractor_traps": {
+    "note": "THE core generation lever. College Board makes wrong answers plausible using exactly four architectures; every distractor an expert item uses is one of these, and each maps to a nameable error. An LLM's tell is filler distractors that fit none of these. Every generated distractor MUST be labeled with its trap id.",
+    "menu": [
+      { "id": "wrong_era", "rule": "a real development from a DIFFERENT time period than the stimulus/answer requires", "student_error": "recognizes the term, ignores chronology", "verifiable": "date-checkable against developments table" },
+      { "id": "true_but_irrelevant", "rule": "historically accurate for the era but does NOT answer the specific stem (wrong theme/mechanism)", "student_error": "picks a familiar true statement without checking it answers THIS question", "verifiable": "judge (theme/skill mismatch)" },
+      { "id": "scope_mismatch", "rule": "too broad (general background when the stem asks 'most directly'/specific mechanism) or too narrow (a single example when the stem asks for a trend)", "student_error": "matches topic but not the scale/directness the command phrase demands", "verifiable": "judge (granularity vs command phrase)" },
+      { "id": "partially_true", "rule": "one clause accurate, one clause fabricated/overstated (often joined by 'and'/'while'), or right direction with wrong magnitude", "student_error": "endorses the accurate half, misses the false half", "verifiable": "judge (clause-level fact check)" }
+    ],
+    "distribution_rule": "In a 4-option item the 3 distractors should span >=2 distinct trap types (never 3 copies of the same trap); at least one distractor should be the hardest available trap for that stem (usually true_but_irrelevant or scope_mismatch, which require real era knowledge to reject)."
+  },
+
+  "families": [
+    { "id": "F1", "name": "Comprehension & Sourcing", "skills": ["P1", "P2"], "expert_feel": 0.4, "essence": "read what the source says/is: its main point, its author's POV/purpose/audience, and the development it exemplifies" },
+    { "id": "F2", "name": "Contextualization", "skills": ["P4"], "expert_feel": 0.7, "essence": "connect the source to the broader situation that produced it or that it reflects" },
+    { "id": "F3", "name": "Causation", "skills": ["R2"], "expert_feel": 0.85, "essence": "identify the most-direct cause or effect of the development in the source" },
+    { "id": "F4", "name": "Continuity, Change & Comparison", "skills": ["R3", "R1"], "expert_feel": 0.9, "essence": "relate the development across time (continuation/change, later analog) or to a parallel development" },
+    { "id": "F5", "name": "Argument & Evidence", "skills": ["P3"], "expert_feel": 1.0, "essence": "evaluate a (usually secondary) source's ARGUMENT: what outside evidence would support or undermine it; compare rival interpretations" }
+  ],
+
+  "archetypes": [
+    {
+      "id": "DEVELOPMENT_ILLUSTRATED",
+      "family": "F1", "skill": "P1", "stem_template": "reflects_or_illustrates",
+      "expert_feel": 0.4, "note_seedability": 0.9, "anachronism_verifiable": false,
+      "input_needed": "a stimulus that is a concrete instance of a broader labeled development/process",
+      "shape": "give the source; ask which broader development it best illustrates/reflects; distractors are other developments of the same era (true_but_irrelevant) or adjacent eras (wrong_era)",
+      "good_example": {
+        "stimulus": "Larson (historian, 2001) on the Erie Canal enriching New York and spurring rival seaports to seek westward connections.",
+        "stem": "The excerpt best illustrates which of the following developments?",
+        "answer": "The expansion of access to markets (the Market Revolution)",
+        "distractors_rationale": ["extension of commerce with Native Americans (true_but_irrelevant: wrong theme)", "growth in the internal slave trade (true_but_irrelevant: real era, wrong mechanism)", "increase in semisubsistence agriculture (partially_true: opposite of the market integration described)"],
+        "source": "AP U.S. History CED, Sample Exam Q5 (analysis only, not training data)"
+      },
+      "llm_failure": "the 'development' just paraphrases the source (no outside label), or distractors are absurd/other-century so topic-matching gives it away",
+      "difficulty_levers": ["closeness of the competing developments", "abstractness of the correct label"]
+    },
+    {
+      "id": "SOURCE_POV_PURPOSE",
+      "family": "F1", "skill": "P2", "stem_template": "purpose_intended_to",
+      "expert_feel": 0.55, "note_seedability": 0.8, "anachronism_verifiable": false,
+      "input_needed": "a source with a discernible authorial goal / audience (persuasive primary source or propaganda image)",
+      "shape": "ask what the author most likely intended / whom they addressed / their stance; distractors are goals of adjacent movements (true_but_irrelevant) or later movements (wrong_era)",
+      "good_example": {
+        "stimulus": "1940s Boeing wartime poster depicting women in aircraft production.",
+        "stem": "The image was most likely intended to promote",
+        "answer": "the movement of women into jobs traditionally held by men",
+        "distractors_rationale": ["federal civil rights legislation (wrong_era / true_but_irrelevant)", "belief that women should have equal rights (scope_mismatch: broader ideology, not the poster's wartime-labor purpose)", "union membership regardless of race (true_but_irrelevant: wrong theme)"],
+        "source": "AP U.S. History CED, Sample Exam Q12 (analysis only)"
+      },
+      "llm_failure": "purpose is stated verbatim in the caption; distractors are not real period goals",
+      "difficulty_levers": ["primary vs image stimulus", "how close the decoy purposes are"]
+    },
+    {
+      "id": "CONTEXT_SITUATION",
+      "family": "F2", "skill": "P4", "stem_template": "context_response_to",
+      "expert_feel": 0.7, "note_seedability": 0.85, "anachronism_verifiable": true,
+      "input_needed": "a source that is a clear RESPONSE to a specific prior situation/crisis",
+      "shape": "ask what the source was most likely responding to; correct answer is the antecedent situation; distractors are wrong-era crises or contemporaneous-but-irrelevant events",
+      "good_example": {
+        "stimulus": "President Ford, Remarks on Taking the Oath of Office, 1974 ('our long national nightmare is over').",
+        "stem": "The remarks in the excerpt were most likely given in response to which of the following?",
+        "answer": "Political scandals resulting from the president's illegal campaign activity (Watergate)",
+        "distractors_rationale": ["wage/price-control 'socialism' accusations (true_but_irrelevant)", "antiwar protests / Kent State (wrong_era: 1970, and wrong cause)", "Cambodia/Laos invasions (true_but_irrelevant: real but not what prompted the oath)"],
+        "source": "AP U.S. History CED, Sample Exam Q15 (analysis only)"
+      },
+      "llm_failure": "the prompting event is named in the stimulus; distractors are not plausible same-era alternatives",
+      "difficulty_levers": ["how many same-era crises compete", "primary vs secondary stimulus"]
+    },
+    {
+      "id": "CONTEXT_INFLUENCED_BY",
+      "family": "F2", "skill": "P4", "stem_template": "influenced_by",
+      "expert_feel": 0.75, "note_seedability": 0.8, "anachronism_verifiable": true,
+      "input_needed": "a source expressing an idea with an identifiable intellectual/movement antecedent",
+      "shape": "ask which prior idea/movement most directly shaped the source's ideas; distractors are later movements (wrong_era) or same-era-but-unrelated movements (true_but_irrelevant)",
+      "good_example": {
+        "stimulus": "Republican Party platform, 1860, denying authority to give 'legal existence to slavery in any territory.'",
+        "stem": "The ideas expressed in the excerpt were most directly influenced by the",
+        "answer": "free-soil movement",
+        "distractors_rationale": ["nativist movement (true_but_irrelevant: same era, wrong idea)", "Texas independence movement (true_but_irrelevant / scope_mismatch)", "temperance movement (true_but_irrelevant: reform era, wrong domain)"],
+        "source": "AP U.S. History CED, Sample Exam Q9 (analysis only)"
+      },
+      "llm_failure": "the influence is a synonym of the source's own words; distractors are from unrelated centuries",
+      "difficulty_levers": ["closeness of the competing antecedents", "abstract idea vs named movement"]
+    },
+    {
+      "id": "CAUSE_OF_SOURCE",
+      "family": "F3", "skill": "R2", "stem_template": "cause_of",
+      "expert_feel": 0.85, "note_seedability": 0.85, "anachronism_verifiable": true,
+      "crown_jewel": true, "user_example": "conclusion from historic trends",
+      "input_needed": "a source describing a development that has an identifiable most-direct cause",
+      "shape": "ask what contributed MOST DIRECTLY to the development; the trap is a broad background condition vs the specific mechanism (scope_mismatch); distractors include a wrong-era cause and a true-but-irrelevant cause",
+      "good_example": {
+        "stimulus": "The Declaratory Act, passed by the British Parliament in 1766 (asserting authority to bind the colonies 'in all cases whatsoever').",
+        "stem": "Which of the following contributed most directly to the enactment of the law in the excerpt?",
+        "answer": "Debates over how Britain's colonies should bear the cost of the Seven Years' War",
+        "distractors_rationale": ["increasing cultural divergence (scope_mismatch: broad background, not the direct fiscal cause)", "drafting a declaration of independence (wrong_era: after 1766)", "conflicts over Native sovereignty (true_but_irrelevant)"],
+        "source": "AP U.S. History CED, Sample Exam Q1 (analysis only)"
+      },
+      "llm_failure": "restates the source as its own cause; offers no 'broad background vs direct mechanism' trap; distractors not date-consistent",
+      "difficulty_levers": ["presence of a tempting background-condition distractor", "one-hop vs two-hop causal chain", "primary vs chart stimulus (chart adds 'explain the pattern')"]
+    },
+    {
+      "id": "EFFECT_OF_SOURCE",
+      "family": "F3", "skill": "R2", "stem_template": "effect_immediate",
+      "expert_feel": 0.85, "note_seedability": 0.85, "anachronism_verifiable": true,
+      "crown_jewel": true,
+      "input_needed": "a source describing a development with an identifiable short- or long-term effect",
+      "shape": "ask what the development most immediately/directly led to; correct answer is the effect; distractors are wrong-era effects, reversed-direction effects (partially_true), or true-but-unconnected later events",
+      "good_example": {
+        "stimulus": "The Declaratory Act, 1766.",
+        "stem": "The actions described in the excerpt most immediately led to",
+        "answer": "Parliament strengthening its approach to generating new tax revenue in the colonies (e.g., Townshend Acts)",
+        "distractors_rationale": ["violent conflict between colonial regions (partially_true: conflict yes, but colonists vs Britain, not region vs region)", "a colonial convention calling for independence (wrong_era: premature)", "Britain delegating greater authority to assemblies (partially_true: opposite direction)"],
+        "source": "AP U.S. History CED, Sample Exam Q2 (analysis only)"
+      },
+      "llm_failure": "the 'effect' is another synonym for the source; the reversed-direction distractor is obviously false",
+      "difficulty_levers": ["short-term vs long-term effect", "presence of a reversed-direction (partially_true) distractor"]
+    },
+    {
+      "id": "LONGTERM_LEGACY",
+      "family": "F4", "skill": "R2", "stem_template": "effect_longterm",
+      "expert_feel": 0.85, "note_seedability": 0.75, "anachronism_verifiable": true,
+      "input_needed": "a source whose debates/ideas shaped a durable later feature of US government/society",
+      "shape": "ask which LATER characteristic/development the source's debates most directly contributed to; spans causation into CCOT; distractors are other real later features unconnected to this source",
+      "good_example": {
+        "stimulus": "The Declaratory Act, 1766, and colonial debates over parliamentary authority.",
+        "stem": "Debates over the claims of the British Parliament in the excerpt most directly contributed to which of the following later characteristics of the United States government?",
+        "answer": "The reservation of some governmental powers for the states (federalism)",
+        "distractors_rationale": ["presidential term limits (true_but_irrelevant: later, unconnected)", "taxation power in Congress (partially_true: related tension, but the Act's legacy is limits on central power, not granting it)", "judicial review (true_but_irrelevant: different origin, Marbury)"],
+        "source": "AP U.S. History CED, Sample Exam Q4 (analysis only)"
+      },
+      "llm_failure": "picks the most famous later feature regardless of causal link; no distractor forces cause-tracing",
+      "difficulty_levers": ["temporal distance to the legacy", "how many real later features compete"]
+    },
+    {
+      "id": "COMPARATIVE_ANALOG",
+      "family": "F4", "skill": "R1", "stem_template": "similar_effect",
+      "expert_feel": 0.9, "note_seedability": 0.7, "anachronism_verifiable": true,
+      "crown_jewel": true, "user_example": "conclusion from historic trends",
+      "input_needed": "a source describing a development with a characteristic effect that recurs later in US history",
+      "shape": "ask which LATER development had an effect MOST SIMILAR to the one described; correct answer shares the underlying mechanism/effect; distractors share surface topic but not the effect (true_but_irrelevant) or are wrong-era",
+      "good_example": {
+        "stimulus": "Larson (historian) on the Erie Canal's market integration and interregional competition.",
+        "stem": "Which of the following later developments had an effect most similar to that described in the excerpt?",
+        "answer": "The completion of the first transcontinental railroad in the 1860s",
+        "distractors_rationale": ["mechanical reaper, 1830s (true_but_irrelevant: raised farm output, not interregional market integration)", "annexation of Texas, 1840s (true_but_irrelevant: wrong theme)", "party competition of the 1850s (true_but_irrelevant: wrong theme)"],
+        "source": "AP U.S. History CED, Sample Exam Q7 (analysis only)"
+      },
+      "llm_failure": "matches on topic keyword instead of shared effect/mechanism; distractors not real later developments",
+      "difficulty_levers": ["how abstract the shared mechanism is", "how tempting the surface-topic decoys are"]
+    },
+    {
+      "id": "CONTINUITY_OR_CHANGE",
+      "family": "F4", "skill": "R3", "stem_template": "continuation_or_challenge",
+      "expert_feel": 0.9, "note_seedability": 0.7, "anachronism_verifiable": true,
+      "input_needed": "a source describing a pattern that is later extended OR reversed",
+      "shape": "ask what LATER development would most challenge (change) or most continue the pattern; correct answer is the later break/extension; distractors are wrong-direction or wrong-era",
+      "good_example": {
+        "stimulus": "1940s image of women in wartime industrial jobs.",
+        "stem": "In the 1950s, the activities of workers such as those depicted would be most challenged by",
+        "answer": "a culture of conformity that emphasized domestic ideals for women",
+        "distractors_rationale": ["need for dual incomes in suburbs (partially_true: coexisted, doesn't 'challenge' wartime work role)", "second-wave feminism (wrong_era: 1960s, and would extend not challenge)", "decline of industrial production (wrong_era: long-term, later)"],
+        "source": "AP U.S. History CED, Sample Exam Q14 (analysis only)"
+      },
+      "llm_failure": "confuses 'continues' with 'challenges'; distractor directions not distinct",
+      "difficulty_levers": ["challenge vs continue framing", "how adjacent the decoy decades are"]
+    },
+    {
+      "id": "EVIDENCE_SUPPORTS_CLAIM",
+      "family": "F5", "skill": "P3", "stem_template": "evidence_supports",
+      "expert_feel": 1.0, "note_seedability": 0.75, "anachronism_verifiable": true,
+      "crown_jewel": true,
+      "input_needed": "a source (often SECONDARY) making an explicit ARGUMENT that outside evidence could strengthen",
+      "shape": "ask which outside development best SUPPORTS the source's argument; correct answer is period-consistent and logically strengthens the specific claim; distractors are era-plausible facts that support a DIFFERENT claim (true_but_irrelevant) or that actually cut the other way (partially_true)",
+      "good_example": {
+        "stimulus": "Larson (historian), 2nd paragraph: rival seaports feared 'permanent eclipse' and scrambled for westward connections.",
+        "stem": "Which of the following developments could best be used as evidence to support the argument in the second paragraph?",
+        "answer": "The opposition of some political leaders to providing federal funds for public works (reflecting the interregional rivalry the author describes)",
+        "distractors_rationale": ["failure of some projects to recover costs (true_but_irrelevant: about viability, not rivalry)", "recruitment of immigrant laborers (true_but_irrelevant: labor, not rivalry)", "rise of a cotton export economy (scope_mismatch: regional economy, not the canal-rivalry claim)"],
+        "source": "AP U.S. History CED, Sample Exam Q6 (analysis only)"
+      },
+      "llm_failure": "any era-appropriate fact is offered as 'support' with no test of whether it strengthens the SPECIFIC claim; no distractor that supports a neighboring claim",
+      "difficulty_levers": ["support vs undermine framing", "how narrowly the claim is scoped", "secondary-source argument subtlety"]
+    },
+    {
+      "id": "EVIDENCE_UNDERMINES_CLAIM",
+      "family": "F5", "skill": "P3", "stem_template": "evidence_undermines",
+      "expert_feel": 1.0, "note_seedability": 0.7, "anachronism_verifiable": true,
+      "crown_jewel": true,
+      "input_needed": "a source making an argument that outside evidence could weaken",
+      "shape": "ask which outside development best CHALLENGES the argument; correct answer logically weakens the specific claim; distractors support it (partially_true reversal), are irrelevant, or are wrong-era",
+      "good_example": {
+        "stimulus": "A historian argues that Reconstruction failed primarily because Northern voters lost interest by the mid-1870s.",
+        "stem": "Which of the following could best be used to challenge the historian's argument?",
+        "answer": "The scale of white-supremacist terrorism and the Supreme Court's narrowing of the 14th Amendment, which undercut enforcement regardless of Northern opinion",
+        "distractors_rationale": ["the Compromise of 1877 withdrawing troops (partially_true: consistent WITH the argument, not against)", "passage of the 15th Amendment (true_but_irrelevant: earlier achievement)", "Plessy v. Ferguson, 1896 (wrong_era: post-Reconstruction formalization)"],
+        "source": "constructed to shape; grounded in docs/01 trap-cluster research"
+      },
+      "llm_failure": "offers a fact that CONFIRMS the argument as the 'challenge'; cannot distinguish support from undermine",
+      "difficulty_levers": ["how subtle the confirm-vs-challenge distinction is", "presence of a tempting confirming distractor"]
+    },
+    {
+      "id": "COMPETING_INTERPRETATIONS",
+      "family": "F5", "skill": "R1", "stem_template": "differs_from",
+      "expert_feel": 1.0, "note_seedability": 0.65, "anachronism_verifiable": false,
+      "crown_jewel": true,
+      "input_needed": "TWO secondary sources (or a source + a stated rival view) on the same development",
+      "shape": "ask how the two interpretations most significantly differ, or which evidence one historian would use against the other; correct answer names the true axis of disagreement; distractors name a point of agreement (partially_true) or a difference not actually present (fabricated)",
+      "good_example": {
+        "stimulus": "Peiss (1986): dance halls 'legitimized' working women's public leisure. Enstad (1999): the 1909 mass strike made working women political actors.",
+        "stem": "The interpretations differ most significantly over which of the following?",
+        "answer": "Whether working women's public presence was primarily cultural/consumer or primarily political",
+        "distractors_rationale": ["whether working women were active in public (partially_true: both agree they were)", "whether the women were immigrants (true_but_irrelevant: not the axis of dispute)", "whether the period was 1880-1929 (fabricated non-difference)"],
+        "source": "adapted from AP U.S. History CED SAQ secondary-source pair (analysis only)"
+      },
+      "llm_failure": "states a difference both historians actually share; or invents a disagreement not in the sources",
+      "difficulty_levers": ["how close the two interpretations are", "identify-the-axis vs pick-the-evidence framing"]
+    }
+  ],
+
+  "overlays": [
+    { "id": "IMAGE_STIMULUS", "applies_to": ["*"], "rule": "stimulus is a described political cartoon/poster/photo (caption + prose description); the answer must follow from the depicted content + era, not the caption alone", "failure": "caption gives away the answer; description is too vague to ground any option" },
+    { "id": "CHART_STIMULUS", "applies_to": ["CAUSE_OF_SOURCE", "CONTINUITY_OR_CHANGE", "COMPARATIVE_ANALOG"], "rule": "stimulus is a described data table/time-series; the correct answer must be forced by the described trend (e.g., a sharp post-1921 drop), turning causation into 'explain the pattern'", "failure": "answerable from memory without the described trend" },
+    { "id": "SET_OF_THREE", "applies_to": ["*"], "rule": "generate 3 non-redundant items on ONE stimulus, each a different skill/stem_template (e.g., cause + reflects + similar_effect), never re-testing the same fact", "failure": "two items key the same development or paraphrase each other" },
+    { "id": "SECONDARY_SOURCE", "applies_to": ["F5", "DEVELOPMENT_ILLUSTRATED"], "rule": "stimulus is a historian's ARGUMENT (dated to publication, cited); items test the argument, not the historian's era", "failure": "treats the historian's publication date as the historical period being tested" }
+  ],
+
+  "quality_checks": [
+    { "id": "stimulus_present_and_grounded", "type": "programmatic+judge", "rule": "every item has a stimulus (text/described image/described chart); the stem references it; the item is NOT answerable as free-floating trivia", "disqualifying": true },
+    { "id": "requires_outside_knowledge", "type": "judge", "rule": "the correct answer requires connecting the source to a development NOT stated in the source (the APUSH analog of 'familiar concept, unfamiliar scenario'); paraphrase-only items are rejected", "disqualifying": true },
+    { "id": "every_distractor_named_trap", "type": "judge", "rule": "each of the 3 distractors is labeled with exactly one distractor_traps.menu id and that label is defensible", "disqualifying": true },
+    { "id": "distractors_period_plausible", "type": "judge", "rule": "each distractor is a real, era-plausible development a good-but-imperfect student would consider; no absurd/anachronism-obvious or off-topic filler", "disqualifying": true },
+    { "id": "trap_diversity", "type": "programmatic", "rule": "the 3 distractors span >=2 distinct trap types", "disqualifying": false },
+    { "id": "skill_matches_command_phrase", "type": "judge", "rule": "the answer is the KIND of thing the stem_template demands (cause stem -> a cause; support stem -> a strengthener); reject answers that are merely 'related and true'", "disqualifying": true },
+    { "id": "anachronism_key_check", "type": "programmatic", "rule": "if archetype.anachronism_verifiable, the keyed answer's development date is consistent with stem_templates.answer_time_direction relative to the stimulus date (cause=before, effect=after); a wrong-era distractor must violate it", "disqualifying": true, "applies_to": ["anachronism_verifiable"] },
+    { "id": "single_best_answer", "type": "judge", "rule": "exactly one option fully answers the stem; others are clearly inferior; use 'most directly/best' framing when >1 is partly defensible", "disqualifying": true },
+    { "id": "homogeneous_options", "type": "programmatic+judge", "rule": "all four options are the same category (all developments, or all purposes, or all responses...), similar length/grammar; correct answer not the longest", "disqualifying": false },
+    { "id": "no_absolute_or_all_none", "type": "programmatic", "rule": "reject options with always/never/all-of/none-of; reject absolute-word tells", "disqualifying": true },
+    { "id": "cover_the_stem", "type": "judge", "rule": "a knowledgeable reader can state what is being asked from the stem+stimulus before reading options", "disqualifying": false }
+  ],
+
+  "generation_loop": [
+    "1. select a stimulus from stimulus_corpus_ref (legally-sourced primary/secondary text, or a described image/chart), tagged with period + theme + date",
+    "2. select an archetype (weighted by the Deliverable-3 scope decision) whose input_needed the stimulus satisfies",
+    "3. instantiate the archetype's stem_template against the stimulus (fill the command phrase)",
+    "4. derive the correct answer from (source claim) + (one outside development from developments_table_ref consistent with answer_time_direction)",
+    "5. author 3 distractors, each drawn from the distractor_traps menu, spanning >=2 trap types; label each with its trap id and the named error",
+    "6. self-filter against quality_checks (drop on any disqualifying failure); run anachronism_key_check where applicable",
+    "7. optionally apply SET_OF_THREE to produce a full stimulus set of 3 non-redundant items",
+    "8. keep survivors; log the (stimulus_id, archetype, period, theme, trap_types) tuple for coverage tracking"
+  ]
+}
