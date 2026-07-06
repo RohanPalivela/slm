@@ -109,7 +109,7 @@ College Board's terms explicitly prohibit reproduction, scraping, data-mining, a
 | :--- | :--- | :--- |
 | [`seed_stimuli.jsonl`](../data/seed_stimuli.jsonl) | 14 stimuli: 11 public-domain primary sources (Declaration, Federalist 10, Monroe Doctrine, Seneca Falls, Douglass 1852, Omaha Platform, Carnegie, Beveridge, + federal works FDR 1933 / Truman 1947 / Brown 1954) and 3 **synthetic** secondary-source arguments (project-authored) for the F5 crown-jewel archetypes | PD (≤1930 or federal) + original composition |
 | [`apush_periods_themes.json`](../data/apush_periods_themes.json) | 9 periods × 8 themes content vocabulary | Facts from CED framework (not expressive text) |
-| [`apush_key_developments.json`](../data/apush_key_developments.json) | 84 date-tagged developments; the **anachronism verifier** table + distractor pool | Historical facts (uncopyrightable); dates to be re-verified against OpenStax/Yawp at scale |
+| [`apush_key_developments.json`](../data/apush_key_developments.json) | 167 date-tagged developments (expanded from 84 after validator C4), tagged `kind` (mechanism / background / event) so a specific-vs-background `scope_mismatch` pair exists per episode; the **anachronism verifier** table + distractor pool + keyable-answer grounding set | Historical facts (uncopyrightable); dates to be re-verified against OpenStax/Yawp at scale |
 | [`build_seed_corpus.py`](../data/build_seed_corpus.py) | Reproducible pipeline: validate corpus, fetch PD sources from Wikisource, print OpenStax/Yawp/eval pointers, write provenance manifest | — |
 | [`corpus_manifest.json`](../data/corpus_manifest.json) | Machine-readable provenance + exclusion policy + risk flags | — |
 
