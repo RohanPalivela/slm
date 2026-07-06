@@ -1,63 +1,95 @@
-# Brainlift Draft — Notes → Expert MCAT Questions (SLM)
+# Brainlift Draft — Notes/Source → Expert APUSH Questions (SLM)
 
-> Spec Day 1 deliverable (draft). Final revision with evidence ships at M6.
+> Spec Day-1 deliverable (draft). Final revision, with base-vs-tuned evidence,
+> ships at M6. Inherits the verdict in
+> [`../03_feasibility_assessment.md`](../03_feasibility_assessment.md).
 
 ---
 
 ## Spiky POV (thesis)
 
-**Expert MCAT questions are not “flashcards with four options.”** They apply a *familiar*
-principle in an *unfamiliar* scenario, with distractors that each encode a *named*
-reasoning error. LLMs fail this by echoing the note, writing filler distractors, and
-keying answers that are wrong or double-correct.
+**Expert APUSH multiple-choice questions are not "recall with four options."** Every
+one hangs on a **source**, requires connecting that source to an **outside historical
+development not stated in it**, and — the part everyone underrates — its distractors
+are each a **named trap**: *wrong-era*, *true-but-irrelevant*, *scope-mismatch*, or
+*partially-true*. All four wrong answers are **historically true and era-plausible**;
+each is wrong for one specific, writable reason. That is exactly what makes them feel
+human-made.
 
-A **fine-tuned 4B model** can learn this reliably **only when the task is structurally
-determined** — closed distractor menus + rule-derivable answer keys + a verification
-pass — not when it must invent clinical vignettes or do arithmetic from scratch.
+LLMs fail this in three predictable ways: they **echo the source** back as the
+"question," they write **absurd or obviously-wrong distractors** (the user's core
+complaint), and they **mis-key "most directly"** — picking a broad background
+condition over the specific mechanism, or keying an answer a second option also
+satisfies.
 
-**We are not building “an MCAT question generator.”** We are building a **reliable
-specialist** for two archetypes that share one deep skill: *classify a scenario into a
-named relation and justify each option from a fixed signature.*
+A **fine-tuned 4B model** can learn to avoid all three **only when the task is
+structurally determined**: the **stimulus is provided** (not invented), the **stem
+comes from a closed command-phrase menu**, the **distractors come from the closed
+4-trap menu**, the answer is **grounded to a curated, date-tagged developments table**
+(selection, not free recall), and a **programmatic anachronism date-check** guards the
+key. Remove that scaffolding and a small model reverts to fabricating history.
+
+**We are not building "an APUSH question generator."** We are building a **reliable
+specialist** for the two **date-anchored causation archetypes** —
+`CAUSE_OF_SOURCE` and `EFFECT_OF_SOURCE` — which are *the same deep skill in
+opposite temporal directions*: "map the stimulus to the one outside development whose
+date obeys the required direction and that is the *specific*, not background, match."
 
 ---
 
 ## Behavior spec (falsifiable)
 
-> Given a study note stating a mechanism-with-a-control-point
-> (`MECHANISM_PERTURBATION`) or a theory-with-predictive-content plus a follow-up
-> finding (`THEORY_PLUS_STUDY`), the model returns exactly one valid JSON MCQ in which:
-> (a) the principle is tested in a scenario **not stated in the note**; (b) **exactly one**
-> option is fully correct with an **independently verifiable** key; (c) each distractor is a
-> **named error from the archetype’s closed menu**; (d) options are homogeneous with no
-> all/none-of-the-above and the stem passes cover-the-options. **PASS** iff all four hold.
+> Given a **provided, dated source** (primary text) and an optional study note, the
+> model returns **exactly one valid JSON MCQ** in which:
+> **(a)** answering requires an **outside development not stated in the source**
+> (never the source paraphrased back);
+> **(b)** **exactly one** option is fully correct, with a key that is **date-consistent
+> with the stem's time direction** (cause predates the source; effect postdates it) and
+> is the **uniquely "most-directly" match**, drawn from the developments table;
+> **(c)** each of the three distractors is one of the **four named traps**, is
+> **era-plausible**, and the three span **≥2 trap types**;
+> **(d)** options are **homogeneous**, there is **no all/none-of-the-above** or
+> absolute-word tell, and the stem is answerable before the options.
+> **PASS iff all four hold.**
 
-This spec is simultaneously the data-gen rubric, eval criterion, and inference guard.
+This single spec is simultaneously the **data-generation rubric**, the **eval
+criterion**, and the **inference-time guard**.
 
 ---
 
-## Why this exists (vs prompting a frontier model)
+## Why this exists (vs just prompting)
 
 | Approach | Problem |
 | :--- | :--- |
-| Prompt-only base 4B | Drifts on JSON, note-echo, filler distractors, wrong keys |
-| Prompt-only frontier | Works sometimes but expensive, slow, inconsistent — not a product |
-| Broad “generate any MCAT type” SLM | Mushy model; SC5 collapses on clinical facts and arithmetic |
-| **Narrow tuned 4B + verifier** | Reliable local specialist; dataset is the durable artifact |
+| Prompt-only **base 4B** | Drifts on JSON, echoes the source, writes filler distractors, mis-keys "most directly" — unreliable run-to-run |
+| Prompt-only **frontier** | Works *sometimes* but is expensive, slow, and inconsistent — not a cheap local product; and its terms may forbid using outputs to train our model |
+| Broad **"generate any APUSH item"** SLM | Mushy model; SC-KEY (historical correctness) collapses across the long tail of facts |
+| **Narrow tuned 4B + grounding + verifier** | Reliable local specialist on one deep skill; the **dataset is the durable artifact** |
+
+The defensible win, per the spec, is **reliable constrained behavior (base-vs-tuned)**,
+not beating a frontier model on raw capability.
 
 ---
 
 ## What would falsify the thesis
 
-1. Litmus: prompted base 4B ≥80% expert-grade → **don’t build**
-2. Litmus: frontier teacher <70% on scope → **rethink** (no clean labels)
-3. Tuned model + verifier: key-correctness <85% after v2 data → **rethink scope**
-4. Eval gains collapse when dedup threshold tightens → contamination artifact
+1. **Litmus: prompted base 4B ≥80%** expert-grade on the causation pair → **don't build**
+   (a prompt already suffices).
+2. **Litmus: frontier teacher `key_valid_rate` <70%** on the pair → **rethink**
+   (no clean labels to distill; the load-bearing precondition).
+3. **Tuned 4B: SC-KEY (single-best historical correctness) <~85%** after v2 data
+   iteration *and* with the verifier → **rethink scope** (drop to one archetype, tighten
+   grounding to a candidate set, or switch the output unit to "repair/grade an item").
+4. **Base-vs-tuned gains vanish when the dedup threshold is tightened** → the win was a
+   **contamination artifact**, not learned behavior.
 
 ---
 
-## Evidence to collect (brainlift final)
+## Evidence to collect (brainlift final, M6)
 
-- Base-vs-tuned pass rate + variance on held-out human notes
-- Paraphrase fidelity/novelty (in-scope subset)
-- Verifier-off vs verifier-on key-correctness demo
-- One data-iteration story (e.g. THEORY not-diagnostic trap under-represented → fixed in data → metric moved)
+- Base-vs-tuned **expert-grade pass rate + run-to-run variance** on held-out sources.
+- **Verifier-off vs verifier-on** key-correctness (isolate the grounding/verifier lever).
+- **Anachronism date-check** hit rate: how much of the wrong-era error class it removes.
+- One concrete **data-iteration story** (e.g., "scope-mismatch distractors under-represented →
+  added them in data → the 'most directly' double-key rate dropped").
+- **Per-archetype** pass (both `CAUSE_OF_SOURCE` and `EFFECT_OF_SOURCE` ≥ target).
