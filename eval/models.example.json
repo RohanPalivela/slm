@@ -11,8 +11,9 @@
       "base_url": "http://localhost:11434",
       "think": false,
       "keep_alive": "15m",
-      "max_tokens": 4096,
-      "_note": "native Ollama provider: disables Qwen3 thinking (think:false) and keeps the model warm between sources. For a hosted/vLLM endpoint instead, use provider 'openai_compatible' with base_url '.../v1'. First source includes a one-time ~1-2 min model load; then ~1-1.5 min/source on an M-series Air (~20 tok/s)."
+      "format": "json",
+      "max_tokens": 1024,
+      "_note": "native Ollama provider tuned for a laptop: think:false (Qwen3 thinking off), format:'json' (constrains output to clean JSON so the base model doesn't ramble for minutes), keep_alive (stay warm), and max_tokens=1024 (num_predict) which is the main SPEED lever — generation time is ~ num_predict / (~20 tok/s), so 1024 => ~25-30s/source warm (first source adds a one-time ~1-2 min load). Do NOT set num_ctx > 4096 on a small Air (memory pressure + reload). format:'json' tends to yield ~1 item/call; raise --runs for a bigger sample, or point at a hosted Qwen3-4B (provider 'openai_compatible', base_url '.../v1') for a fast full run."
     }
   ],
 

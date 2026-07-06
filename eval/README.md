@@ -70,16 +70,26 @@ checks → judge → aggregate → decision) runs end to end and writes
    can return empty content) and `keep_alive` (so the model stays warm between
    sources instead of cold-reloading). No key needed.
 
-   **Performance note.** On an M-series MacBook Air, qwen3:4b runs ~20 tok/s once
-   warm — but the **first** generation includes a one-time ~1–2 min model load,
-   and Ollama serves requests **serially** (don't run two jobs at once, or they
-   queue and look "stuck"). Expect ~1–1.5 min/source. So do a small smoke first:
+   **Performance note (laptop).** qwen3:4b runs ~20 tok/s once warm. The dominant
+   cost is generation length, so **`max_tokens` (num_predict) is the speed lever**:
+   time ≈ `num_predict / 20`. The candidate config uses `max_tokens: 1024` +
+   `format: "json"` → clean JSON, ~25–30s/source warm. Caveats:
+   - the **first** source adds a one-time ~1–2 min model load;
+   - Ollama serves requests **serially** — don't run two jobs at once or they
+     queue and look "stuck" (this was the original "stall"); and `ollama ps`
+     shows what's loaded;
+   - don't raise `num_ctx` above 4096 on a small Air (memory pressure + reload);
+   - `format:"json"` yields ~1 item/call, so raise `--runs` for a bigger sample.
+
+   Smoke first, then scale:
    ```bash
-   python eval/harness.py --runs 1 --limit 2 --n 3   # ~5-8 min incl. load
+   python eval/harness.py --runs 1 --limit 2 --n 2   # ~4-6 min incl. load
+   python eval/harness.py --runs 3 --n 6             # full gate (~30-45 min)
    ```
-   then the full gate (`--runs 3 --n 6`, budget ~45–90 min). The prompted base
-   model often rambles before the JSON — that's the format-unreliability the
-   litmus measures; the harness parses past it.
+   Without `format:"json"` the base model rambles for minutes before emitting
+   JSON — that unreliability is real litmus signal, but for a tractable laptop run
+   we constrain it. For a fast full run, point the candidate at a **hosted**
+   Qwen3-4B (`provider: "openai_compatible"`, `base_url: ".../v1"`).
 
 4. **Read the verdict.** The decision + tables land in `results/litmus_results.md`.
    Copy the summary into `docs/02b_litmus_results.md` and commit it (that's the

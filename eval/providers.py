@@ -94,6 +94,10 @@ def _call_ollama(cfg: dict, system: str, user: str, temperature: float) -> str:
     base = cfg.get("base_url", "http://localhost:11434").rstrip("/")
     if base.endswith("/v1"):
         base = base[:-3]
+    options = {"temperature": cfg.get("temperature", temperature),
+               "num_predict": cfg.get("max_tokens", 4096)}
+    if cfg.get("num_ctx"):
+        options["num_ctx"] = cfg["num_ctx"]      # fit prompt + generation
     payload = {
         "model": cfg["model"],
         "messages": [{"role": "system", "content": system + cfg.get("system_suffix", "")},
@@ -101,9 +105,10 @@ def _call_ollama(cfg: dict, system: str, user: str, temperature: float) -> str:
         "think": cfg.get("think", False),
         "stream": False,
         "keep_alive": cfg.get("keep_alive", "15m"),
-        "options": {"temperature": cfg.get("temperature", temperature),
-                    "num_predict": cfg.get("max_tokens", 4096)},
+        "options": options,
     }
+    if cfg.get("format"):                          # e.g. "json" -> constrain to valid JSON, no rambling
+        payload["format"] = cfg["format"]
     resp = _post(base + "/api/chat", {"Content-Type": "application/json"}, payload)
     return (resp.get("message") or {}).get("content") or ""
 
