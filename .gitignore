@@ -1,0 +1,11 @@
+# Fetch cache from data/build_seed_corpus.py --fetch-wikisource (reproducible; not source of truth)
+data/fetched_primary_sources.jsonl
+
+# OS / editor cruft
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

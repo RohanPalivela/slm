@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "title": "APUSH content vocabulary — periods x themes grid",
+  "note": "The content spine the generator ties every item to. A generated item is tagged (period, theme). Periods and weights are from the College Board CED; key_concepts are brief teacher-level summaries for seeding, not verbatim CED text. Ranges overlap by design (CED periodization).",
+  "source": "College Board AP U.S. History Course and Exam Description (see docs/sources.md [CED-content])",
+  "themes": [
+    { "id": "NAT", "name": "American and National Identity", "scope": "citizenship, constitutional debates, nationalism vs regionalism, definitions of American identity" },
+    { "id": "WXT", "name": "Work, Exchange, and Technology", "scope": "labor systems, capitalism, trade, technology, economic policy" },
+    { "id": "GEO", "name": "Geography and the Environment", "scope": "land, resources, environment, expansion, settlement geography" },
+    { "id": "MIG", "name": "Migration and Settlement", "scope": "immigration, internal migration, settlement patterns, demographic change" },
+    { "id": "PCE", "name": "Politics and Power", "scope": "government, parties, reform movements, political ideologies, federal-state power" },
+    { "id": "WOR", "name": "America in the World", "scope": "diplomacy, war, empire, foreign policy, global role" },
+    { "id": "ARC", "name": "American and Regional Culture", "scope": "religion, arts, ideas, regional and group cultures, reform culture" },
+    { "id": "SOC", "name": "Social Structures", "scope": "class, race, gender, family, hierarchy, social movements" }
+  ],
+  "periods": [
+    { "id": 1, "range": "1491-1607", "exam_weight": "4-6%", "core": false,
+      "key_concepts": ["Pre-contact Native societies and environmental adaptation", "Columbian Exchange", "Spanish colonization and the encomienda/casta system", "early European-Native contact and the Columbian debate"] },
+    { "id": 2, "range": "1607-1754", "exam_weight": "6-8%", "core": false,
+      "key_concepts": ["regional colonial models (New England, Chesapeake, Middle, Southern)", "Atlantic economy and mercantilism", "indentured servitude -> chattel slavery (Bacon's Rebellion 1676)", "Great Awakening", "salutary neglect and colonial self-government"] },
+    { "id": 3, "range": "1754-1800", "exam_weight": "10-17%", "core": true,
+      "key_concepts": ["Seven Years' War and imperial reorganization", "taxation without representation and resistance", "Revolution and Enlightenment ideals", "Articles of Confederation weaknesses", "Constitution, ratification debates, Federalist/Anti-Federalist", "early Republic party formation"] },
+    { "id": 4, "range": "1800-1848", "exam_weight": "10-17%", "core": true,
+      "key_concepts": ["Jeffersonian vs Federalist visions; Marshall Court", "Market Revolution and transportation (Erie Canal)", "Second Great Awakening and antebellum reform", "Jacksonian democracy and party competition", "sectionalism and slavery debates begin", "Seneca Falls 1848"] },
+    { "id": 5, "range": "1844-1877", "exam_weight": "10-17%", "core": true,
+      "key_concepts": ["Manifest Destiny and expansion; Mexican-American War", "sectional crisis (Compromise of 1850, Kansas-Nebraska, Dred Scott)", "election of 1860 and secession", "Civil War and emancipation", "Reconstruction: 13th/14th/15th Amendments", "failure of Reconstruction (Compromise of 1877)"] },
+    { "id": 6, "range": "1865-1898", "exam_weight": "10-17%", "core": true,
+      "key_concepts": ["industrialization, big business, and the Gilded Age", "labor movements and strikes", "the New South and sharecropping", "immigration and urbanization", "Populism (Omaha Platform 1892)", "Western settlement and Native displacement (Dawes Act)"] },
+    { "id": 7, "range": "1890-1945", "exam_weight": "10-17%", "core": true,
+      "key_concepts": ["imperialism and the Spanish-American War", "Progressive Era reform", "WWI and the home front", "1920s cultural conflict; Great Migration", "Great Depression and the New Deal", "WWII mobilization and its social effects"] },
+    { "id": 8, "range": "1945-1980", "exam_weight": "10-17%", "core": true,
+      "key_concepts": ["Cold War: containment, Korea, Vietnam, detente", "postwar affluence, suburbanization, conformity", "civil rights movement", "Great Society liberalism", "1960s-70s social movements (feminism, environmentalism)", "Watergate and declining trust"] },
+    { "id": 9, "range": "1980-present", "exam_weight": "4-6%", "core": false,
+      "key_concepts": ["Reagan conservatism and the end of the Cold War", "globalization and economic change", "demographic and immigration shifts", "post-9/11 foreign policy", "polarization and the digital age"] }
+  ]
+}
