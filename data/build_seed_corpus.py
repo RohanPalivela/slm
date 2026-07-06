@@ -10,10 +10,15 @@ questions by DISTILLING from a frontier teacher model, but the *stimuli* those
 questions hang on must be legally reusable. This script assembles a
 legally-clean stimulus corpus from two source classes only:
 
-  1. CC BY 4.0 open textbook prose  -> OpenStax "U.S. History"
-  2. Public-domain primary sources  -> U.S. federal works (any date) and any
-     U.S. work published before 1929 (Wikisource / LoC / National Archives /
-     Avalon Project mirror the texts; the TEXTS are public domain).
+  1. Open textbook prose  -> The American Yawp (CC BY-SA 4.0, commercial-OK) or
+     OpenStax "U.S. History" (CURRENT edition CC BY-NC-SA 4.0 -> non-commercial
+     only; legacy 2014/2015 editions were CC BY 4.0 and remain usable under that
+     license if an archived dated copy proves the notice).
+  2. Public-domain primary sources  -> U.S. federal works and court opinions
+     (uncopyrightable, any date) and any U.S. work published in 1930 or earlier
+     (95-year term; as of 2026-01-01 the cutoff is <=1930). Wikisource / LoC /
+     National Archives / Avalon / CourtListener mirror the texts; the TEXTS are
+     public domain regardless of host.
 
 WHAT WE DELIBERATELY DO NOT SCRAPE
 ----------------------------------
@@ -57,14 +62,36 @@ MANIFEST_PATH = os.path.join(HERE, "corpus_manifest.json")
 
 OPENSTAX = {
     "title": "U.S. History (OpenStax)",
-    "license": "CC BY 4.0",
-    "role": "content spine + note seeds + textbook-prose secondary source",
+    "license_current": "CC BY-NC-SA 4.0 (current edition; NON-COMMERCIAL + ShareAlike)",
+    "license_legacy": "CC BY 4.0 (2014/2015 editions; commercial-OK; archive a dated copy of the notice)",
+    "role": "content spine + note seeds + textbook-prose grounding",
     "web": "https://openstax.org/details/books/us-history",
-    "github_cnxml": "https://github.com/openstax/osbooks-u-s-history",
-    "archive_api": "https://openstax.org/apps/archive/  (per-page JSON; see repo README)",
-    "note": "CC BY 4.0 permits reuse and redistribution WITH attribution. Ideal "
-            "for study-note seeds and for grounding factual claims. Attribute: "
-            "'U.S. History, OpenStax, CC BY 4.0'.",
+    "github_cnxml": "https://github.com/openstax/osbooks-us-history",
+    "note": "CURRENT OpenStax U.S. History is CC BY-NC-SA 4.0: fine for a "
+            "non-commercial build, but NC blocks commercial use and SA imposes "
+            "copyleft. For a commercial-friendly grounding text prefer The "
+            "American Yawp (CC BY-SA 4.0). Do NOT co-mingle CC BY-SA and "
+            "CC BY-NC-SA text in one derivative (conflicting copyleft). Attribute "
+            "'U.S. History, OpenStax'.",
+}
+
+AMERICAN_YAWP = {
+    "title": "The American Yawp",
+    "license": "CC BY-SA 4.0 (commercial-OK; ShareAlike applies)",
+    "role": "commercial-friendly secondary/textbook prose + Primary Source Reader",
+    "web": "https://www.americanyawp.com/text/",
+    "reader": "https://www.americanyawp.com/reader.html",
+    "note": "Preferred grounding text if the model may be commercial. Attribute "
+            "and license derivatives under CC BY-SA 4.0.",
+}
+
+EVAL_ONLY_MMLU = {
+    "title": "MMLU high_school_us_history (cais/mmlu)",
+    "license": "MIT (dataset wrapper)",
+    "role": "HELD-OUT EVALUATION ONLY (~204 test items) — never train on it",
+    "hf": "https://huggingface.co/datasets/cais/mmlu",
+    "note": "Public benchmark -> training would contaminate; some items may carry "
+            "third-party rights. Use only to sanity-check the tuned model.",
 }
 
 # Public-domain primary sources. Wikisource hosts faithful transcriptions of
@@ -160,7 +187,7 @@ def cmd_fetch_wikisource() -> int:
         print(f"fetching: {src['title']}")
         text = fetch_wikisource(src["title"])
         if text:
-            out.append({**src, "license": "public domain (pre-1929)",
+            out.append({**src, "license": "public domain (published <=1930)",
                         "source_url": WIKISOURCE_REST.format(title=urllib.parse.quote(src["title"])),
                         "text_len": len(text), "text": text[:4000]})
         time.sleep(1.0)  # be polite
@@ -182,12 +209,20 @@ def cmd_openstax_info() -> int:
 def cmd_manifest() -> int:
     manifest = {
         "openstax": OPENSTAX,
+        "american_yawp": AMERICAN_YAWP,
+        "eval_only": EVAL_ONLY_MMLU,
         "wikisource_pd_sources": WIKISOURCE_PD_SOURCES,
         "federal_pd_sources": FEDERAL_PD_SOURCES,
+        "pd_cutoff": "U.S. works published <=1930 are public domain (as of 2026-01-01); federal works and court opinions are uncopyrightable at any date",
         "excluded_by_policy": [
-            "College Board CED sample items / released FRQs / secure MCQs (copyright; analysis-only)",
+            "College Board CED sample items / released FRQs / secure MCQs (copyright; their terms explicitly forbid AI training; taxonomy is hand-derived from the public framework and CED examples are analysis-only, never ingested)",
             "test-prep proprietary question banks",
-            "NC/SA/ND-licensed content incompatible with reuse",
+            "Gilder Lehrman (revocable license; paid permission)",
+            "third-party HF question sets with ambiguous/NC-SA-tainted provenance (regenerate our own instead)",
+        ],
+        "risk_flags": [
+            "ShareAlike collision: never blend CC BY-SA (American Yawp / Wikisource notes) with CC BY-NC-SA (current OpenStax) in one derivative; keep per-chunk provenance",
+            "Teacher-model ToS is a separate gate: confirm the frontier teacher's terms permit generating training data for another model BEFORE distilling",
         ],
         "legal_basis_doc": "docs/05_data_sourcing_and_legal.md",
     }
