@@ -59,6 +59,8 @@ def _call_openai(cfg: dict, system: str, user: str, temperature: float) -> str:
     if key:
         headers["Authorization"] = f"Bearer {key}"
 
+    # optional system suffix (e.g. " /no_think" to disable Qwen3 thinking mode)
+    system = system + cfg.get("system_suffix", "")
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     token_param = cfg.get("token_param", "max_tokens")   # some models: "max_completion_tokens"
     max_toks = cfg.get("max_tokens", 4096)
@@ -83,6 +85,27 @@ def _call_openai(cfg: dict, system: str, user: str, temperature: float) -> str:
         msg = (resp.get("choices") or [{}])[0].get("message", {})
         return msg.get("content") or ""
     raise ProviderError("exhausted parameter adaptations (400s on temperature/max_tokens)")
+
+
+def _call_ollama(cfg: dict, system: str, user: str, temperature: float) -> str:
+    """Native Ollama /api/chat. Unlike the OpenAI-compat path, this can disable
+    Qwen3 'thinking' (think:false) and keep the model warm (keep_alive) so it does
+    not cold-reload between sources."""
+    base = cfg.get("base_url", "http://localhost:11434").rstrip("/")
+    if base.endswith("/v1"):
+        base = base[:-3]
+    payload = {
+        "model": cfg["model"],
+        "messages": [{"role": "system", "content": system + cfg.get("system_suffix", "")},
+                     {"role": "user", "content": user}],
+        "think": cfg.get("think", False),
+        "stream": False,
+        "keep_alive": cfg.get("keep_alive", "15m"),
+        "options": {"temperature": cfg.get("temperature", temperature),
+                    "num_predict": cfg.get("max_tokens", 4096)},
+    }
+    resp = _post(base + "/api/chat", {"Content-Type": "application/json"}, payload)
+    return (resp.get("message") or {}).get("content") or ""
 
 
 def _call_anthropic(cfg: dict, system: str, user: str, temperature: float) -> str:
@@ -160,6 +183,8 @@ def generate(cfg: dict, system: str, user: str, temperature: float, role: str = 
         return _mock_generation(cfg, user, role)
     if p == "openai" or p == "openai_compatible":
         return _call_openai(cfg, system, user, temperature)
+    if p == "ollama":
+        return _call_ollama(cfg, system, user, temperature)
     if p == "anthropic":
         return _call_anthropic(cfg, system, user, temperature)
     raise ProviderError(f"unknown provider {p!r} for model {cfg.get('name')!r}")

@@ -62,11 +62,24 @@ checks → judge → aggregate → decision) runs end to end and writes
    **Run Qwen3-4B locally with Ollama** (easiest on a Mac/PC):
    ```bash
    # install: https://ollama.com/download   (or: brew install ollama)
-   ollama serve            # starts the OpenAI-compatible server on :11434
-   ollama pull qwen3:4b    # ~2.5 GB; first run downloads it
+   ollama serve            # starts the server on :11434
+   ollama pull qwen3:4b    # ~2.9 GB; first run downloads it
    ```
-   The candidate entry in `models.json` already points at
-   `http://localhost:11434/v1` with model `qwen3:4b` (no key needed).
+   Use the **`ollama` provider** for the candidate (not `openai_compatible`): it
+   sets `think:false` (Qwen3's thinking mode otherwise burns the token budget and
+   can return empty content) and `keep_alive` (so the model stays warm between
+   sources instead of cold-reloading). No key needed.
+
+   **Performance note.** On an M-series MacBook Air, qwen3:4b runs ~20 tok/s once
+   warm — but the **first** generation includes a one-time ~1–2 min model load,
+   and Ollama serves requests **serially** (don't run two jobs at once, or they
+   queue and look "stuck"). Expect ~1–1.5 min/source. So do a small smoke first:
+   ```bash
+   python eval/harness.py --runs 1 --limit 2 --n 3   # ~5-8 min incl. load
+   ```
+   then the full gate (`--runs 3 --n 6`, budget ~45–90 min). The prompted base
+   model often rambles before the JSON — that's the format-unreliability the
+   litmus measures; the harness parses past it.
 
 4. **Read the verdict.** The decision + tables land in `results/litmus_results.md`.
    Copy the summary into `docs/02b_litmus_results.md` and commit it (that's the

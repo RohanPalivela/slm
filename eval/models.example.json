@@ -6,12 +6,13 @@
   "candidates": [
     {
       "name": "qwen3-4b",
-      "provider": "openai_compatible",
+      "provider": "ollama",
       "model": "qwen3:4b",
-      "base_url": "http://localhost:11434/v1",
-      "api_key_env": "LOCAL_API_KEY",
+      "base_url": "http://localhost:11434",
+      "think": false,
+      "keep_alive": "15m",
       "max_tokens": 4096,
-      "_note": "local via Ollama (http://localhost:11434/v1) or vLLM (http://localhost:8000/v1). No key needed for localhost."
+      "_note": "native Ollama provider: disables Qwen3 thinking (think:false) and keeps the model warm between sources. For a hosted/vLLM endpoint instead, use provider 'openai_compatible' with base_url '.../v1'. First source includes a one-time ~1-2 min model load; then ~1-1.5 min/source on an M-series Air (~20 tok/s)."
     }
   ],
 
