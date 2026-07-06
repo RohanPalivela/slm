@@ -59,3 +59,62 @@ question" section; test-prep sources corroborate the surface-form taxonomy.
 - `speedrun_concepts.json` — 60-concept content taxonomy across 7 topics.
 - `speedrun_first_principles.json` — hand-authored first-principle cards.
 - `speedrun_paraphrase.json` — 30 cards × 2 reworded transfer items.
+
+## SLM feasibility evidence
+
+Sources consulted for the SLM feasibility assessment (Deliverable 3,
+`docs/03_feasibility_assessment.md`). These ground the claims about what
+fine-tuned small models (0.6B–4B, QLoRA + distillation) can and cannot do
+reliably, and the size/scope decision.
+
+### Pro — fine-tuned small models win at narrow, structured tasks
+
+- **LoRA Land: 310 Fine-tuned LLMs that Rival GPT-4** (Zhao et al., 2024) —
+  arXiv:2405.00732 — https://arxiv.org/abs/2405.00732 . 310 QLoRA fine-tunes
+  across 10 base models (≤8B) and 31 tasks; 4-bit LoRA beats base by ~34 pts and
+  GPT-4 by ~10 pts on average (best fine-tune 0.756 vs GPT-4 0.661). *Caveat:*
+  GPT-4 still wins 6/31 on broad/complex tasks (Python, MMLU); fine-tune wins are
+  concentrated in narrow, classification-oriented tasks. Models are 7B, tasks are
+  mostly classification (directional support, not proof, for ≤4B generative
+  quality).
+- **Knowledge Distillation with Structured Chain-of-Thought for Text-to-SQL**
+  (Thaker & Bresler, 2025) — arXiv:2512.17053 —
+  https://arxiv.org/abs/2512.17053 . Distilling a *structured* formal blueprint
+  into an SLM (via QLoRA) beats unstructured-CoT distillation by +8.1 pts,
+  chiefly by cutting syntactic/schema errors — the direct analogue for the
+  closed-set distractor-schema argument.
+- **Mitigating Hallucination in SLMs via Contrastive Chain-of-Thought
+  Fine-Tuning** (Baker & Al-Qrize, 2025) — Zenodo,
+  https://doi.org/10.5281/zenodo.18538736 . Pairing correct reasoning with
+  explicitly labeled logical fallacies (LoRA on Phi-2) reduces hallucination and
+  improves final-answer accuracy by +12.5% vs standard fine-tuning — supports
+  "distractor = named error" training and the DPO/negatives stretch rung.
+- **KD-LoRA: A Hybrid Approach to Efficient Fine-Tuning with LoRA and Knowledge
+  Distillation** (2024) — arXiv:2410.20777 — https://arxiv.org/abs/2410.20777 .
+  Establishes LoRA+KD as a standard efficient recipe (with the JKU "KdQLoRA"
+  thesis, https://epub.jku.at/obvulihs/download/pdf/11767041 , corroborating QLoRA+KD).
+
+### Counter-evidence — sub-4B weaknesses (the risks to design around)
+
+- **How Large Language Models Perform Arithmetic Reasoning in 2025** — OpenReview,
+  https://openreview.net/pdf?id=MYEr4iPFMn . Measures the exact Qwen3 family:
+  Qwen3-0.6B collapses to 1.4% accuracy in direct-answer mode (vs 85.8%
+  step-by-step) due to format-compliance failure, while Qwen3-4B/8B are robust
+  (96%+) across modes and 4B≈8B (0.5-pt gap). Direct basis for the documented
+  **0.6B→4B reliability threshold** and the 4B size pick.
+- **EasyMath: A 0-shot Math Benchmark for SLMs** (2025) — arXiv:2505.14852 —
+  https://arxiv.org/abs/2505.14852 . SLMs fail multi-digit/large-number
+  arithmetic and GSM-Symbolic-style perturbations; "direct distillation of
+  complex reasoning often fails to benefit them… they perform better with
+  shorter, simpler chains." Basis for excluding `QUANTITATIVE_APPLICATION` and
+  capping reasoning at ~2 hops.
+- **State of the Art and Future Directions of Small Language Models: A Systematic
+  Review** (MDPI, 2025) — https://www.mdpi.com/2504-2289/9/7/189 . ~1/5 of SLM
+  failures are factual/consistency hallucinations ("plausible-sounding
+  fabrications" from lean embedding spaces); but MobileLLM-350M matches
+  Llama-2-7B on narrow API-call tasks. Basis for treating single-best-answer
+  factual correctness (SC5) as the crux, and narrow scope as the mitigation.
+- **Test-Time Scaling for Multistep Reasoning in SLMs via Search** (2025) —
+  https://openreview.net/pdf/32d6610b7d8a0cd1f7fa9546333922a6e978073c.pdf .
+  Confirms SLM multi-step reasoning compounds early errors and is hallucination-
+  prone; motivates decomposition/verification passes over single forward passes.
