@@ -40,14 +40,33 @@ checks → judge → aggregate → decision) runs end to end and writes
    > Before distilling later, confirm the **teacher's Terms of Service** permit
    > generating training data for another model (see `../docs/05_data_sourcing_and_legal.md`).
 
-3. **Run** (the protocol default is 6 items × 3 runs over the 10 LITMUS sources):
+3. **Check connectivity first**, then run (the protocol default is 6 items × 3
+   runs over the 10 LITMUS sources):
    ```bash
-   python eval/harness.py --runs 3 --n 6
+   python eval/harness.py --check              # ping every model, print OK/FAIL
+   python eval/harness.py --runs 3 --n 6       # the real build-gate
    # quick smoke on 2 sources, judge off (free/fast):
    python eval/harness.py --runs 1 --limit 2 --no-judge
    # add the few-shot exemplars (ablation):
    python eval/harness.py --fewshot
    ```
+
+   **Single OpenAI-compatible gateway** (one router fronting multiple providers):
+   set `provider: "openai_compatible"`, `base_url` to the gateway, `model` to the
+   router slug (e.g. `claude-group/claude-opus-4-8`, `openai-group/gpt-5.5`), and
+   point every `api_key_env` at the same gateway key. For GPT-5.x, if the router
+   rejects params, add `"include_temperature": false` and
+   `"token_param": "max_completion_tokens"` to that model's entry (the provider
+   also auto-retries those two adaptations on a 400).
+
+   **Run Qwen3-4B locally with Ollama** (easiest on a Mac/PC):
+   ```bash
+   # install: https://ollama.com/download   (or: brew install ollama)
+   ollama serve            # starts the OpenAI-compatible server on :11434
+   ollama pull qwen3:4b    # ~2.5 GB; first run downloads it
+   ```
+   The candidate entry in `models.json` already points at
+   `http://localhost:11434/v1` with model `qwen3:4b` (no key needed).
 
 4. **Read the verdict.** The decision + tables land in `results/litmus_results.md`.
    Copy the summary into `docs/02b_litmus_results.md` and commit it (that's the

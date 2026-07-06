@@ -45,24 +45,44 @@ def _post(url: str, headers: dict, payload: dict, timeout: int = 180) -> dict:
 
 
 def _call_openai(cfg: dict, system: str, user: str, temperature: float) -> str:
+    """OpenAI /v1/chat/completions and any OpenAI-compatible gateway (e.g. a
+    router that fronts both OpenAI and Anthropic). Adapts to model quirks:
+    GPT-5.x variants may reject a non-default `temperature` and/or require
+    `max_completion_tokens` instead of `max_tokens`."""
     base = cfg.get("base_url", "https://api.openai.com/v1").rstrip("/")
+    needs_key = "api.openai.com" in base or ".com/" in base or base.startswith("https://")
+    is_local = "localhost" in base or "127.0.0.1" in base or "0.0.0.0" in base
     key = os.environ.get(cfg.get("api_key_env", "OPENAI_API_KEY"), "")
-    if not key and "api.openai.com" in base:
+    if not key and needs_key and not is_local:
         raise ProviderError(f"missing API key env {cfg.get('api_key_env', 'OPENAI_API_KEY')}")
     headers = {"Content-Type": "application/json"}
     if key:
         headers["Authorization"] = f"Bearer {key}"
-    payload = {
-        "model": cfg["model"],
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-        "temperature": temperature,
-        "max_tokens": cfg.get("max_tokens", 4096),
-    }
-    resp = _post(base + "/chat/completions", headers, payload)
-    return resp["choices"][0]["message"]["content"]
+
+    msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    token_param = cfg.get("token_param", "max_tokens")   # some models: "max_completion_tokens"
+    max_toks = cfg.get("max_tokens", 4096)
+    temp = cfg.get("temperature", temperature)
+    include_temp = cfg.get("include_temperature", True)
+
+    for _ in range(3):
+        payload = {"model": cfg["model"], "messages": msgs, token_param: max_toks}
+        if include_temp:
+            payload["temperature"] = temp
+        try:
+            resp = _post(base + "/chat/completions", headers, payload)
+        except ProviderError as e:
+            s = str(e).lower()
+            if "http 400" in s and "temperature" in s and include_temp:
+                include_temp = False           # retry without temperature
+                continue
+            if "http 400" in s and "max_tokens" in s and token_param == "max_tokens":
+                token_param = "max_completion_tokens"  # retry with the newer field
+                continue
+            raise
+        msg = (resp.get("choices") or [{}])[0].get("message", {})
+        return msg.get("content") or ""
+    raise ProviderError("exhausted parameter adaptations (400s on temperature/max_tokens)")
 
 
 def _call_anthropic(cfg: dict, system: str, user: str, temperature: float) -> str:

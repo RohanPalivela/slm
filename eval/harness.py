@@ -214,7 +214,27 @@ def main():
     ap.add_argument("--no-judge", action="store_true", help="programmatic checks only (fast/free)")
     ap.add_argument("--limit", type=int, default=0, help="limit number of sources (quick test)")
     ap.add_argument("--out", default=os.path.join(ROOT, "results"))
+    ap.add_argument("--check", action="store_true",
+                    help="ping every configured model with a trivial prompt and exit")
     args = ap.parse_args()
+
+    if args.check:
+        models = json.load(open(args.models)) if os.path.exists(args.models) else dry_run_models()
+        roster = [("candidate", m) for m in models.get("candidates", [])]
+        for r in ("teacher", "judge"):
+            if models.get(r):
+                roster.append((r, models[r]))
+        ok = True
+        for role, cfg in roster:
+            try:
+                out = providers.generate(cfg, "You are a test.", "Reply with the single word: OK",
+                                         temperature=0.0, role=role)
+                snippet = (out or "").strip().replace("\n", " ")[:40]
+                print(f"  [OK]   {role:9} {cfg['name']:22} -> {snippet!r}")
+            except Exception as e:  # noqa: BLE001
+                ok = False
+                print(f"  [FAIL] {role:9} {cfg['name']:22} -> {e}")
+        raise SystemExit(0 if ok else 1)
 
     if args.dry_run:
         models = dry_run_models()

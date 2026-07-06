@@ -1,33 +1,36 @@
 {
-  "_comment": "Copy to eval/models.json and edit. 'candidates' = the small model(s) an SLM must beat (the would-be base); 'teacher' = frontier distillation ceiling; 'judge' = a DIFFERENT family than the models under test. Update model slugs to current versions. API keys are read from the named env vars, never stored here.",
+  "_comment": "Copy to eval/models.json and edit. 'candidates' = the small model(s) an SLM must beat; 'teacher' = frontier distillation ceiling; 'judge' = a DIFFERENT family than the models under test. API keys are read from the named env vars, never stored here.",
+
+  "_gateway_note": "If you use one OpenAI-compatible router that fronts multiple providers (e.g. https://tfy.promptlens.trilogy.com/v1), set provider='openai_compatible', base_url to the gateway, model to the router slug (e.g. 'claude-group/claude-opus-4-8' or 'openai-group/gpt-5.5'), and point every api_key_env at the same gateway key. For GPT-5.x add \"token_param\": \"max_completion_tokens\" and/or \"include_temperature\": false if the router complains.",
 
   "candidates": [
     {
       "name": "qwen3-4b",
       "provider": "openai_compatible",
-      "model": "Qwen/Qwen3-4B-Instruct-2507",
-      "base_url": "http://localhost:8000/v1",
+      "model": "qwen3:4b",
+      "base_url": "http://localhost:11434/v1",
       "api_key_env": "LOCAL_API_KEY",
       "max_tokens": 4096,
-      "_note": "serve locally with vLLM or Ollama (OpenAI-compatible). Add 0.6B/1.7B here too to see the size cliff."
+      "_note": "local via Ollama (http://localhost:11434/v1) or vLLM (http://localhost:8000/v1). No key needed for localhost."
     }
   ],
 
   "teacher": {
-    "name": "claude-teacher",
-    "provider": "anthropic",
-    "model": "claude-sonnet-4-5",
-    "api_key_env": "ANTHROPIC_API_KEY",
-    "max_tokens": 4096,
-    "_note": "any frontier model; this establishes whether the behavior is achievable at all (the distillation ceiling)."
+    "name": "claude-opus-4-8",
+    "provider": "openai_compatible",
+    "model": "claude-group/claude-opus-4-8",
+    "base_url": "https://tfy.promptlens.trilogy.com/v1",
+    "api_key_env": "PROMPTLENS_API_KEY",
+    "max_tokens": 4096
   },
 
   "judge": {
-    "name": "gpt-judge",
-    "provider": "openai",
-    "model": "gpt-5.1",
-    "api_key_env": "OPENAI_API_KEY",
+    "name": "gpt-5.5",
+    "provider": "openai_compatible",
+    "model": "openai-group/gpt-5.5",
+    "base_url": "https://tfy.promptlens.trilogy.com/v1",
+    "api_key_env": "PROMPTLENS_API_KEY",
     "max_tokens": 2048,
-    "_note": "MUST be a different family than teacher/candidates so it doesn't grade its own outputs."
+    "_note": "different family than the teacher, so it doesn't grade its own outputs. If the router rejects temperature/max_tokens for GPT-5.x, add \"include_temperature\": false and \"token_param\": \"max_completion_tokens\"."
   }
 }
