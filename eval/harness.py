@@ -272,6 +272,7 @@ def main():
         raise SystemExit("no models to run (need 'candidates' and/or 'teacher')")
 
     results = {}
+    item_records = []
     for role, cfg in roster:
         print(f"[{role}] {cfg['name']}")
         per_run = run_model(cfg, role, sources, prompt, judge_cfg,
@@ -279,6 +280,18 @@ def main():
                             include_fewshot=args.fewshot, no_judge=args.no_judge,
                             limit=args.limit)
         results[cfg["name"]] = {"role": role, "agg": aggregate(per_run)}
+        for ri, run in enumerate(per_run):
+            for x in run:
+                it = x["item"]
+                item_records.append({
+                    "model": cfg["name"], "role": role, "run": ri,
+                    "source_id": it.get("_source_id"), "archetype": it.get("archetype"),
+                    "expert_grade": x["expert_grade"], "key_valid": x["key_valid"],
+                    "prog": x["prog"], "judge": x["judge"],
+                    "stem": it.get("stem"), "options": it.get("options"),
+                    "answer": it.get("answer"), "answer_dating": it.get("answer_dating"),
+                    "rationale": it.get("rationale"), "trap_types": it.get("trap_types"),
+                })
 
     meta = {
         "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -288,9 +301,17 @@ def main():
         "no_judge": args.no_judge, "fewshot": args.fewshot,
     }
     md_path, door, why = write_report(results, meta, args.out)
+    items_path = os.path.join(args.out, "litmus_items.jsonl")
+    with open(items_path, "w", encoding="utf-8") as f:
+        for rec in item_records:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     print("\n" + "=" * 70)
     print(f"DECISION: {door}\n  {why}")
-    print(f"report: {md_path}")
+    print(f"report:      {md_path}")
+    print(f"per-item:    {items_path}   (each item + judge reasoning; read to see WHY items failed)")
+    if meta["n_sources"] * meta["runs"] < 8:
+        print("NOTE: tiny sample + uncalibrated judge -> the door is NOT reliable yet. "
+              "Calibrate the judge (plan_v2 G-cal) and run more sources/runs.")
     print("=" * 70)
 
 
