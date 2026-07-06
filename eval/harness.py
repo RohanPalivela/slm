@@ -86,24 +86,39 @@ def run_model(model_cfg, role, sources, prompt, judge_cfg, *, n, runs, temperatu
     srcs = sources[:limit] if limit else sources
     for r in range(runs):
         run_items = []
-        for src in srcs:
+        for si, src in enumerate(srcs, 1):
+            t0 = time.time()
             system, user = prompt.build(
                 source=src["text"], attribution=src.get("attribution", ""),
                 note="", n=n, archetypes=DEFAULT_ARCHETYPES, difficulty=DIFFICULTY,
                 include_fewshot=include_fewshot)
+            print(f"    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']} ... "
+                  "generating", end="", flush=True)
             try:
                 raw = providers.generate(model_cfg, system, user, temperature, role=role)
             except providers.ProviderError as e:
-                print(f"    ! {model_cfg['name']} gen failed on {src['id']}: {e}", file=sys.stderr)
+                print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
+                      f"GEN FAILED ({e})", flush=True)
                 continue
             items = extract_items(raw)
+            if not items:
+                print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
+                      f"0 items parsed ({time.time() - t0:.1f}s; model returned "
+                      f"{len(raw)} chars) \u2014 check output format", flush=True)
+                continue
+            print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
+                  f"{len(items)} items, judging...", end="", flush=True)
             for it in items:
                 it["_source_id"] = src["id"]
                 scored = score_item(it, src, judge_cfg, role, no_judge)
                 run_items.append({"item": it, **scored})
+            eg = sum(1 for x in run_items[-len(items):] if x["expert_grade"])
+            print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
+                  f"{len(items)} items, {eg} expert-grade ({time.time() - t0:.1f}s)"
+                  + " " * 12, flush=True)
             time.sleep(0.0 if model_cfg.get("provider") == "mock" else 0.3)
         per_run.append(run_items)
-        print(f"    run {r + 1}/{runs}: {len(run_items)} items")
+        print(f"    run {r + 1}/{runs} done: {len(run_items)} items total", flush=True)
     return per_run
 
 
