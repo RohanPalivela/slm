@@ -1,475 +1,450 @@
-# Training Plan v1 — Notes → Expert-Grade MCAT MCQs (SLM)
+# Training Plan v1 — Notes/Source → Expert APUSH Causation MCQs (SLM)
 
-> **Deliverable 4+ (the build plan).** Converts the binding feasibility verdict
-> (`docs/03_feasibility_assessment.md`) into an execution-ready recipe. Scope,
-> size, and the "verifier-is-a-precondition" rule are inherited, not re-litigated.
-> This is the BRAINSTORMER's v1; a Validator will critique it.
+> **Deliverable 4, draft v1 (BRAINSTORMER output).** Operationalizes the binding
+> verdict in [`../03_feasibility_assessment.md`](../03_feasibility_assessment.md).
+> Inherits, does **not** relitigate: scope = the date-anchored causation pair
+> (`CAUSE_OF_SOURCE` anchor + `EFFECT_OF_SOURCE`), base = **Qwen3-4B-Instruct**
+> (QLoRA + frontier distillation), **~91%** confidence *conditional* on
+> table-grounding + an inference-time verifier + a confirmed teacher
+> `key_valid_rate`. Crux = **SC-KEY** (single-best historical correctness). The
+> anachronism date-check is **necessary-not-sufficient**. `CONTEXT_SITUATION` is
+> the sanctioned first expansion (stretch, not v1). Companion:
+> [`brainlift_draft.md`](brainlift_draft.md).
+>
+> *A validator will find gaps. This is a genuine first draft, not padding.*
+
+---
+
+## 1. Plan at a glance
 
 ```
-┌─ PLAN AT A GLANCE ──────────────────────────────────────────────────────────┐
-│ 1. GOAL   Fine-tune Qwen3-4B-Instruct (QLoRA/Unsloth) so a study NOTE →       │
-│           one expert-grade MCAT MCQ, reliably, for exactly 2 archetypes.      │
-│ 2. SCOPE  MECHANISM_PERTURBATION (anchor) + THEORY_PLUS_STUDY (value only);   │
-│           qualitative-only (no arithmetic); answer-key verifier is required.  │
-│ 3. DATA   ~2,500 raw/archetype → ~900 KEPT/archetype (~1,800) via programmatic│
-│           gate → LLM-judge (7 checks) → independent answer-key verifier.      │
-│ 4. EVAL   Built BEFORE training: held-out HUMAN notes + 30×2 paraphrase       │
-│           novelty probe; base-vs-tuned on pass-rate AND run-to-run variance.  │
-│ 5. WIN    Tuned expert-grade ≥75% and ≥+25 pts over prompted base, std ≤5 pts,│
-│           verified key-correctness ≥98% in prod. Ship HF dataset+model+demo.  │
-│ 6. NEXT   Stretch = DPO from the off-spec negatives filtering already yields. │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ GOAL       Reliably turn a provided PD/CC-BY historical source into an         │
+│            expert-grade APUSH stimulus-based MCQ for TWO archetypes.           │
+│ SCOPE      CAUSE_OF_SOURCE (anchor) + EFFECT_OF_SOURCE. Text primary sources   │
+│            only (P7). CONTEXT_SITUATION = stretch. F5/free-form = OUT.          │
+│ BASE       unsloth/Qwen3-4B-Instruct-2507 (non-thinking), QLoRA 4-bit.         │
+│ TEACHER    frontier model (ToS-gated); Judge = DIFFERENT family; Key-verifier  │
+│            = THIRD family + programmatic date-check.                            │
+│ DATA       Final ~1,600 kept items (~800/archetype; P3 floor = 600). Midweek   │
+│            ~700 kept. ~39% net filter yield → ~4,500 raw generations.          │
+│ GROUNDING  Keyed development SELECTED from data/apush_key_developments.json,    │
+│            never free-recalled (P5). Non-negotiable.                            │
+│ GATES      3-stage filter (programmatic → judge → key-verifier) at train time; │
+│            same verifier reused at inference (reject-and-regenerate).           │
+│ EVAL       (A) LITMUS build-gate (P1/P2) BEFORE training. (B) base-vs-tuned on  │
+│            HELD-OUT sources, 3 runs, bootstrap CIs.                             │
+│ WIN        Tuned ≥80% expert-grade AND lower run-to-run variance than prompted  │
+│            base, on held-out sources; both archetypes ≥78%; key_valid ≥90%      │
+│            post-verifier. Delta CI lower-bound > 0.                             │
+│ KILL       Base ≥80% (DON'T BUILD) · teacher key_valid <70% (RETHINK) ·         │
+│            tuned SC-KEY <85% after v2 + verifier (RETHINK scope).               │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Fixed inheritances (do not re-decide):** base = `Qwen3-4B-Instruct`; scope =
-`MECHANISM_PERTURBATION` + `THEORY_PLUS_STUDY`; qualitative items only (numeric
-fingerprints are *given data*, never computed); a verification pass is a
-precondition; the dataset is the deliverable; eval is built before training;
-base-vs-tuned is mandatory; one target / one context (no broad domains); do not
-tune hyperparameters to fix a data problem.
-
-**Assets confirmed on disk (grounding the numbers below):** 82 first-principle
-cards (biochem 15 / bio 14 / phys 13 / gen-chem 13 / psych 11 / o-chem 10 / soc
-6); 60-concept taxonomy (7 topics); 169 OpenMCAT items, each with a rich
-`explanation` = correct-reasoning + **per-choice A/B/C/D rationale** + a
-**"Common mistake"** line (few-shot gold; ~26 mechanism-shaped, ~15 theory-shaped,
-26 passage-length >300 chars); 1,417 flat MMLU items (negative "flat-recall"
-exemplars); 30 paraphrase cards × 2 rewordings (transfer probe; card #1 is
-literally competitive-inhibition kinetics — on-archetype).
+**One-week arc mapping:** M0 = Day 1 (setup/research/Brainlift) · M1–M2 = Day 2
+(harness + smoke test + **litmus build-gate**) · M3 = Day 3 (v1 data + first
+base-vs-tuned) · M4 = Day 4 (data iteration) · M5 = Day 5 (ship) · M6 = stretch.
 
 ---
 
-## 1. Behavior Spec (the falsifiable gate)
+## 2. Behavior spec (falsifiable, one paragraph)
 
-**Spec (pass/fail, markable by a stranger):**
+> Given a **provided, legally-sourced, date-tagged historical STIMULUS** (text
+> primary source) and a causation command phrase (`cause_of` → the answer is a
+> CAUSE; `effect_immediate` → the answer is a short-term EFFECT), the model emits
+> a **single strict-JSON APUSH stimulus-based MCQ** whose keyed answer is the
+> **one outside development — SELECTED from
+> [`data/apush_key_developments.json`](../../data/apush_key_developments.json),
+> never free-recalled — that (a) is DATE-CONSISTENT with the stem's time
+> direction** (a cause dated strictly *before* the stimulus date; an effect
+> strictly *after*) **and (b) is the SPECIFIC, most-direct mechanism**, not a
+> broad background condition and not a merely topical match; and whose **three
+> distractors are each exactly one of the four named College Board traps**
+> (`wrong_era`, `true_but_irrelevant`, `scope_mismatch`, `partially_true`),
+> spanning **≥2 distinct trap types**, each a real, era-plausible development a
+> strong-but-imperfect student would seriously consider. **An item PASSES iff:**
+> valid JSON, 4 homogeneous options, exactly one key; the key **requires outside
+> knowledge** (not a paraphrase of the source) reached in **≥2 reasoning hops**;
+> the date-check holds **and** ≥1 distractor is a genuine `wrong_era` violation;
+> and **exactly one** option is defensibly best (no distractor is *also* "most
+> directly" correct). Any single violation FAILS the item — the identical boolean
+> whether the item is being **generated** (data-gen rubric), **scored** (eval
+> criterion), or **served** (inference guard).
 
-> *Given a study note that states a mechanism-with-a-control-point (for
-> `MECHANISM_PERTURBATION`) or a theory-with-predictive-content plus a follow-up
-> finding (for `THEORY_PLUS_STUDY`), the model returns exactly one valid JSON MCQ
-> of the requested archetype in which (a) the tested principle is applied to a
-> scenario **not stated in the note**; (b) **exactly one** option is fully correct
-> and its key is **independently verifiable** with **no second defensible**
-> option; (c) each of the three distractors is a **named error drawn from that
-> archetype's closed menu**; and (d) options are homogeneous, contain no
-> all/none-of-the-above, and the stem passes cover-the-options. The output is
-> **PASS** iff all four hold; otherwise **FAIL**.*
-
-This single spec is the data-gen rubric (§2–3), the eval criterion (§4), and the
-inference guard (§6). It is the operationalization of the taxonomy's 7 quality
-checks (`docs/01`, §7), narrowed to two archetypes.
-
-**The two closed menus (what makes this SLM-feasible — structural determinacy):**
-
-| Archetype | Correct answer is… | Closed distractor/label menu (each carries its own named error) |
-| :--- | :--- | :--- |
-| **MECHANISM_PERTURBATION** | a **label** mapped from a given qualitative fingerprint | `competitive` (Km↑, Vmax=) · `uncompetitive` (Km↓, Vmax↓) · `noncompetitive/mixed` (Km=/↑, Vmax↓) · `allosteric activation` (Vmax↑ / Km↓) · `dissociation-or-denaturation` (ruled out by a stated structural datum). *(For non-enzyme control points the menu is the analogous closed set: Le Chatelier shift left/right/none/rate-only; feedback up/down/no-effect/compensatory.)* |
-| **THEORY_PLUS_STUDY** | an **evidential relation** between finding and claim | `supports` · `weakens (in-scope)` · `consistent-but-not-diagnostic` · `contradicts a *different* claim` · `requires a bounded revision`. Correct answer is a logical judgment, not a fact lookup; the signature trap is `consistent-but-not-diagnostic`. |
-
-Because the answer is *selected from a named menu whose members each have a fixed
-signature*, "distractor authoring" and "answer-key correctness" become
-classification + rule-derivation (SLM strengths) rather than open invention (SLM
-weaknesses). That is the entire feasibility thesis.
+This paragraph is the contract shared by §3 (generation), §4 (filtering), §5
+(eval), and §7 (inference). It is intentionally the same wording as
+[`brainlift_draft.md`](brainlift_draft.md) so thesis, data, and metric cannot
+drift apart.
 
 ---
 
-## 2. Data-generation pipeline
+## 3. Data generation
 
-### 2.1 Models (decoupled on purpose)
+### 3.1 Model roles (three DIFFERENT families — anti-correlated errors)
 
-| Role | Model (default; swappable within tier) | Why |
-| :--- | :--- | :--- |
-| **Teacher (generator)** | a frontier reasoning model, e.g. Claude-Opus-class | Establishes the clean-label ceiling; must clear ≥70% expert-grade in litmus (P1). |
-| **Judge (7 checks + graded dims)** | a **different family**, e.g. GPT-class | Decorrelate blind spots from the teacher; avoids "teacher grades itself." |
-| **Answer-key verifier (independent solver)** | a **third path**: different-family solver **+** deterministic rule-checker | The crux (SC5). Two independent signals, one of them non-LLM (see §3.3). |
-
-> Decision: teacher ≠ judge ≠ verifier family wherever possible. If only two
-> frontier families are available, teacher and verifier must differ; the judge
-> may share the verifier family but runs a different prompt/temperature.
-
-### 2.2 Seeds — where notes come from, and the contamination firewall
-
-We deliberately make **eval seeds human-authored** and **most training seeds
-teacher-authored**, so the eval measures transfer to *human* notes (harder,
-honest). Splits are frozen in `data/splits.json` before any generation.
-
-| Seed pool | Source | Count | Role |
+| Role | Family | Job | Why a distinct family |
 | :--- | :--- | :--- | :--- |
-| **EVAL-heldout** | 82 FP cards, stratified holdout across both archetypes' concepts | **20** | primary held-out eval notes (never a training seed) |
-| **EVAL-paraphrase** | `speedrun_paraphrase.json` | **30 (×2)** | novelty/transfer probe (§4.2) |
-| **EVAL-adversarial** | teacher-authored terse/abbrev + multi-concept notes | **10** | robustness rung (§4.5) |
-| **TRAIN-human** | remaining FP cards | **62** | training seeds (the `back` field = the note) |
-| **TRAIN-synthetic** | teacher writes principle-notes styled on the FP `back`, keyed to the 60-concept taxonomy for the in-scope concepts | **~300** | training seeds; dedup vs all eval pools |
+| **Teacher** | Frontier A (e.g. Claude/GPT class) | Generate the item (stem + options + key + `answer_dating` + per-option trap labels) via [`data_gen_prompt.md`](../../prompts/data_gen_prompt.md) | Highest ceiling; establishes the clean-label distribution to distill. **Precondition (Deliverable 5 §4.2): confirm the teacher's ToS permits using outputs to train another model before any bulk generation.** |
+| **Judge** | Frontier B (different vendor/family) | Score every disqualifying `quality_check` + graded rubric + single-best | A same-family judge shares the teacher's blind spots (correlated errors); a different family catches them. |
+| **Key-verifier** | Frontier C (third family) **+ programmatic date-check** | Independently *solve* the item k-of-n; flag double-correct; run the deterministic anachronism date-check | SC-KEY is the crux; the only defensible certification is an *independent* solver that never saw the intended key, plus a rule-based date gate. |
 
-**Firewall (all enforced programmatically):** (1) the 20 EVAL-heldout cards and
-30 paraphrase items are on a blocklist; (2) every generated training stem/note is
-embedded and dropped if cosine ≥ **0.90** to any eval note, paraphrase `card_back`,
-or paraphrase reworded stem; (3) train-synthetic notes are generated only for
-concepts, then deduped against eval; (4) exact + near-dup dedup *within* train too
-(§3.1). We report the tightened-threshold ablation in §9-R2 to prove gains aren't
-contamination.
+> Programmatic date-check is family-independent and **always** runs (it is the one
+> deterministic verifier APUSH affords). The date-check is
+> **necessary-not-sufficient**: it kills the wrong-era slice of SC-KEY but cannot
+> certify "most directly" — that residual is why the LLM judge + independent
+> solver are also required (feasibility §2, SC-KEY caps ~0.80 even at 4B).
 
-**In-scope concepts (from the 60-concept taxonomy).** MECH_PERT: enzyme-regulation,
-glycolysis, oxidative-phosphorylation, bioenergetics, acid-base-equilibria,
-kinetics-equilibrium, gas-phase, electrochemistry, membrane-transport, physiology
-(feedback/homeostasis), circuits, thermochemistry (~12). THEORY_PLUS_STUDY:
-evolution-ecology, associative-learning, social-psychology, theoretical-approaches,
-social-class, culture-socialization, developmental-psychology, personality,
-emotion-motivation, cognition-language, physiology-as-model, kinetics-equilibrium
-(as Le Chatelier theory) (~12). ⇒ ~900 kept / ~12 concepts ≈ 60–75 items/concept
-× {2 difficulties} × {scenario samples}.
+### 3.2 Seeds & firewall — `data/splits.json`
 
-### 2.3 The generation call (reuse the litmus prompt, add self-labeling)
+The firewall is a P6 precondition: **no stimulus_id may appear in more than one
+partition.** Freeze it in `data/splits.json` on Day 1 (blocking artifact A1)
+*before* any generation.
 
-Reuse `prompts/litmus_generation_prompt.md` **SYSTEM** verbatim but (i) restrict
-the archetype list to the two in scope, (ii) request **one item per call** (not a
-batch) for cleaner per-item control, (iii) add the **closed-menu self-labeling**
-instruction and an explicit **`answer_derivation`** field, and (iv) keep the two
-existing few-shots (they are already MECH_PERT + THEORY_PLUS_STUDY). The
-Bohr/kinetics few-shots plus ~10 hand-verified gold THEORY items (bootstrapped
-first, since native THEORY exemplars are thinner: ~15 vs ~26 mechanism) are the
-few-shot bank.
+| Partition | Purpose | Size (v1) | Contents |
+| :--- | :--- | :--- | :--- |
+| **LITMUS** | Build-gate only (§5A); never used for gen | **15** sources (per [`02`](../02_litmus_test_prompt.md) §3) | 10 primary (1/core period 3–8 + 4 spread) + 3 secondary + 2 adversarial (terse note; multi-development source) |
+| **EVAL_HELDOUT** | Product eval only (§5B) | **~18** primary sources | Disjoint from litmus & train; ≥6 themes, core periods 3–8 |
+| **TRAIN** | Data generation only | **~55–80** primary sources | Disjoint from the above; the bulk-gen pool |
 
-**Self-labeling requirement (the key exploit).** The teacher must:
-1. choose the correct menu member for the scenario it invents;
-2. fill the other 3 options **from the same closed menu**;
-3. for each option emit `{label, signature, verdict}` — e.g. MECH_PERT:
-   `{"uncompetitive","Km↓ & Vmax↓","wrong: scenario shows Vmax unchanged"}`;
-   THEORY: `{"consistent-but-not-diagnostic","finding also predicted by rival","wrong: the clamp result IS discriminating"}`;
-4. emit `answer_derivation`: the ≤2-hop chain from the scenario fingerprint to the
-   unique label (this is the supervised reasoning that makes SC5 rule-derivable).
+**Honest gap (validator will flag this):** the current corpus is **22 stimuli**
+(14 primary + 8 secondary — see [`seed_stimuli.jsonl`](../../data/seed_stimuli.jsonl)).
+That is enough for the litmus + a smoke test, **not** for TRAIN + EVAL at volume.
+Corpus expansion to ~80–100 **text primary** stimuli is **blocking artifact A3**:
+scale PD ingestion via [`build_seed_corpus.py`](../../data/build_seed_corpus.py)
+(Wikisource/LoC/Avalon/CourtListener, ≤1930 or federal) + CC-BY(-SA) note-seeds
+from The American Yawp / legacy OpenStax. Keep licenses **segregated with
+per-chunk provenance** (Deliverable 5 §4.1 ShareAlike collision).
 
-**Scenario-novelty controls (the note must not be asked back):** the prompt fixes
-rule 1 (familiar concept / unfamiliar scenario); a `scenario_slot` sampler forces
-a *different instantiation* than any example in the note (different enzyme /
-organism / follow-up finding); and a programmatic concept-leak + embedding-novelty
-gate rejects note-echoes (§3.1). Difficulty is sampled from
-`{operational, hard}` to spread rigor.
+- **Note-seeds.** A "note-seed" = a short study-note paragraph (CC-BY textbook
+  prose) paired with a PD stimulus, filling the optional `{{NOTE}}` slot; it
+  steers which development the item should test. Note-seeds inherit the split of
+  their stimulus (no cross-split leakage).
+- **Embedding dedup.** Embed every kept item's `(stimulus_id + stem + answer)`;
+  drop any pair with cosine **≥ 0.92** (near-duplicate stems/keys). Also enforce
+  **cross-split** dedup at **≥ 0.90** so held-out items are not paraphrases of
+  train items — the anti-contamination check in
+  [`brainlift_draft.md`](brainlift_draft.md) §"what would falsify."
 
-### 2.4 Exact training-example schema (chat format)
+### 3.3 Prompts
 
-Production prompt is **short** (no few-shots) — baking the behavior in is the
-whole point of fine-tuning. Loss is on the assistant turn only.
+Use [`data_gen_prompt.md`](../../prompts/data_gen_prompt.md) verbatim, with the
+v1-scope archetype list = **{`CAUSE_OF_SOURCE`, `EFFECT_OF_SOURCE`}** only. The
+grounding clause is mandatory and load-bearing:
+
+> *"The keyed answer is derived as: (a claim licensed by the SOURCE) + (exactly
+> one outside development **from the developments table**) whose date obeys the
+> stem's time direction … Do NOT invent historical facts."*
+
+Seed with the two litmus few-shots (`CAUSE_OF_SOURCE` + one causation exemplar)
+plus any hand-verified gold items in `data/gold/` once they exist (artifact A4).
+Generate **one item (or one `SET_OF_THREE`) per call** so each carries the full
+verification payload.
+
+### 3.4 Training-example schema
+
+Each kept example is one JSON object (superset of the `data_gen_prompt.md` output,
+plus provenance the filter stamps on):
 
 ```json
-// SYSTEM (compact, ~200 tokens): role + 7 rules + the 2 archetype menus + "Output ONLY the JSON object."
-// USER:
-"SOURCE NOTE:\n\"\"\"{{note}}\"\"\"\nArchetype: MECHANISM_PERTURBATION\nDifficulty: operational/test-day"
-// ASSISTANT (the training target):
 {
-  "archetype": "MECHANISM_PERTURBATION",
-  "concept": "enzyme-regulation",
-  "stem": "<novel scenario with a qualitative fingerprint; passes cover-the-options>",
-  "options": ["<menu member>", "<menu member>", "<menu member>", "<menu member>"],
-  "answer": "A",
-  "answer_derivation": "<=2-hop map: fingerprint -> unique menu label",
-  "rationale": {
-    "correct": "<one sentence>",
-    "A": "correct",
-    "B": "<named error: the exact misread/misconception>",
-    "C": "<named error>",
-    "D": "<named error>"
+  "stimulus_id": "monroe_doctrine_1823",
+  "source_text": "<verbatim stimulus>",
+  "attribution": "President James Monroe, ... 1823",
+  "source_date": 1823,
+  "archetype": "CAUSE_OF_SOURCE",
+  "stem_template": "cause_of",
+  "period": 4, "theme": "WOR",
+  "stem": "Which of the following contributed most directly to ...?",
+  "options": ["...", "...", "...", "..."],
+  "answer": "C",
+  "answer_dating": "<keyed development's date + why it obeys the time direction>",
+  "options_meta": {
+    "A": {"development_id": "war_of_1812", "verdict": "wrong_era|true_but_irrelevant|scope_mismatch|partially_true|correct", "why": "<named error>"},
+    "B": {"...": "..."}, "C": {"...": "..."}, "D": {"...": "..."}
   },
-  "unfamiliar_scenario": "<one line: why this is NOT a restatement of the note>",
-  "reasoning_hops": 2
+  "trap_types": ["scope_mismatch", "wrong_era", "true_but_irrelevant"],
+  "requires_outside_knowledge": "<the outside development the answer depends on>",
+  "reasoning_hops": 2,
+  "_prov": {"teacher": "...", "judge_pass": true, "keyverify": {"votes": "3/3", "double_correct": false}, "gen_ts": "..."}
 }
 ```
 
-`answer_derivation` sits **inside** the JSON (not free-form CoT) so it is
-parseable and gradeable, and so we can run Qwen3 in **non-thinking mode**
-(structured reasoning beats long CoT for SLMs; dodges the arithmetic/CoT failure
-mode). This is a deliberate output-design decision (flagged in the summary).
+The **training target string** the model learns to emit is the object from
+`archetype` through `reasoning_hops` (the `source_*` fields and `_prov` are prompt
+context / bookkeeping, not generated). Loss is on the assistant JSON only (§6).
 
-### 2.5 Target volumes (justified against the 200–1,000+ range)
+### 3.5 Phased volumes & expected filter funnel
 
-| Quantity | Value | Justification |
-| :--- | :--- | :--- |
-| KEPT items / archetype | **~900** | Feasibility P3 (600–1,000); LoRA-Land effective range; enough for ~60–75/concept coverage. |
-| KEPT total | **~1,800** | Two archetypes sharing one deep skill → mutually reinforcing, not diluting. |
-| Split of kept | 800 train / 100 internal-dev **per archetype** | dev set is for loss/early-stop only; real eval is the separate human-note harness. |
-| RAW generated / archetype | **~2,500** | to net ~900 kept at the ~36% end-to-end yield in §3.4. |
+Realistic one-week arc: a **midweek v1 set** (Day 3) big enough for a real
+base-vs-tuned signal, then a **final v2 set** (Day 4–5) after data iteration.
+Net keep ≈ **0.80 × 0.65 × 0.72 ≈ 0.39**.
+
+| Stage | Midweek v1 | Final v2 (cumulative) | Yield |
+| :--- | ---: | ---: | :--- |
+| Raw teacher generations | 1,800 | 4,500 | — |
+| After **Stage A** (programmatic) | 1,440 | 3,600 | ~80% |
+| After **Stage B** (LLM judge) | 936 | 2,340 | ~65% of A |
+| After **Stage C** (key-verifier) | **~674** | **~1,685** | ~72% of B |
+| Kept per archetype | ~337 | **~840** | — |
+| Trap-labeled rejects retained (DPO pool) | ~1,100 | ~2,800 | free byproduct |
+
+Final ~840/archetype clears the **P3 floor of 600–1,000/archetype** with margin.
+Rejects are **not discarded** — they are the DPO negative pool (stretch §9).
 
 ---
 
-## 3. Quality gate / filtering (raw → kept)
+## 4. Quality gate (3 stages, with expected yields)
 
-Three stages, cheapest first. Every rejected item is **retained as an off-spec
-negative** for DPO (§8).
+Ordered cheapest-first; a disqualifying failure at any stage drops the item.
+Implemented once in `slm/verifier.py` and reused at inference (§7).
 
-### 3.1 Programmatic gate (free, deterministic)
+### Stage A — Programmatic (no API cost) · ~80% pass
 
-| Check | Rule | Disqualifying |
-| :--- | :--- | :--- |
-| Schema/JSON | parses; exactly 4 options; one key ∈ {A,B,C,D}; all required fields present | ✅ |
-| all/none-of-the-above | reject `/all of the above|none of the above/i` | ✅ |
-| Menu conformance | every option ∈ the archetype's closed menu (MECH_PERT) / the 4 evidential relations are distinct (THEORY) | ✅ |
-| Option homogeneity | length ratio max/min < **2.0**; correct answer not the longest by >**25%**; same grammatical category | ✅ |
-| Concept-leak | answer phrase / menu label not verbatim in stem; ≤ **6-gram** overlap with the source note | ✅ |
-| Scenario novelty | embedding cosine(stem, note) < **0.80**; and < 0.90 vs any eval artifact | ✅ |
-| Surface tells | no absolute-word distractors ("always/never") that are trivially false; no lone round number | flag |
-| Dedup / near-dup | exact hash + cosine ≥ **0.92** within the kept set | ✅ |
-| Answer-position balance | across the kept batch: no position >**35%** or <**15%** (χ²); rebalance by resampling | batch-level |
-| Label balance | correct-answer label distribution ≈ uniform across the menu (no member >**40%**) | batch-level |
+| Check | Rule | Disq? |
+| :--- | :--- | :---: |
+| valid JSON / schema | parses; all required fields; 4 options; exactly one key | ✅ |
+| `reasoning_hops ≥ 2` | integer field ≥ 2 | ✅ |
+| no absolute / all-none | regex reject `all of the above|none of the above|always|never` | ✅ |
+| **anachronism date-check** | keyed development date obeys `answer_time_direction` (cause `< source_date`, effect `> source_date`) vs [`apush_key_developments.json`](../../data/apush_key_developments.json); ≥1 distractor genuinely `wrong_era` | ✅ |
+| trap-diversity ≥ 2 | the 3 distractors span ≥2 distinct trap ids | ➖ (warn) |
+| option homogeneity | same category; correct answer not the longest by >X% | ➖ (warn) |
+| source-leak | answer phrase is not a verbatim span of `source_text` | ✅ |
+| answer-position balance | across a run, key position ~uniform (detect "always C") | run-level |
 
-### 3.2 LLM-judge (7 disqualifying checks + 3 graded dims)
+### Stage B — LLM judge (different family) · ~65% of A-survivors
 
-Judge = different family than the teacher. Per item, score each `docs/01` §7
-disqualifying check pass/fail, plus the litmus graded dims on 0/1/2:
+Scores the taxonomy `quality_checks`
+([`apush_question_archetypes.json`](../../taxonomy/apush_question_archetypes.json))
++ the spec rubric (0/1/2): **Spec adherence, Distractor craft, Outside-knowledge/
+skill-fit.** Disqualifying if any: `requires_outside_knowledge` fails
+(paraphrase), `every_distractor_named_trap` fails (filler), `single_best_answer`
+fails, `skill_matches_command_phrase` fails. Reports **historical-accuracy** +
+**single-best** as `key_valid` (the SC-KEY signal). The `single_best` and
+`requires_outside_knowledge` checks are the dominant killers here.
 
-| Dimension | 0 | 1 | 2 |
+### Stage C — Key-verifier (third family + probe) · ~72% of B-survivors
+
+- **k-of-n independent solve:** a third-family model solves the item **n=3**
+  times without the intended key; keep only if it selects the keyed option
+  **≥2/3** (self-consistency vote).
+- **Double-correct probe:** ask "is *more than one* option defensibly 'most
+  directly' correct?" — reject on yes (catches the SC-KEY double-key tail the
+  date-check cannot).
+- **Human spot-check (P3):** a random ≥30-item slice per batch is human-audited
+  for historical accuracy (LLM judges themselves err on history facts — [`02`](../02_litmus_test_prompt.md) §4b).
+
+### SC-KEY targets per archetype
+
+| Archetype | Raw model `key_valid` (pre-verifier) | Production (post-verifier) |
+| :--- | :---: | :---: |
+| `CAUSE_OF_SOURCE` | **≥ 0.80** | **≥ 0.92** |
+| `EFFECT_OF_SOURCE` | **≥ 0.80** | **≥ 0.92** |
+| `CONTEXT_SITUATION` (stretch) | ≥ 0.85 | ≥ 0.93 |
+
+Raw ~0.80 matches the feasibility SC-KEY ceiling at 4B (§2); the verifier lifts
+production to ≥0.90. **If raw stays <0.85 after v2 data iteration AND the verifier
+is on → kill-criterion "RETHINK scope"** (§8, feasibility §5).
+
+---
+
+## 5. TWO eval instruments (do not conflate)
+
+### 5A. LITMUS run — the BUILD gate (BEFORE any training)
+
+Runs [`02_litmus_test_prompt.md`](../02_litmus_test_prompt.md) exactly: the
+maximal [`litmus_generation_prompt.md`](../../prompts/litmus_generation_prompt.md)
+over the **15 frozen LITMUS sources**, 6 items/source, **3 runs** (temp ≈ 0.7),
+across Qwen3-{0.6B,1.7B,4B}-Instruct **and** the frontier teacher, with/without
+few-shot. **Its job is to confirm the preconditions, not to train anything.**
+
+| Gate | Metric | Threshold | Flips to if failed |
 | :--- | :--- | :--- | :--- |
-| Spec adherence | violates ≥1 disqualifying check | minor wobble | fully expert-grade |
-| Distractor craft | ≥1 filler/implausible option | mixed | every distractor a named menu error |
-| Scenario novelty | asks the note back | partial reframe | genuinely new scenario |
+| **P1** | frontier teacher expert-grade **and** `key_valid_rate` | **≥ 70–75%** | `key_valid` <70% → **RETHINK** (no clean labels) |
+| **P2** | prompted base **4B** expert-grade | **≤ 45–55%** | ≥80% → **DON'T BUILD**; 55–80% → narrow further |
 
-`expert_grade(item)` = **all disqualifying checks pass AND every graded dim ≥ 1
-AND spec-adherence = 2.** Judge reliability: 20% double-judged (report agreement);
-50-item human spot-check per archetype before trusting the judge.
+Output: `docs/02b_litmus_results.md` (artifact A5) with pass-rate + `key_valid_rate`
+by model × archetype. **The single most decision-relevant number is the frontier
+teacher `key_valid_rate` on the causation pair** (feasibility §5). No training
+step happens until P1 ∧ P2 hold.
 
-### 3.3 Answer-key VERIFICATION (SC5 — the crux; three independent signals)
+### 5B. Product eval — base-vs-tuned (the required win)
 
-An item is key-valid only if **all** pass:
-1. **Independent solve + self-consistency:** a different-family solver receives
-   `stem + options` (no key), votes **k=5** at temp 0.7; keep only if
-   majority = teacher's key **and** margin **≥ 4/5**. Catches wrong-key.
-2. **Double-correct probe:** verifier asked "is more than one option defensible?
-   list all." Reject if ≥2 flagged. Catches second-correct.
-3. **Deterministic rule-checker (MECH_PERT only):** parse the stated qualitative
-   fingerprint (Km/Vmax direction words, %-tetramer datum, ΔpH) → look up the
-   unique menu label in a hand-built truth table → assert `key == table[fingerprint]`.
-   A **non-LLM** guarantee for the anchor archetype. THEORY_PLUS_STUDY has no
-   symbolic rail → it leans on (1)+(2) with a stricter margin (≥5/5) *(flagged)*.
+Base = **same** Qwen3-4B-Instruct prompted with the maximal litmus prompt (the
+honest bar, per feasibility §1). Tuned = the QLoRA model. Both generate on the
+**~18 EVAL_HELDOUT sources** (disjoint per §3.2), **6 items/source, 3 runs**,
+same judge + key-verifier as training.
 
-### 3.4 Expected yield (funnel, per archetype)
-
-| Stage | In → Out | Pass rate | Rationale |
-| :--- | :--- | :---: | :--- |
-| Raw generated | 2,500 | — | teacher, one item/call |
-| Programmatic gate | 2,500 → 2,000 | 80% | JSON/menu/leak/dup are mostly clean from a frontier teacher |
-| LLM-judge (7 checks) | 2,000 → 1,150 | 58% | novelty + distractor-craft are the real cullers |
-| Answer-key verifier | 1,150 → 900 | 78% | SC5 rejects wrong/double keys; stricter on THEORY |
-| **KEPT** | **900** | **~36%** | matches "filter hard; quality > volume" |
-
-If yield < 900, generate another batch (do **not** relax gates). If THEORY yield
-is structurally lower, accept an asymmetric dataset (e.g., 900 MECH / 700 THEORY)
-rather than lowering the bar.
-
----
-
-## 4. Eval harness (built BEFORE training)
-
-Built and frozen on Day 2. Also serves as the litmus run that confirms
-preconditions P1/P2 *before* a single training step.
-
-### 4.1 Held-out note set (no leakage)
-
-20 EVAL-heldout human FP cards (≈10 per archetype's concept mix) + 10
-EVAL-adversarial notes. These notes never seed training (§2.2 firewall).
-
-### 4.2 Paraphrase transfer / novelty probe (30×2)
-
-For each of the 30 paraphrase `card_back` principles: feed as a note → model
-generates an item → judge checks (a) **fidelity**: the item tests that principle;
-(b) **novelty**: scenario differs from the card AND from *both* provided
-rewordings (cosine < 0.80). This is the direct measure of "familiar concept /
-unfamiliar scenario." Target: fidelity ≥ 90%, novelty ≥ 90%.
-
-### 4.3 Judge rubric & metrics
-
-Same rubric as §3.2 **plus** answer-key correctness via the §3.3 independent
-solver. Metrics per model: **pass rate** (fraction `expert_grade`, primary);
-mean per graded dim; **answer-key correctness** (tracked separately — the crux);
-per-archetype and per-concept breakdown.
-
-### 4.4 Base-vs-tuned protocol (mandatory)
-
-| Arm | Prompt | Purpose |
+| Success target | Metric | Bar |
 | :--- | :--- | :--- |
-| **Base** | Qwen3-4B + **maximal litmus prompt** (full spec + few-shots) | the "a good prompt already does it?" ceiling for the base |
-| **Tuned** | Qwen3-4B(SFT) + **short production prompt** (no few-shots) | the "data bought reliability" claim |
-| **Tuned-ablation** | Tuned + maximal prompt | isolates SFT effect from prompt effect |
-| *(context)* Frontier | teacher + maximal prompt | secondary "rival frontier" bar (not required) |
+| **Reliability** | tuned expert-grade pass rate | **≥ 80%** |
+| **Delta over base** | tuned − base pass rate | **≥ +25 pts**, and **bootstrap 95% CI lower-bound > 0** |
+| **Variance reduction** | run-to-run std (tuned vs base) | tuned **std ≤ 5 pts** and **< base std** |
+| **Per-archetype** | `CAUSE_OF_SOURCE`, `EFFECT_OF_SOURCE` each | **≥ 78%** |
+| **SC-KEY** | `key_valid_rate` (production, verifier-on) | **≥ 90%** |
+| **Ablation** | verifier-off vs verifier-on key correctness | report the lever's size |
 
-**Reliability = pass-rate AND variance:** 3 runs at temp 0.7, different seeds;
-report mean ± std of pass rate, and the fraction of notes where **all 3 runs**
-pass (all-pass rate). Reliability, not peak, is the deliverable.
-
-### 4.5 Adversarial / robustness rung
-
-Attack notes designed to break the behavior: terse abbreviation-heavy fragments;
-multi-concept paragraphs (does it pick one coherent target?); notes that bait
-note-echo; notes that bait arithmetic (must stay qualitative). Report clean vs
-under-attack pass rate.
-
-### 4.6 Exact success targets
-
-| Metric | Base (expected) | Tuned target | Gate |
-| :--- | :---: | :---: | :--- |
-| Expert-grade pass rate (held-out) | ~35–50% | **≥ 75%** | **required**; and **≥ +25 pts** over base |
-| Run-to-run std | ~10–15 pts | **≤ 5 pts** | required (tuned ≤ base) |
-| Answer-key correctness (raw model) | ~60–75% | **≥ 90%** | crux |
-| Answer-key correctness (with §6 verifier, "production") | — | **≥ 98%** | crux |
-| Paraphrase novelty / fidelity | — | **≥ 90% / ≥ 90%** | required |
-| Per-archetype pass rate | — | **both ≥ 70%** | required |
-| Robustness (under-attack) pass rate | — | **≥ 60%** | reported (v2 target) |
+Report **mean per rubric dimension, base vs tuned**, + an error-analysis
+paragraph (spec Appendix A). Bootstrap CIs (≥1,000 resamples) over items. A tuned
+model that beats base on **Spec adherence + Consistency** is the win the spec
+names; **do not** stake the project on beating a *prompted frontier* (feasibility
+§1 secondary bar).
 
 ---
 
-## 5. Training config (Qwen3-4B-Instruct + Unsloth QLoRA)
+## 6. Training config (Unsloth QLoRA)
 
-Starting points; change **only** via principled sweeps, never to paper over data.
-
-```python
-# Unsloth QLoRA — Qwen3-4B-Instruct
-model, tok = FastLanguageModel.from_pretrained(
-    "unsloth/Qwen3-4B-Instruct", load_in_4bit=True,   # NF4, double-quant, bf16 compute
-    max_seq_length=2048)
-model = FastLanguageModel.get_peft_model(
-    model, r=16, lora_alpha=32, lora_dropout=0.05,
-    target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
-    use_gradient_checkpointing="unsloth", random_state=3407)
-# TRL SFTTrainer args:
-#   per_device_train_batch_size=8, gradient_accumulation_steps=4   # eff. 32
-#   learning_rate=2e-4, lr_scheduler_type="cosine", warmup_ratio=0.03,
-#   weight_decay=0.01, num_train_epochs=3, optim="adamw_8bit",
-#   packing=True, bf16=True, seed=3407
-# train_on_responses_only(...) -> loss masked to the assistant JSON only
-```
-
-| Item | Value | Note |
+| Knob | Value | Rationale |
 | :--- | :--- | :--- |
-| Chat template | Qwen3 ChatML; **enable_thinking=False** | structured `answer_derivation` replaces CoT |
-| max_seq_len | 2048 | longest passage-note ≈ 500 tok; item ≈ 400 tok → fits |
-| Epochs | 3 | ~1,600 train ex; early-stop on internal-dev expert-grade proxy |
-| Eff. batch | 32 (8×4) | scale to VRAM |
-| First sweep knob (if underfit) | r 16→32 | then epochs, then lr — never to mask data issues |
-| VRAM / runtime | 1×A100-80GB (or H100): peak ~18–22 GB, ~20–40 min/epoch → **~1–1.5 hr/run**; fits 40/24 GB with smaller batch | single-GPU per spec |
+| Base | `unsloth/Qwen3-4B-Instruct-2507` | 4B clears the reliability cliff (feasibility §2 [arith-2025]); the **Instruct/non-thinking** variant is the pick for a deterministic JSON emitter. |
+| Quantization | 4-bit NF4 (QLoRA), bf16 compute | fits one 24–40GB GPU; the spec's named recipe. |
+| LoRA | **r=16, α=32**, dropout=0 | small, narrow distribution → modest rank avoids overfitting; α=2r. |
+| Target modules | `q,k,v,o,gate,up,down_proj` | standard Unsloth full-attention+MLP coverage. |
+| Epochs | **2–3** (early-stop on held-out pass rate) | ~1.6k items is small; >3 epochs risks memorizing keys (contamination risk). |
+| LR / sched | 2e-4, cosine, 5–10% warmup | Unsloth QLoRA default band. |
+| Batch | effective **16–32** (micro-batch × grad-accum) | stability on a small set. |
+| Max seq len | **2048** | source + JSON object fit comfortably. |
+| **enable_thinking** | **False** (train & infer identically) | thinking adds output variance/latency and risks the mode-dependent format collapse [arith-2025]; a JSON item needs no visible CoT. If a later ablation wants reasoning, distill it into `answer_dating`, not a `<think>` block. |
+| **Loss masking** | **assistant JSON only** (`train_on_responses_only`) | never train on the prompt/source; learn the *emission*, per §3.4. |
+| Artifacts | LoRA adapter + merged 16-bit + optional GGUF Q4_K_M | adapter for reproducibility; merged/GGUF for the HF demo. |
+
+Fixed seed; log to Trackio/W&B. Save the base-vs-tuned generation configs
+(temp, top-p) identical so the comparison is fair.
 
 ---
 
-## 6. Inference-time verification pass (makes SC5 safe in production)
+## 7. Inference verifier (reject-and-regenerate)
 
-The tuned model is wrapped in a **reject-and-regenerate** loop that reuses the
-**exact §3.3 verifier module** (shared code path — the filter *is* the guard):
+**Same `verifier.py` as the training filter** (one source of truth — the spec
+rubric = data-gen rubric = eval criterion = inference guard). At serve time:
 
 ```
-generate item  ->  §3.1 programmatic gate  ->  §3.3 verifier (solve+SC, double-correct,
-                                                MECH_PERT rule-checker)
-   PASS  -> return item
-   FAIL  -> regenerate (up to K=3, temp bumped, optional "you failed check X, fix it")
-   still FAIL after K -> abstain / return best-scored candidate flagged "unverified"
+generate item  →  Stage A programmatic (JSON, date-check, trap-diversity,
+                   absolute-words, source-leak, homogeneity)
+   ├─ fail → regenerate (≤ k=4 tries; on repeated fail, return best + flag)
+   └─ pass → Stage B/C-lite: judge single-best + programmatic date-check
+        ├─ fail → regenerate
+        └─ pass → emit item + verification receipt
 ```
 
-- Lifts raw key-correctness (~90%) to **≥98%** in production because wrong/double
-  keys are caught and re-rolled.
-- Cheap path first: programmatic gate + MECH_PERT rule-checker are free; the
-  frontier solver is invoked only for items that pass those (and always for
-  THEORY, which lacks a symbolic rail).
-- Demo exposes a toggle so the video can show verifier-off (occasional bad key) vs
-  verifier-on (clean) — concrete proof the guard matters.
+- **Programmatic date-check** is always on (free, deterministic, catches
+  wrong-era). The **judge single-best** pass is the SC-KEY guard that the
+  date-check cannot cover; it can run as the same different-family judge or a
+  cheaper distilled check for latency.
+- The verifier **rejects and regenerates** rather than silently emitting — this
+  is what converts SC-KEY from a liability into a *gated* output (P4). The
+  inference demo (HF Space) exposes the receipt so a user sees *why* an item
+  passed (the "expert-made feel" the Brainlift claims).
 
 ---
 
-## 7. Iteration strategy (v1 → v2 — fix in the DATA)
+## 8. Iteration strategy — fix failures in DATA, not hyperparameters
 
-Loop: eval error-analysis → bucket failures by (check failed × archetype ×
-concept) → **fix the data distribution** → regenerate/rebalance → retrain →
-re-eval. Hyperparameters are frozen unless a controlled test shows clean data +
-under/overfit.
+Spec law (Rules/traps): *"Don't tune hyperparameters to fix a data problem."*
+Every eval failure routes to a **data** change; hyperparameters stay fixed after
+M3 unless a run is diverging.
 
-| Observed failure mode | Root cause | **Data fix (not hyperparams)** |
-| :--- | :--- | :--- |
-| Model keys "competitive" far too often | label imbalance / menu collapse | rebalance kept set to ~uniform correct-label; add items where competitive is a *distractor* |
-| THEORY never selects "consistent-but-not-diagnostic" | that slot under-represented | oversample items whose correct answer is the not-diagnostic trap (calibration) |
-| "Asks the note back" on terse notes | few messy seeds; low-novelty training items | add EVAL-adversarial-style messy seeds to TRAIN; up-weight novelty=2 items |
-| Wrong key on 2-hop items | weak derivations in targets | keep only verifier-margin-5/5 items; strengthen `answer_derivation` supervision |
-| Homogeneity fails (correct = longest) | teacher verbosity bias | length-normalize options in gate; regenerate offenders |
-
-**Worked example.** v1 eval shows MECH_PERT pass 82% but THEORY 61%, and THEORY's
-miss is 70% "trivially confirms/refutes, no not-diagnostic trap." *Fix:* raise
-the not-diagnostic correct-answer share from ~20%→35% in the THEORY training set
-and add 120 items with confound-laden findings; retrain. Expected v2: THEORY →
-~72%+, with no hyperparameter change.
-
----
-
-## 8. Stretch ladder
-
-1. **DPO / preference tuning (first rung).** Reuse the off-spec negatives the
-   filter already produces: pair `chosen` = a verified expert-grade item with
-   `rejected` = a same-note/same-archetype item that failed (wrong key, filler
-   distractor, or note-echo). ~1,500–3,000 pairs. DPO on top of SFT
-   (β=0.1, lr 5e-6, 1 epoch). Measure Δ expert-grade and Δ key-correctness vs SFT
-   alone (contrastive fallacy-labeled negatives are documented to sharpen exactly
-   this).
-2. **Adversarial / robustness eval.** Promote §4.5 to a graded rung: report
-   pass-rate under attack (note-echo bait, arithmetic bait, malformed notes).
-3. **Composed behavior (hardest).** Add a genuinely competing constraint:
-   *include a numeric fingerprint as given data yet keep the item
-   qualitatively-solvable (never require arithmetic)* — numbers present but not to
-   be computed. Show the model holds format + novelty + this tension at once.
-
----
-
-## 9. Risk register
-
-| # | Risk | Mitigation | **Kill-criterion → action** |
+| Failure mode | Eval symptom | Root cause in DATA | Data fix (v2) |
 | :--- | :--- | :--- | :--- |
-| R1 | **SC5**: wrong or double-keyed answer (the crux) | symbolic + self-consistency verifier in filter **and** inference; strong `answer_derivation` supervision | tuned key-correctness **<85%** after v2 **and** with verifier → **RETHINK scope**: drop to MECH_PERT-only, add retrieval, or switch output unit to "grade/repair an item" |
-| R2 | Seed/eval **contamination** inflates gains | human held-out eval, cross-split near-dup gate, paraphrase blocklist | eval gain **collapses when dedup threshold tightened** (0.90→0.80) → gains are artifacts; rebuild splits |
-| R3 | **Mode collapse** to one distractor/label | label- & position-balanced sampling; coverage tracking | any menu member **>40%** of correct keys in kept/eval → rebalance data |
-| R4 | **Teacher-ceiling** failure (no clean labels) | litmus run **before** training (P1) | teacher **<70%** expert-grade on the two archetypes → **RETHINK**: supply data object, retrieval grounding, or MECH_PERT-only |
-| R5 | **Litmus fails** (prompt already suffices) | run prompted base 4B in litmus (P2) | base 4B **≥80%** expert-grade → **DON'T BUILD**; ship the prompt |
-| R6 | **Messy-note collapse** (SC6) | clean-note v1; adversarial rung deferred | tuned strong on clean but collapses on messy → **NARROW inputs** to clean cards for v1 |
-| R7 | Judge unreliable / teacher==judge correlation | different families; 20% double-judge; 50-item human check | judge–human agreement **<0.8** → revise rubric/judge model |
-| R8 | Overfit to 82 seeds | synthetic-note expansion; dedup; early-stop | large train–eval gap **and** low eval novelty → expand/di­versify seeds |
+| **Double-key** ("most directly" ambiguous) | `key_valid` / single-best low | training set had subtle double-keys the judge passed | tighten key-verifier to 3/3; add contrastive `scope_mismatch` pairs (specific vs background); expand developments table to disambiguate |
+| **Wrong-era key** | date-check fail | grounding not enforced / table gaps | enforce table-selection; expand table coverage (A3); add wrong-era hard negatives |
+| **Filler distractor** | distractor-craft = 0 | trap distribution skewed / homogeneous | rebalance trap mix; oversample `true_but_irrelevant` + `scope_mismatch` (the hard traps); add DPO negatives |
+| **Echoes source** (paraphrase) | `requires_outside_knowledge` fail | weak outside-knowledge items slipped in | raise `reasoning_hops` floor; judge harder on paraphrase; drop 1-hop items |
+| **Broken JSON** | programmatic fail | too few schema-consistent examples / thinking leaked | more examples; confirm `enable_thinking=False`; loss-on-JSON-only |
+| **Collapses on terse/adversarial notes** | robustness dim low, clean ≫ messy | training lacked terse/multi-development inputs | add terse note-seeds + multi-development sources (still in-scope) → matches kill-criterion "NARROW inputs" |
 
-**Single most decision-relevant result:** whether the frontier **teacher** clears
-≥70% expert-grade on the two archetypes in the litmus run. Teacher-can +
-base-can't = textbook distillation BUILD; teacher-can't = RETHINK before spending
-a GPU-hour.
+Each v2 cycle resolves **one** named failure mode and re-runs 5B (the spec's Day-4
+exit). Document the story for the Brainlift (e.g., "scope-mismatch under-represented
+→ added in data → double-key rate −N pts").
 
 ---
 
-## 10. Milestones (mapped to the one-week arc & final package)
+## 9. Stretch ladder (only after the core arc clears)
 
-Sequenced for **structure/coverage, not speed**. Arc day in brackets.
+Per spec order (DPO + adversarial are the natural first two):
 
-| M | Milestone | Exit checkpoint | Spec day |
-| :--- | :--- | :--- | :---: |
-| **M0** | Env + repro: base Qwen3-4B runs inference; assets loaded; `data/splits.json` frozen | base model responds; splits + firewall in place | D1 |
-| **M1** | Behavior spec frozen; **eval harness built**; **litmus run** (teacher + prompted base 4B) | P1 (teacher ≥70%) & P2 (base ≤~45–55%) confirmed → BUILD greenlit | D1–D2 |
-| **M2** | Data-gen + 3-stage quality gate + verifier coded; **50-item junk smoke** through generate→train→eval | full loop runs end-to-end | D2 |
-| **M3** | v1 dataset (~1,800 kept, funnel logged); first QLoRA run; **first base-vs-tuned eval** | **midweek gate: base-vs-tuned numbers on the board** | D3 |
-| **M4** | Error analysis → **v2 data fixes** → retrain → improvement report | **one failure mode resolved via data** (e.g., THEORY not-diagnostic) | D4 |
-| **M5** | Inference demo w/ reject-&-regenerate; final eval + results table; robustness rung | tuned meets §4.6 gates | D5 |
-| **M6** | **Publish**: dataset + model to HF Hub; brainlift ("data→behavior held?"); 3–5 min demo video | final submission package complete | D5 |
-| **M7** | Stretch: DPO from filter negatives → adversarial eval → composed behavior | each a standalone gradeable result | post |
-
-**Final package (spec §"Final submission"):** (1) the **dataset**, published on HF
-(the real artifact); (2) the **model** on HF Hub + running inference demo with the
-verifier; (3) **eval harness + results table** (base vs tuned, expert-grade pass
-rate + variance + key-correctness); (4) **brainlift** (behavior thesis + evidence
-data→behavior held); (5) **demo video** showing the tuned model reliably doing
-what the prompted base fails to do.
+1. **DPO from filter negatives.** The trap-labeled rejects (§3.5, ~2,800) are a
+   ready preference set: pair each kept item (chosen) with a matched reject
+   (rejected) on the same stimulus+archetype. Target ~500–800 pairs; run DPO on
+   the SFT adapter; measure whether spec adherence / `key_valid` sharpens **beyond
+   SFT** ([ccot] fallacy-labeled negatives added +12.5%).
+2. **Adversarial / robustness eval.** A hard set designed to break the behavior:
+   terse fragments, multi-development sources, near-miss developments one year off
+   the boundary (stress the date-check), decoys that tempt double-keying. Report
+   robustness under attack vs clean.
+3. **Add `CONTEXT_SITUATION`** (the sanctioned 3rd archetype; feasibility §3a).
+   Re-run 5B for the 3-archetype scope (expected ~89% — below the 2-archetype
+   91%, hence a *stretch*, not v1).
+4. **F5 crown jewel later** (`EVIDENCE_SUPPORTS_CLAIM`) — highest expert-feel,
+   needs secondary-source stimuli + a support-vs-undermine judge; explicitly a v2+
+   research rung, not this build (feasibility §3b marks F5 OUT of v1).
 
 ---
 
-## Appendix A — Frozen artifacts to create
+## 10. Milestones M0–M6 (one-week arc + stretch)
 
-- `data/splits.json` — the seed firewall (eval-heldout 20, paraphrase 30,
-  adversarial 10, train-human 62, train-synthetic ~300) + blocklist hashes.
-- `data/mcat_slm_v1.{train,dev}.jsonl` — chat-format items (§2.4 schema).
-- `data/negatives.jsonl` — off-spec rejects for DPO (§8).
-- `eval/harness.py` — programmatic gate + judge + independent-solver verifier
-  (shared with `infer/verify.py`).
-- `eval/truth_tables/mech_pert.json` — the deterministic fingerprint→label table.
-- `results/base_vs_tuned.md` — the mandatory results table.
+| # | Day | Focus | Exit criterion (gradeable) |
+| :--- | :--- | :--- | :--- |
+| **M0** | 1 | Setup, research, Brainlift | Qwen3-4B-Instruct runs inference locally; **teacher ToS confirmed** (Deliverable 5 §4.2); `data/splits.json` drafted (A1); Brainlift spiky POV written & matches target behavior. |
+| **M1** | 2 AM | Harness + pipeline + smoke test | Full loop **generate → filter → train → eval** runs end-to-end on **50 junk examples**; `verifier.py` + eval harness scaffolded (A2). |
+| **M2** | 2 PM | **LITMUS build-gate** | `docs/02b_litmus_results.md` (A5) shows **P1 (teacher ≥70–75% + key_valid ≥70–75%)** and **P2 (base ≤45–55%)** → BUILD; else kill/RETHINK. **No training before this passes.** |
+| **M3** | 3 | v1 dataset + first real numbers | Midweek gate: ~700 kept items (A3/A4 in place), first QLoRA run done, **base-vs-tuned numbers on the board**; tuned > base on Spec adherence. |
+| **M4** | 4 | v2 dataset (data iteration) | **One** specific failure mode (§8) resolved *in data*; retrain; report the improvement (e.g., `key_valid` +N pts) with the delta CI. |
+| **M5** | 5 | Ship & defend | Final 5B eval + error analysis; **dataset published**; **model on HF + inference demo (verifier-on)**; **eval harness + base-vs-tuned results table**; **Brainlift final**; **3–5 min demo video** showing what the base fails at. All §1 win targets met or honestly reported. |
+| **M6** | 5+ | Stretch | ≥1 rung of §9 (DPO or adversarial) produces a gradeable result. |
 
-## Appendix B — Compliance map (spec non-negotiables → where honored)
+---
 
-QLoRA SFT on small open base → §5. Dataset is the deliverable → §2–3, App-A.
-Eval before training → §4, M1. Base-vs-tuned mandatory → §4.4, §4.6. No broad
-domains → §1–2 (2 archetypes, ~12 concepts each). Don't fix data with
-hyperparams → §5, §7. Verifier is a precondition → §3.3, §6, R1. Qualitative-only
-→ §1, §2.3, §5 (non-thinking), R-arith. Stack = Qwen3 + Unsloth QLoRA + single
-A100/H100 → §5. Stretch = DPO/adversarial/composed → §8.
+## Appendix A — Blocking artifacts & owners
+
+| ID | Artifact | Blocks | Owner | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **A1** | `data/splits.json` (LITMUS/EVAL_HELDOUT/TRAIN, disjoint) | all gen + eval (P6) | data lead | **TODO** (Day 1) |
+| **A2** | `slm/verifier.py` + `slm/eval_harness.py` (shared filter/eval/inference) | M1, M2, filtering, §7 | eng | **TODO** (Day 2) |
+| **A3** | Corpus expansion to ~80–100 text primary stimuli (via `build_seed_corpus.py`; PD + CC-BY note-seeds, provenance segregated) | TRAIN/EVAL volume (P3) | data lead | **TODO** — current 22 stimuli insufficient |
+| **A4** | `data/gold/` hand-verified few-shots (≥6/archetype, human-keyed) | prompt quality, judge calibration | historian review | **TODO** |
+| **A5** | `docs/02b_litmus_results.md` | M2 build-gate (P1/P2) | eng | **TODO** (Day 2) |
+| **A6** | Developments-table expansion (84 → ~150–200, dates re-verified vs OpenStax/Yawp) | date-check coverage, double-key disambiguation | historian review | **TODO** |
+| **A7** | Teacher-ToS confirmation (outputs-for-training permitted) | any bulk gen | project lead | **TODO** (Day 1) |
+
+## Appendix B — API / compute budget estimate (order-of-magnitude)
+
+Assumes frontier ~\$3/1M in, ~\$15/1M out; SLM inference local. "AI costs are
+covered" (spec) — this sizes effort, not a hard cap.
+
+| Line | Volume | Est. cost |
+| :--- | :--- | ---: |
+| Teacher generation (final, incl. ~1.3× regen) | ~5,800 calls × (~2.5k in + ~0.6k out) | ~\$110 |
+| Judge (Stage B, incl. 20% double-judge) | ~4,300 × (~2k in + ~0.3k out) | ~\$55 |
+| Key-verifier (Stage C, n=3 solves) | ~2,600 × 3 × (~1.5k in + ~0.2k out) | ~\$45 |
+| Litmus run (frontier gen + judge; SLMs local) | 270 gen + ~800 judge calls | ~\$35 |
+| Product eval 5B (judge + verifier; gen local) | ~720 judge calls × 2 iterations | ~\$20 |
+| Iteration slack (v2 regen, ablations, DPO gen) | — | ~\$60 |
+| **Frontier subtotal** | | **~\$325** |
+| GPU (QLoRA): 1× A100/H100, ~3–5 runs × ~1–2 h | Modal/RunPod ~\$2–4/h | **~\$40–80** |
+
+**Total ≈ \$365–405**, dominated by teacher generation; comfortably within a
+covered-cost, one-week build.
+
+## Appendix C — Spec-compliance checklist
+
+| Spec non-negotiable | Where satisfied |
+| :--- | :--- |
+| Dataset is the deliverable (published) | §3, §10 M5, A-artifacts |
+| Eval built **before** training | §5A litmus at **M2**, before M3 training |
+| Base-vs-tuned comparison mandatory | §5B, §1 win condition |
+| QLoRA/Unsloth on a small open base | §6 (Qwen3-4B-Instruct) |
+| No broad domains ("one target, one context") | §1 scope = causation pair only |
+| Fix failures in DATA, not hyperparameters | §8 |
+| Pick a behavior that **fails the prompt test** | §5A P2 (base ≤45–55%); kill if base ≥80% |
+| Published dataset | §10 M5, A-artifacts |
+| Model on HF + inference demo | §10 M5, §7 verifier-on demo |
+| Eval harness + results table (base-vs-tuned) | §5B, A2 |
+| Brainlift (thesis + evidence) | [`brainlift_draft.md`](brainlift_draft.md) → final M5 |
+| 3–5 min demo video | §10 M5 |
+| **Inherited:** grounding to developments table | §2, §3.3, §4 Stage A (P5) |
+| **Inherited:** inference-time verifier in loop | §7 (P4) |
+| **Inherited:** confirmed teacher `key_valid_rate` | §5A P1 (M2) |
+| **Inherited:** text primary sources only (v1) | §3.2 (P7) |
+| **Inherited:** no College Board content in pipeline | §3.2 sourcing (Deliverable 5 §3) |
+| **Inherited:** MMLU high_school_us_history = EVAL-ONLY | not in TRAIN (Deliverable 5 §2) |
