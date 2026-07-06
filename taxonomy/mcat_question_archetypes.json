@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "title": "MCAT question archetype catalog (agent-iterable)",
+  "note": "Companion to docs/01_mcat_question_taxonomy.md. Each concrete MCAT item = (skill) x (content) x (surface form). Families collapse the AAMC Scientific Inquiry & Reasoning Skills (SIRS) into generation buckets; archetypes are the named, generation-ready combinations an agent iterates over. Weights are AAMC's published per-section SIRS distribution (identical across C/P, B/B, P/S). 'expert_feel' and 'note_seedability' are 0-1 design heuristics for scope selection, not AAMC data.",
+  "content_vocabulary_ref": "../prev_data/speedrun_concepts.json",
+  "exemplar_bank_ref": "../prev_data/speedrun_question_bank.json.gz",
+  "seed_material_ref": "../prev_data/speedrun_first_principles.json",
+  "transfer_eval_ref": "../prev_data/speedrun_paraphrase.json",
+
+  "sections": [
+    { "id": "CP", "name": "Chemical & Physical Foundations of Biological Systems", "questions": 59, "passage_based_fraction": 0.75, "content_scope": true },
+    { "id": "CARS", "name": "Critical Analysis & Reasoning Skills", "questions": 53, "passage_based_fraction": 1.0, "content_scope": false, "in_primary_scope": false, "reason_out_of_scope": "requires humanities/social-science passages, not medical notes" },
+    { "id": "BB", "name": "Biological & Biochemical Foundations of Living Systems", "questions": 59, "passage_based_fraction": 0.75, "content_scope": true },
+    { "id": "PS", "name": "Psychological, Social & Biological Foundations of Behavior", "questions": 59, "passage_based_fraction": 0.75, "content_scope": true }
+  ],
+
+  "families": [
+    { "id": "F1", "name": "Knowledge & Discrimination", "skill": "SIRS-1", "weight": 0.35, "expert_feel": 0.3, "essence": "recognize/recall/relate a concept or plug into a given equation" },
+    { "id": "F2", "name": "Applied Reasoning", "skill": "SIRS-2", "weight": 0.45, "expert_feel": 0.7, "essence": "use a concept to predict, explain, or judge a novel case" },
+    { "id": "F3", "name": "Research & Experiment", "skill": "SIRS-3", "weight": 0.10, "expert_feel": 0.95, "essence": "evaluate methodology: variables, controls, confounds, fixes, ethics" },
+    { "id": "F4", "name": "Data & Statistics", "skill": "SIRS-4", "weight": 0.10, "expert_feel": 0.9, "essence": "read a table/graph/result; draw the conclusion the data do and do not support" }
+  ],
+
+  "cars_skills_reference": [
+    { "id": "CARS-1", "name": "Foundations of Comprehension", "weight": 0.30, "subtypes": ["main_idea_primary_purpose", "detail_retrieval", "inference", "definition_in_context"] },
+    { "id": "CARS-2", "name": "Reasoning Within the Text", "weight": 0.30, "subtypes": ["function", "strengthen_weaken_within"] },
+    { "id": "CARS-3", "name": "Reasoning Beyond the Text", "weight": 0.40, "subtypes": ["apply_analogy", "strengthen_weaken_beyond", "author_response_prediction"] }
+  ],
+
+  "passage_types": [
+    { "id": "experiment_research", "feeds_skills": ["SIRS-3", "SIRS-4"], "note": "study setup, methods, variables, results/tables/figures; richest soil for expert questions" },
+    { "id": "information_situation", "feeds_skills": ["SIRS-1", "SIRS-2"], "note": "phenomenon/model/real-world situation to interpret and apply" },
+    { "id": "persuasive_argument", "feeds_skills": ["SIRS-2"], "note": "advances a claim; evaluate the argument (more common in P/S)" }
+  ],
+
+  "archetypes": [
+    {
+      "id": "CONCEPT_DISCRIMINATION",
+      "family": "F1", "skill": "SIRS-1",
+      "expert_feel": 0.5, "note_seedability": 0.9,
+      "input_needed": "a concept plus >=1 easily-confused neighbor",
+      "shape": "short scenario instantiating one concept; ask which process/principle it is; distractors = the confusable neighbors",
+      "good_example": {
+        "stem": "Repeated drops of lemon juice produce declining salivation; the researcher then switches to lime juice. This most likely studies which process?",
+        "answer": "Habituation and dishabituation",
+        "distractors_rationale": ["sensory adaptation (peripheral vs central confusion)", "stimulus generalization (wrong learning process)", "classical conditioning (no US-CS pairing present)"]
+      },
+      "llm_failure": "names the concept in the stem, or draws distractors from unrelated chapters so topic-matching gives it away",
+      "difficulty_levers": ["closeness of neighbors", "lay description vs jargon"]
+    },
+    {
+      "id": "REPRESENTATION_TRANSLATION",
+      "family": "F1", "skill": "SIRS-1",
+      "expert_feel": 0.4, "note_seedability": 0.6,
+      "input_needed": "a concept expressible in >=2 forms (prose/graph/equation/structure)",
+      "shape": "give one representation, ask for the matching representation",
+      "good_example": {
+        "stem": "Which graph best shows the relationship between educational attainment and life expectancy?",
+        "answer": "monotonic increasing, decelerating curve",
+        "distractors_rationale": ["negative slope (sign error)", "linear (ignores diminishing returns)", "U-shaped (fabricated non-monotonicity)"]
+      },
+      "llm_failure": "trivial one-to-one mapping with no plausible misreadings",
+      "difficulty_levers": ["number of representations", "how similar the decoy graphs are"]
+    },
+    {
+      "id": "MECHANISM_PERTURBATION",
+      "family": "F2", "skill": "SIRS-2",
+      "expert_feel": 0.85, "note_seedability": 0.9,
+      "input_needed": "a mechanism/pathway with a control point (enzyme kinetics, feedback loop, circuit, equilibrium)",
+      "shape": "introduce a perturbation (inhibitor, mutation, dpH, added resistance); ask for the downstream consequence",
+      "good_example": {
+        "stem": "A pyruvate analog raises apparent Km for pyruvate from 0.10 to 0.55 mM with Vmax nearly unchanged. Which mechanism best describes its effect?",
+        "answer": "Competitive inhibition with respect to pyruvate",
+        "distractors_rationale": ["uncompetitive (would lower both Km and Vmax)", "allosteric activation (would raise Vmax)", "tetramer dissociation (contradicted by unchanged % tetramer)"]
+      },
+      "llm_failure": "perturbation and answer are the same fact restated; distractors random rather than each a distinct mechanistic signature",
+      "difficulty_levers": ["one-hop vs two-hop (perturbation->intermediate->observable)", "numbers given vs qualitative"]
+    },
+    {
+      "id": "QUANTITATIVE_APPLICATION",
+      "family": "F2", "skill": "SIRS-2",
+      "expert_feel": 0.7, "note_seedability": 0.75,
+      "input_needed": "a governing equation/relationship + a scenario where the target quantity is not the one directly given",
+      "shape": "novel scenario -> select the correct model -> compute or estimate",
+      "good_example": {
+        "stem": "Given aortic radius/velocity and capillary radius/velocity, estimate the number of capillaries in the body.",
+        "answer": "~4x10^9",
+        "distractors_rationale": ["off by area-vs-radius (forgot r^2)", "off by ignoring velocity ratio", "order-of-magnitude slip"]
+      },
+      "llm_failure": "plug-and-chug where the needed equation is obvious and numbers are clean; no unit/order-of-magnitude reasoning",
+      "difficulty_levers": ["extra irrelevant data", "requires deriving which equation applies", "unit conversions"]
+    },
+    {
+      "id": "CLINICAL_VIGNETTE_TO_DIAGNOSIS",
+      "family": "F2", "skill": "SIRS-2",
+      "expert_feel": 0.85, "note_seedability": 0.85,
+      "user_example": 1,
+      "input_needed": "a condition with a recognizable sign/symptom/lab signature + differentials that share features",
+      "shape": "present symptoms/labs/history -> ask most likely diagnosis, underlying mechanism, or best next step",
+      "good_example": {
+        "stem": "A patient presents with fatigue, hyperpigmentation, hyponatremia, hyperkalemia, and hypotension. The primary defect most likely lies in the:",
+        "answer": "adrenal cortex (primary adrenal insufficiency)",
+        "distractors_rationale": ["pituitary (would not cause hyperkalemia; ACTH-independent clues withheld)", "thyroid (explains fatigue only)", "kidney (explains electrolytes only)"]
+      },
+      "llm_failure": "pathognomonic giveaway spelled out in the stem; differentials share no presenting feature (classic 'on-the-nose' item)",
+      "difficulty_levers": ["number of overlapping differentials", "ask=diagnosis vs mechanism vs management", "withhold the single giveaway finding"]
+    },
+    {
+      "id": "PRINCIPLE_TO_PREDICTION",
+      "family": "F2", "skill": "SIRS-2",
+      "expert_feel": 0.65, "note_seedability": 0.8,
+      "input_needed": "a theory/model with predictive content (cultural capital, Maslow, Le Chatelier, natural selection)",
+      "shape": "which outcome does <theory> predict in <new situation>?",
+      "good_example": {
+        "stem": "What does the concept of cultural capital predict?",
+        "answer": "Cultural distinctions associated with elite classes will be more valued within a society.",
+        "distractors_rationale": ["convergence of class practices (opposite prediction)", "youth-valorization (wrong axis)", "recession-driven leveling (fabricated mechanism)"]
+      },
+      "llm_failure": "restates the theory's definition as the correct option",
+      "difficulty_levers": ["novelty of the situation", "distractors drawn from competing theories"]
+    },
+    {
+      "id": "IDENTIFY_VARIABLES",
+      "family": "F3", "skill": "SIRS-3",
+      "expert_feel": 0.85, "note_seedability": 0.7,
+      "input_needed": "a describable study with manipulated and measured quantities",
+      "shape": "describe the study -> ask for IV / DV / control / confound",
+      "good_example": {
+        "stem": "Participants prepared a report alone or in a group; researchers tracked each person's contribution. What are the IV and DV?",
+        "answer": "IV = alone vs group; DV = individual contribution",
+        "distractors_rationale": ["swap IV/DV", "name task-type as IV (a held-constant factor)", "name group productivity as DV (aggregate, not per-person)"]
+      },
+      "llm_failure": "IV/DV are labeled in the stem; confound options are nonsense",
+      "difficulty_levers": ["multiple manipulated factors", "ask for confound/control instead of IV/DV"]
+    },
+    {
+      "id": "EXPERIMENTAL_FIX_OR_FLAW",
+      "family": "F3", "skill": "SIRS-3",
+      "expert_feel": 0.95, "note_seedability": 0.7,
+      "crown_jewel": true,
+      "input_needed": "a method with a realistic failure mode / confound",
+      "shape": "present a method with a subtle problem -> ask what change removes the confound (or what flaw invalidates the conclusion)",
+      "good_example": {
+        "stem": "A urinary-protein precipitation test gives false positives from calcium phosphate. Which procedure prevents precipitation of the salt?",
+        "answer": "Add buffer to maintain neutral pH",
+        "distractors_rationale": ["high pH buffer (worsens phosphate precipitation)", "add calcium hydroxide (adds the interfering ion)", "add sodium phosphate (adds the interfering ion)"]
+      },
+      "llm_failure": "invents a flaw that is not real, or the fix is generic ('use a bigger sample')",
+      "difficulty_levers": ["subtlety of the confound", "domain knowledge needed to see it", "fix vs identify-the-flaw framing"]
+    },
+    {
+      "id": "DESIGN_THE_TEST",
+      "family": "F3", "skill": "SIRS-3",
+      "expert_feel": 0.85, "note_seedability": 0.75,
+      "input_needed": "a hypothesis or claim",
+      "shape": "which experiment/measurement best tests <hypothesis>? or which is the most appropriate control?",
+      "good_example": {
+        "stem": "To test whether an enzyme's rate boost is catalytic rather than due to substrate depletion, the best control is to:",
+        "answer": "run the assay with heat-denatured enzyme",
+        "distractors_rationale": ["no-enzyme blank (does not isolate catalysis-vs-binding)", "double substrate (changes the variable of interest)", "add product (tests inhibition, not the claim)"]
+      },
+      "llm_failure": "the 'best' design is obviously best; alternatives do not actually test the hypothesis",
+      "difficulty_levers": ["how close the decoy designs come to working", "single vs multi-control"]
+    },
+    {
+      "id": "DATA_TO_CONCLUSION",
+      "family": "F4", "skill": "SIRS-4",
+      "expert_feel": 0.9, "note_seedability": 0.7,
+      "input_needed": "a quantitative relationship expressible as a small table/graph",
+      "shape": "present a compact data object -> ask the single conclusion it supports",
+      "good_example": {
+        "stem": "Hemoglobin O2-binding curves are shown at pH 7.2, 7.4, 7.6. What conclusion can be drawn?",
+        "answer": "Low pH favors the low-affinity oxygen-binding state.",
+        "distractors_rationale": ["low pH favors high-affinity (sign flip)", "affinity independent of pH (ignores the shift)", "noncooperative at low pH (misreads sigmoid shape)"]
+      },
+      "llm_failure": "the 'data' merely restate a fact; distractors not tied to specific misreadings; correct answer over-generalizes beyond the data",
+      "difficulty_levers": ["number of series", "distractors that over-claim beyond the data", "include a 'cannot conclude' option"]
+    },
+    {
+      "id": "THEORY_PLUS_STUDY",
+      "family": "F4", "skill": "SIRS-4/SIRS-2 hybrid",
+      "expert_feel": 1.0, "note_seedability": 0.85,
+      "crown_jewel": true,
+      "user_example": 2,
+      "input_needed": "a theory/model AND a plausible follow-up finding",
+      "shape": "state a theory -> introduce a NEW study result -> ask what it does to the theory (supports / weakens / is consistent-but-not-diagnostic / requires which revision)",
+      "good_example": {
+        "stem": "Model M predicts trait X arises from mechanism A. A follow-up study finds X still appears when A is blocked, but only under condition Z. The finding is best interpreted as:",
+        "answer": "evidence that A is not necessary for X (the model needs revision), but only within condition Z",
+        "distractors_rationale": ["fully refutes M (over-claims; Z-restricted)", "fully confirms M (ignores the blockade result)", "consistent but uninformative (under-claims; the blockade IS informative)"]
+      },
+      "llm_failure": "the new study trivially confirms or trivially refutes; no 'consistent-but-uninformative' trap; the stated conclusion is not actually licensed by the finding",
+      "difficulty_levers": ["confound-laden finding", "correct answer is 'cannot conclude'", "revision-scope reasoning"]
+    },
+    {
+      "id": "STATISTICAL_INFERENCE",
+      "family": "F4", "skill": "SIRS-4",
+      "expert_feel": 0.8, "note_seedability": 0.6,
+      "input_needed": "a result with a statistical property (correlation, p-value, CI, spread, sampling frame)",
+      "shape": "ask what claim the statistics license (correlation!=causation, CI meaning, median vs mean, generalizability)",
+      "good_example": {
+        "stem": "Which correlation supports the bystander effect?",
+        "answer": "Number of bystanders is positively correlated with time-to-help.",
+        "distractors_rationale": ["negative correlation (sign error)", "correlation with emergency-judgment (wrong DV)", "negative with emergency-judgment (sign + DV error)"]
+      },
+      "llm_failure": "conflates significance with effect size; distractors are not real statistical misconceptions",
+      "difficulty_levers": ["causal-language traps", "sampling/generalizability angle", "interpret a CI or p-value"]
+    }
+  ],
+
+  "overlays": [
+    { "id": "ROMAN_NUMERAL", "applies_to": ["*"], "rule": "3 statements (I/II/III); options are non-redundant combinations; each statement must be independently defensible", "failure": "one statement trivially true/false makes combinations collapse" },
+    { "id": "NEGATIVE_EXCEPT", "applies_to": ["*"], "rule": "3 options true, 1 false (or 'least' supported); the odd-one-out must not be obvious", "failure": "the false option is from a different category, giving it away" },
+    { "id": "PAIRED_CLAIM_REASON", "applies_to": ["F2", "F3", "F4"], "rule": "choose the claim AND the correct 'because' reason; both halves independently gradeable", "failure": "a right claim paired only with right reason (no true/false crossing)" },
+    { "id": "DATA_REFERENCED", "applies_to": ["F2", "F3", "F4"], "rule": "'According to Figure/Table...'; answer must be forced by the data object, not prior knowledge", "failure": "answerable from memory without the figure" }
+  ],
+
+  "quality_checks": [
+    { "id": "familiar_concept_unfamiliar_scenario", "type": "judge", "rule": "tested idea is applied in a context NOT stated in the source note", "disqualifying": true },
+    { "id": "cover_the_options", "type": "judge", "rule": "stem is answerable before reading the options", "disqualifying": true },
+    { "id": "distractor_has_named_error", "type": "judge", "rule": "every distractor maps to a specific, writable misconception or reasoning error", "disqualifying": true },
+    { "id": "options_homogeneous", "type": "programmatic+judge", "rule": "same category, grammar; correct answer not the longest; length variance bounded" },
+    { "id": "no_all_none_of_the_above", "type": "programmatic", "rule": "reject options matching /all of the above|none of the above/i", "disqualifying": true },
+    { "id": "min_two_reasoning_hops", "type": "judge", "rule": "F2-F4 items require >=2 inference hops", "applies_to": ["F2", "F3", "F4"] },
+    { "id": "uncertainty_calibration", "type": "judge", "rule": "F3/F4 items should sometimes make 'cannot be concluded / not diagnostic' the correct answer", "applies_to": ["F3", "F4"] },
+    { "id": "no_surface_tells", "type": "programmatic+judge", "rule": "no grammatical agreement leak, absolute-word giveaways, or lone round-number answer" },
+    { "id": "single_best_answer", "type": "judge", "rule": "exactly one option is fully correct; each distractor fully incorrect or clearly inferior", "disqualifying": true }
+  ],
+
+  "generation_loop": [
+    "1. pick a concept from content_vocabulary_ref (optionally seeded by a first-principles card)",
+    "2. pick an archetype (weighted by the Deliverable-3 scope decision)",
+    "3. optionally apply one overlay",
+    "4. generate stem + 4 options + per-choice rationale + answer, following 'shape'",
+    "5. self-filter against quality_checks (drop on any disqualifying failure)",
+    "6. keep survivors; log the (concept, archetype, overlay) tuple for coverage tracking"
+  ]
+}
