@@ -1,0 +1,33 @@
+{
+  "_comment": "Copy to eval/models.json and edit. 'candidates' = the small model(s) an SLM must beat (the would-be base); 'teacher' = frontier distillation ceiling; 'judge' = a DIFFERENT family than the models under test. Update model slugs to current versions. API keys are read from the named env vars, never stored here.",
+
+  "candidates": [
+    {
+      "name": "qwen3-4b",
+      "provider": "openai_compatible",
+      "model": "Qwen/Qwen3-4B-Instruct-2507",
+      "base_url": "http://localhost:8000/v1",
+      "api_key_env": "LOCAL_API_KEY",
+      "max_tokens": 4096,
+      "_note": "serve locally with vLLM or Ollama (OpenAI-compatible). Add 0.6B/1.7B here too to see the size cliff."
+    }
+  ],
+
+  "teacher": {
+    "name": "claude-teacher",
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5",
+    "api_key_env": "ANTHROPIC_API_KEY",
+    "max_tokens": 4096,
+    "_note": "any frontier model; this establishes whether the behavior is achievable at all (the distillation ceiling)."
+  },
+
+  "judge": {
+    "name": "gpt-judge",
+    "provider": "openai",
+    "model": "gpt-5.1",
+    "api_key_env": "OPENAI_API_KEY",
+    "max_tokens": 2048,
+    "_note": "MUST be a different family than teacher/candidates so it doesn't grade its own outputs."
+  }
+}

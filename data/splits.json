@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "title": "Frozen train/eval/litmus partitions (contamination firewall)",
+  "note": "Sources are DISJOINT across splits: no stimulus is used both to litmus/eval and to generate training data. v1 scope = the causation pair (CAUSE_OF_SOURCE + EFFECT_OF_SOURCE) on TEXT PRIMARY sources only. Secondary-source stimuli are F5 (out of v1 scope) and listed separately. TRAIN is intentionally empty until the A3 corpus expansion (14 -> ~150 primary) runs; the current 14 primaries are reserved for the litmus build-gate + a small held-out eval. Freeze this file before any generation (plan_v2 M0).",
+  "scope": { "archetypes": ["CAUSE_OF_SOURCE", "EFFECT_OF_SOURCE"], "stimulus_types": ["primary_text"] },
+  "firewall": {
+    "rule": "LITMUS \u2229 EVAL_HELDOUT \u2229 TRAIN = \u2205 (by source id)",
+    "embedding_dedup": { "intra_split_max_cosine": 0.92, "cross_split_max_cosine": 0.90 },
+    "novelty_tracking": "also track held-out (development, archetype) novelty, not just stem/answer cosine (validator minor note)"
+  },
+  "splits": {
+    "LITMUS": {
+      "role": "docs/02 build-gate (P1/P2 + teacher key_valid_rate). NEVER used as a training seed.",
+      "source_ids": [
+        "decl_independence_1776",
+        "washington_farewell_1796",
+        "monroe_doctrine_1823",
+        "seneca_falls_1848",
+        "douglass_fourth_july_1852",
+        "omaha_platform_1892",
+        "beveridge_march_flag_1898",
+        "fdr_first_inaugural_1933",
+        "truman_doctrine_1947",
+        "brown_v_board_1954"
+      ]
+    },
+    "EVAL_HELDOUT": {
+      "role": "product base-vs-tuned eval (plan_v2 5B). Disjoint from LITMUS + TRAIN. Expand to >=25-30 primary via A3 before the real product eval.",
+      "source_ids": [
+        "federalist_10_1787",
+        "carnegie_gospel_wealth_1889",
+        "chief_joseph_1877",
+        "addams_hull_house_1910"
+      ]
+    },
+    "TRAIN": {
+      "role": "generation seeds. EMPTY until A3 corpus expansion; do not draw training seeds from LITMUS/EVAL.",
+      "source_ids": []
+    }
+  },
+  "out_of_v1_scope_secondary": [
+    "secondary_newdeal_exclusion",
+    "secondary_reconstruction_failure",
+    "secondary_populism_progressivism",
+    "secondary_revolution_radicalism",
+    "secondary_jackson_democracy",
+    "secondary_civil_war_causes",
+    "secondary_progressivism_control",
+    "secondary_cold_war_origins"
+  ],
+  "pending": {
+    "A3_corpus_expansion": "14 -> ~150 primary sources (license-provenanced); then re-populate TRAIN and grow EVAL_HELDOUT to >=25-30. HARD gate before M3 bulk gen.",
+    "A6_developments_table": "already expanded 84 -> 167 (data/apush_key_developments.json)."
+  }
+}

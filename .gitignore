@@ -4,6 +4,12 @@ data/fetched_primary_sources.jsonl
 # OS / editor cruft
 .DS_Store
 
+# Local model config (contains your chosen model slugs; keys stay in env vars)
+eval/models.json
+
+# Harness outputs (regenerated; canonical summary is copied into docs/02b_litmus_results.md)
+results/
+
 # Python
 __pycache__/
 *.pyc
