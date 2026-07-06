@@ -1,79 +1,62 @@
-# Training Plan — Final (Deliverable 4)
+# Training Plan — Final (Deliverable 4, executive summary)
 
-> **Approved plan:** [`planning/plan_v2.md`](planning/plan_v2.md)  
-> **Validator loop:** plan_v1 → [`validator_feedback_v1.md`](planning/validator_feedback_v1.md) → plan_v2 ✅
+> **Status:** Approved after the brainstormer↔validator loop. Full detail lives in
+> [`planning/plan_v2.md`](planning/plan_v2.md) (execution-ready). This page is the
+> one-screen summary. Binding inputs:
+> [`03_feasibility_assessment.md`](03_feasibility_assessment.md) (verdict) and
+> [`Train Your Own Small Learning Model.md`](../Train%20Your%20Own%20Small%20Learning%20Model.md) (spec).
 
 ---
 
-## Executive summary
+## Verdict inherited
 
-Build a **Qwen3-4B-Instruct** specialist (QLoRA SFT + frontier distillation) that turns
-study **notes** into **expert-grade MCAT MCQs** for exactly two structurally-determined
-archetypes:
+**BUILD — narrow hard.** Fine-tune **Qwen3-4B-Instruct** (QLoRA + frontier
+distillation) on **two archetypes only** — `CAUSE_OF_SOURCE` (anchor) +
+`EFFECT_OF_SOURCE` — which share one deep skill: *map a provided, dated source to
+the single outside development that (a) is date-consistent with the stem direction
+and (b) is the specific, not background, match; make the three distractors the four
+named College Board traps.* **~91% confidence** on the base-vs-tuned bar,
+conditional on grounding + verifier + a confirmed teacher `key_valid_rate`.
 
-| Archetype | Why in v1 | Verifier rail |
+## The behavior spec (the one falsifiable boolean)
+
+> Given a **provided text primary source** (`source_text + attribution +
+> source_date`) and an optional steering note, emit **one valid JSON MCQ** where:
+> (a) the key **requires an outside development not stated in the source**, selected
+> **by `development_id`** from the date-tagged developments table; (b) the key is
+> **date-consistent** with the stem direction and **uniquely most-direct**; (c) the
+> three distractors are each one of `{wrong_era, true_but_irrelevant, scope_mismatch,
+> partially_true}`, era-plausible, spanning ≥2 types; (d) homogeneous options, no
+> all/none, stem answerable before options. **PASS iff all four hold.**
+
+## Pipeline at a glance
+
+| Stage | What | Gate |
 | :--- | :--- | :--- |
-| **MECHANISM_PERTURBATION** | Closed Km/Vmax/feedback menu; best seed coverage | Deterministic truth table + LLM solve |
-| **THEORY_PLUS_STUDY** | Highest expert value; evidential-relation menu | Strict k=5 LLM solve only |
+| **Litmus (M2)** | Prompted base 4B vs frontier teacher on the causation subset | BUILD iff teacher ≥70–75% expert-grade **and** `key_valid_rate` ≥70–75%, base ≤45–55%; DON'T-BUILD if base ≥80% |
+| **Calibrate (M2.5, BLOCKING)** | Corpus (A3→~150 primary) + developments table (A6→~150–200) + gold set; judge/verifier ≥90% vs gold (G-cal); measured filter yields (G-yield) | Blocks all bulk generation |
+| **Generate (M3)** | Teacher distillation with **candidate-set grounding**; 3-stage filter (programmatic date-check → judge → key-verifier) | ~600 kept/archetype (P3 floor); ≤6 items/(stimulus,archetype) |
+| **Train (M3)** | Unsloth QLoRA on `Qwen3-4B-Instruct`; loss on JSON only | first midweek base-vs-tuned |
+| **Iterate (M4)** | Fix failures in **data**, not hyperparameters | one failure mode resolved |
+| **Ship (M5–M6)** | HF dataset + model + inference demo (with the verifier) + final brainlift + demo video | meets §5B targets |
 
-**Out of v1:** clinical vignettes, arithmetic, CARS, broad F1 recall, non-enzyme MECH
-(circuits, gas laws) until truth tables exist.
+## Success criteria (base-vs-tuned, held-out sources)
 
----
+- Tuned **≥80% expert-grade**, and **≥ +25 pts** over the prompted base with a
+  **source-level cluster bootstrap** 95% CI lower-bound **> 0**;
+- **lower run-to-run variance** than the base;
+- both archetypes **≥78%**; **production key-validity ≥90%** (verifier-on).
 
-## Confidence & preconditions
+## Kill-criteria
 
-From [`03_feasibility_assessment.md`](03_feasibility_assessment.md):
+- Prompted base 4B **≥80%** on the scope → **DON'T BUILD** (ship a prompt).
+- Frontier teacher **`key_valid_rate` <70%** → **RETHINK** (no clean labels).
+- Tuned **production (verifier-on) SC-KEY <85%** after v2 iteration → **RETHINK scope**
+  (drop to one archetype, tighten grounding to a candidate set, or switch the output
+  unit to "repair/grade an item").
 
-- **92% confidence** tuned 4B beats prompted base on this scope, **conditional on:**
-  - Litmus P1: frontier teacher ≥70%
-  - Litmus P2: base 4B ≤45–55%
-  - Verification pass in filter + inference
-  - ≥600 kept items/arch at final scale
+## Loop provenance
 
-**Do not train until M1 litmus confirms P1/P2.**
-
----
-
-## Phased execution
-
-| Day | Milestone | Deliverable |
-| :--- | :--- | :--- |
-| D1 | M0 + M0.5 | Splits, brainlift draft, THEORY gold, truth table stub |
-| D2 | M1 + M1.5 + M2 | Harness, litmus results, judge calibration, smoke loop |
-| D3 | M3 | ~700 kept items, first QLoRA, **midweek base-vs-tuned** |
-| D4 | M4 | ~1,500 kept, data iteration, retrain |
-| D5 | M5 + M6 | Final eval, HF publish, demo video, brainlift final |
-
----
-
-## Win criteria
-
-- Tuned **≥75%** expert-grade on held-out human notes
-- **≥+25 points** over prompted base 4B
-- Run-to-run std **≤5 points**
-- Production key-correctness **≥98%** with inference verifier
-- Paraphrase fidelity/novelty **≥90%** (in-scope subset)
-
----
-
-## Key documents
-
-| Doc | Purpose |
-| :--- | :--- |
-| [`planning/plan_v2.md`](planning/plan_v2.md) | Full execution recipe |
-| [`planning/brainlift_draft.md`](planning/brainlift_draft.md) | Behavior thesis |
-| [`02_litmus_test_prompt.md`](02_litmus_test_prompt.md) | Pre-training BUILD gate |
-| [`05_prev_data_audit.md`](05_prev_data_audit.md) | Data inventory |
-| [`00_process_index.md`](00_process_index.md) | Master index |
-
----
-
-## Brainstormer ↔ Validator loop (closed)
-
-1. **Brainstormer** produced [`plan_v1.md`](planning/plan_v1.md) from feasibility verdict + spec.
-2. **Validator** returned **REVISE (major)** — see [`validator_feedback_v1.md`](planning/validator_feedback_v1.md).
-3. **Brainstormer** produced **plan_v2** addressing all critical + major issues.
-4. **Validator criteria** in feedback doc marked satisfied → **APPROVED for execution**.
-
-Next human/agent step: implement M0 artifacts and run litmus (M1).
+[`plan_v1.md`](planning/plan_v1.md) → [`validator_feedback_v1.md`](planning/validator_feedback_v1.md)
+(REVISE major; 4 critical + 7 major) → [`plan_v2.md`](planning/plan_v2.md) (all 12
+fixes) → [`validator_approval_v2.md`](planning/validator_approval_v2.md) (APPROVE).

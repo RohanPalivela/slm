@@ -18,33 +18,33 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  VERDICT:           BUILD — but NARROW HARD                                     │
-│                                                                                │
-│  RECOMMENDED SIZE:  Qwen3-4B-Instruct  (QLoRA SFT + frontier distillation)     │
-│                     → 0.6B is DISQUALIFIED for a reliability-first spec         │
-│                       (documented 0.6B→4B cliff [arith-2025]); 1.7B is a        │
-│                       fallback, not the pick.                                   │
-│                                                                                │
-│  RECOMMENDED SCOPE: TWO date-anchored causation archetypes that share one      │
-│                     deep skill —                                                │
-│                       1. CAUSE_OF_SOURCE   (IN — anchor; crown jewel)           │
-│                       2. EFFECT_OF_SOURCE  (IN; same skill, opposite arrow)     │
-│                     First sanctioned expansion: CONTEXT_SITUATION (§3).         │
-│                     Everything else: Tier-2/3, OUT, or DON'T-BUILD (§3).        │
-│                                                                                │
-│  CONFIDENCE:        91%  that a tuned Qwen3-4B reliably beats its OWN prompted  │
-│                     base at expert-grade items on this scope — CONDITIONAL on   │
-│                     the §5 preconditions (answer GROUNDED to the developments   │
-│                     table + a verification pass + a confirmed teacher ceiling). │
-│                     Strip grounding OR the verifier → ~82%. At 1.7B: ~78%.      │
-│                     At 0.6B: ~55%.  CAUSE_OF_SOURCE alone: ~92%.                │
-│                                                                                │
-│  BIGGEST RISK:      SC-KEY — single-best HISTORICAL correctness. A keyed        │
-│                     answer that is factually wrong, or (worse) a distractor     │
-│                     that is ALSO defensibly "most directly" correct. The date   │
-│                     verifier catches only the wrong-era slice; it CANNOT        │
-│                     certify "most directly." This is why the verifier +         │
-│                     table-grounding are preconditions, not nice-to-haves.       │
+│  VERDICT:           BUILD — but NARROW HARD                                  │
+│                                                                              │
+│  RECOMMENDED SIZE:  Qwen3-4B-Instruct  (QLoRA SFT + frontier distillation)   │
+│                     → 0.6B is DISQUALIFIED for a reliability-first spec      │
+│                       (documented 0.6B→4B cliff [arith-2025]); 1.7B is a     │
+│                       fallback, not the pick.                                │
+│                                                                              │
+│  RECOMMENDED SCOPE: TWO date-anchored causation archetypes that share one    │
+│                     deep skill —                                             │
+│                       1. CAUSE_OF_SOURCE   (IN — anchor; crown jewel)        │
+│                       2. EFFECT_OF_SOURCE  (IN; same skill, opposite arrow)  │
+│                     First sanctioned expansion: CONTEXT_SITUATION (§3).      │
+│                     Everything else: Tier-2/3, OUT, or DON'T-BUILD (§3).     │
+│                                                                              │
+│  CONFIDENCE:       91% that a tuned Qwen3-4B reliably beats its OWN prompted │
+│                     base at expert-grade items on this scope — CONDITIONAL on│
+│                     the §5 preconditions (answer GROUNDED to the developments│
+│                     table + verification pass + confirmed teacher ceiling).  │
+│                     Strip grounding OR the verifier → ~82%. At 1.7B: ~78%.   │
+│                     At 0.6B: ~55%.  CAUSE_OF_SOURCE alone: ~92%.             │
+│                                                                              │
+│  BIGGEST RISK:      SC-KEY — single-best HISTORICAL correctness. A keyed     │
+│                     answer that is factually wrong, or (worse) a distractor  │
+│                     that is ALSO defensibly "most directly" correct. The date│
+│                     verifier catches only the wrong-era slice; it CANNOT     │
+│                     certify "most directly." This is why the verifier +      │
+│                     table-grounding are preconditions, not nice-to-haves.    │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
