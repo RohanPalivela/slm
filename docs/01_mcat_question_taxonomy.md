@@ -152,7 +152,7 @@ inside one coherent content pocket and tests it at MCAT depth.
 | FC9 | P/S | Social/cultural differences & well-being (15%) |
 | FC10 | P/S | Social stratification & resource access (5%) |
 
-We already hold a **60-concept, kebab-case content taxonomy** (`prev_data/
+We already hold a **56-concept, kebab-case content taxonomy** (`prev_data/
 speedrun_concepts.json`) that maps cleanly onto these FCs across 7 topics
 (biochemistry, biology, general-chemistry, organic-chemistry, physics,
 psychology, sociology). That file is the ready-made *content vocabulary* for
