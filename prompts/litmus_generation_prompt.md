@@ -45,24 +45,40 @@ draft fails any gate, silently discard it and write another.
    argument") by a STRENGTHENER; a comparison stem ("most similar to") by a shared
    MECHANISM. Reject any answer that is merely "related and historically true."
 
-4. EVERY DISTRACTOR ENCODES A NAMED TRAP. Each of the 3 wrong options must be a
-   real, era-plausible development that a knowledgeable-but-imperfect student would
-   consider — and must be wrong for exactly ONE nameable reason from this closed
-   menu:
-     - WRONG_ERA: a real development from a different time period.
-     - TRUE_BUT_IRRELEVANT: accurate for the era but answers a different question
-       (wrong theme/mechanism).
+4. EVERY DISTRACTOR ENCODES A NAMED TRAP — AND MUST BE TEMPTING, NOT A GIVEAWAY.
+   Each of the 3 wrong options must be a real, era-plausible development that a
+   knowledgeable-but-imperfect student would SERIOUSLY consider, and must be wrong
+   for exactly ONE nameable reason from this closed menu:
+     - WRONG_ERA: a real development from a NEIGHBORING / plausibly-confusable era
+       — NOT a giveaway that is obviously a century off. The wrong-era distractor
+       must be close enough in time (ideally the adjacent period, and same theme)
+       that a student who is shaky on chronology could pick it. Example of a BAD
+       (giveaway) wrong-era distractor: offering "Social Darwinism" (late 1800s)
+       for a question about influences on the 1776 Declaration — any student rules
+       it out instantly. A GOOD wrong-era distractor for that item stays in the
+       Revolutionary/early-Republic orbit (e.g., a slightly-off Enlightenment or
+       constitutional idea).
+     - TRUE_BUT_IRRELEVANT: accurate for the SAME era but answers a different
+       question (wrong theme/mechanism) — so era knowledge alone won't eliminate it.
      - SCOPE_MISMATCH: too broad (general background when the stem says "most
        directly") or too narrow (one example when it asks for a trend).
      - PARTIALLY_TRUE: one clause accurate and one fabricated/overstated, or the
        right topic with the wrong direction/magnitude.
-   NO filler options. NO options that are wrong for no reason. The 3 distractors
-   must span at least TWO distinct trap types.
+   HARD SUBTLETY TEST (apply to every distractor): "Could a well-prepared student
+   eliminate this in under one second purely because it is from an obviously
+   different century or an obviously different topic?" If YES, it is a giveaway —
+   discard it and write a closer, more tempting one. NO filler. NO options wrong
+   for no reason. Prefer distractors a student who ALMOST knows the answer would
+   choose. The 3 distractors must span at least TWO distinct trap types; at most
+   ONE may be a WRONG_ERA trap (so the item does not lean on chronology giveaways).
 
 5. ANACHRONISM-CONSISTENT KEY. The keyed answer's date must obey the stem's time
    direction: a CAUSE predates the source; an EFFECT postdates it; a
-   contemporaneous "reflects/illustrates" answer shares the era. At least one
-   distractor should be a WRONG_ERA trap that violates this.
+   contemporaneous "reflects/illustrates" answer shares the era. Exactly ONE
+   distractor may be the WRONG_ERA trap (from a NEIGHBORING era per rule 4) that
+   violates this direction; the other two distractors should be same-era traps
+   (TRUE_BUT_IRRELEVANT / SCOPE_MISMATCH / PARTIALLY_TRUE) so the item cannot be
+   solved by chronology alone.
 
 6. SINGLE BEST ANSWER. Exactly one option fully answers the stem; the others are
    clearly inferior. Use "most directly / best / most likely" framing when more
