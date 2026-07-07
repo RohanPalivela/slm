@@ -102,9 +102,19 @@ def run_checks(item: dict, source: dict) -> dict:
     traps = item.get("trap_types", []) or []
     trap_diversity = len(set(t for t in traps if t and t != "correct")) >= 2
 
+    # The prompt allows AT MOST ONE wrong-era distractor (rule 4/5): items that
+    # lean on >=2 chronology giveaways are the dominant expert-grade failure mode
+    # (the judge flags them "too chronology-driven"). This is a DISTRACTOR-CRAFT
+    # gate, so it feeds expert_grade only — NOT disqualifying_ok, which gates
+    # key_valid (label cleanliness). A correct answer with weak distractors is
+    # still a clean, distillable label.
+    wrong_era_n = sum(1 for t in traps if str(t).strip().upper().startswith("WRONG_ERA"))
+    wrong_era_le1 = wrong_era_n <= 1
+
     leak = source_leak(item, source)
     date = date_direction(item, source)
 
+    # disqualifying_ok = label/format integrity only (feeds key_valid).
     disqualifying_ok = (four_options and one_key and no_all_none
                         and not leak and date != "fail")
 
@@ -114,6 +124,7 @@ def run_checks(item: dict, source: dict) -> dict:
         "no_all_none_absolute": no_all_none,
         "homogeneous_length": homogeneous,      # soft
         "trap_diversity_ge2": trap_diversity,    # soft
+        "wrong_era_le1": wrong_era_le1,          # craft gate: bad if >=2 wrong-era traps (feeds expert_grade)
         "source_leak": leak,                     # hard (bad if True)
         "date_direction": date,                  # hard if 'fail'
         "disqualifying_ok": disqualifying_ok,

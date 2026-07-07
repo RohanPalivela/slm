@@ -34,6 +34,7 @@ sys.path.insert(0, HERE)
 import providers          # noqa: E402
 import checks             # noqa: E402
 import judge              # noqa: E402
+import repair             # noqa: E402
 from prompt_loader import LitmusPrompt, extract_items  # noqa: E402
 
 DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"  # v1 causation subset (docs/03)
@@ -73,12 +74,18 @@ def score_item(item, source, judge_cfg, role, no_judge):
     if no_judge:
         j = None
         eg = None  # unmeasured — cannot certify expert-grade without the judge
+        nm = None
         kv = None
     else:
         j = judge.judge_item(judge_cfg, source, item, role=role)
-        eg = judge.expert_grade(prog["disqualifying_ok"], j)
+        # expert_grade / near_miss also require the distractor-craft gate
+        # (<=1 wrong-era); key_valid measures ONLY label cleanliness, so it must
+        # not depend on it.
+        craft_ok = prog["disqualifying_ok"] and prog["wrong_era_le1"]
+        eg = judge.expert_grade(craft_ok, j)
+        nm = judge.near_grade(craft_ok, j)
         kv = j["key_valid"] and prog["disqualifying_ok"]
-    return {"prog": prog, "judge": j, "expert_grade": eg, "key_valid": kv}
+    return {"prog": prog, "judge": j, "expert_grade": eg, "near_miss": nm, "key_valid": kv}
 
 
 class Progress:
@@ -129,37 +136,101 @@ def _concurrency_for(cfg, gateway_default):
     return int(cfg.get("concurrency", gateway_default))
 
 
+def _item_complete(it):
+    """Heuristic 'not truncated' check: a fully-formed item has 4 options, a keyed
+    answer, and a rationale for every option. `rationale` sits near the END of the
+    output schema, so its presence means the JSON object wasn't cut off mid-item.
+    Lets us distinguish a real truncation from a model that simply chose to emit
+    fewer (complete) items than we asked for."""
+    opts = it.get("options")
+    if not isinstance(opts, list) or len(opts) != 4:
+        return False
+    if not it.get("stem") or not it.get("answer"):
+        return False
+    rat = it.get("rationale")
+    return isinstance(rat, dict) and all(k in rat for k in ("A", "B", "C", "D"))
+
+
 def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
                  include_fewshot, limit, concurrency):
-    """Parallel generation for one model. Returns raw (unjudged) records:
-    {model, role, run, source_id, item}. Order-independent; progress is live."""
+    """Parallel generation for one model. One call per (run, source, ARCHETYPE) —
+    so every archetype is measured even for a model that emits a single item per
+    call (e.g. a 4B under format:json, which otherwise only ever produces the first
+    requested archetype). Returns raw (unjudged) records; progress is live."""
     srcs = sources[:limit] if limit else sources
-    tasks = [(r, s) for r in range(runs) for s in srcs]
+    archs = [a.strip() for a in DEFAULT_ARCHETYPES.split(",") if a.strip()]
+    n_per = max(1, round(n / len(archs)))
+    tasks = [(r, s, a) for r in range(runs) for s in srcs for a in archs]
     prog = Progress(len(tasks), f"gen[{cfg['name']}]")
     records, lock = [], threading.Lock()
+    empty = trunc = short = 0  # call classification (see warning below)
 
     def work(task):
-        r, s = task
+        r, s, arch = task
         system, user = prompt.build(
             source=s["text"], attribution=s.get("attribution", ""), note="",
-            n=n, archetypes=DEFAULT_ARCHETYPES, difficulty=DIFFICULTY,
+            n=n_per, archetypes=arch, difficulty=DIFFICULTY,
             include_fewshot=include_fewshot)
         try:
             raw = providers.generate(cfg, system, user, temperature, role=role)
-            return r, s["id"], extract_items(raw), None
+            return r, s["id"], arch, extract_items(raw), None
         except providers.ProviderError as e:
-            return r, s["id"], [], str(e)
+            return r, s["id"], arch, [], str(e)
 
     with cf.ThreadPoolExecutor(max_workers=concurrency) as ex:
         futs = [ex.submit(work, t) for t in tasks]
         for fut in cf.as_completed(futs):
-            r, sid, items, err = fut.result()
+            r, sid, arch, items, err = fut.result()
             with lock:
                 for it in items:
                     it["_source_id"] = sid
+                    it.setdefault("archetype", arch)  # tag if the model omitted it
                     records.append({"model": cfg["name"], "role": role,
                                     "run": r, "source_id": sid, "item": it})
+                if not err:
+                    complete = sum(1 for it in items if _item_complete(it))
+                    if len(items) == 0:
+                        empty += 1
+                    elif complete < len(items):
+                        trunc += 1        # something came back but was cut off
+                    elif complete < n_per:
+                        short += 1        # complete items, just fewer than asked
             prog.tick(n_items=len(items), failed=bool(err))
+    prog.finish()
+    # Honest diagnostics: only call it truncation when items are actually
+    # incomplete/empty; a model returning fewer COMPLETE items than requested is a
+    # model choice (common for small models under format:json), not a token cap.
+    if empty or trunc:
+        sys.stdout.write(
+            f"    WARNING [{cfg['name']}]: {trunc} call(s) truncated mid-item, "
+            f"{empty} returned nothing — raise max_tokens/num_ctx or check the endpoint.\n")
+    if short:
+        sys.stdout.write(
+            f"    note [{cfg['name']}]: {short}/{len(tasks)} call(s) returned complete but "
+            f"FEWER than the {n_per} items requested (model's choice, not truncation); "
+            f"coverage is valid, the sample is just smaller.\n")
+    sys.stdout.flush()
+    return records
+
+
+def repair_all(cfg, role, records, sources_by_id, *, temperature, concurrency):
+    """Optional generate->repair pass for ONE model: rewrite each item's weak
+    distractors (same model that wrote it). Mutates records in place — replaces
+    each `item` with its repaired version (or the original on any failure)."""
+    if not records:
+        return records
+    prog = Progress(len(records), f"repair[{cfg['name']}]")
+
+    def work(rec):
+        src = sources_by_id[rec["source_id"]]
+        rec["item"] = repair.repair_item(cfg, src, rec["item"], temperature, role=role)
+        return rec
+
+    with cf.ThreadPoolExecutor(max_workers=concurrency) as ex:
+        futs = [ex.submit(work, rec) for rec in records]
+        for fut in cf.as_completed(futs):
+            fut.result()
+            prog.tick()
     prog.finish()
     return records
 
@@ -197,7 +268,9 @@ def aggregate(scored):
     expert_grade, key_valid, prog, judge, item)."""
     n = len(scored)
     runs = sorted({x["run"] for x in scored})
-    run_pass = [p for p in (_rate([x for x in scored if x["run"] == r], "expert_grade")
+    # The decision door is the near-miss (calibrated expert-quality) rate, so
+    # consistency + per-archetype track that; expert_grade stays reported alongside.
+    run_pass = [p for p in (_rate([x for x in scored if x["run"] == r], "near_miss")
                             for r in runs) if p is not None]
     dims = ["spec_adherence", "distractor_craft", "outside_knowledge_skill_fit"]
     judged = [x["judge"] for x in scored if x["judge"] is not None]
@@ -207,28 +280,33 @@ def aggregate(scored):
     return {
         "n_items": n,
         "pass_rate": _rate(scored, "expert_grade"),
+        "near_miss_rate": _rate(scored, "near_miss"),
         "key_valid_rate": _rate(scored, "key_valid"),
         "consistency_std": statistics.pstdev(run_pass) if len(run_pass) > 1 else 0.0,
         "run_pass_rates": [round(p, 3) for p in run_pass],
         "date_fail_rate": (sum(1 for x in scored if x["prog"]["date_direction"] == "fail") / n) if n else 0.0,
         "source_leak_rate": (sum(1 for x in scored if x["prog"]["source_leak"]) / n) if n else 0.0,
         "mean_dims": {d: (round(statistics.mean(j[d] for j in judged), 2) if judged else None) for d in dims},
-        "by_archetype": {a: _rate(v, "expert_grade") for a, v in by_arch.items()},
+        "by_archetype": {a: _rate(v, "near_miss") for a, v in by_arch.items()},
     }
 
 
 def decide(best_small, s_frontier, teacher_kv, no_judge):
-    """docs/02 §6 decision matrix."""
+    """docs/02 §6 decision matrix. The pass metric is the NEAR-MISS
+    (expert-quality) rate — every expert-grade gate except the strict, poorly-
+    calibrated `spec_adherence==2` (see G-cal: judge–human agreement on spec was
+    ~40%/negative-kappa, so it is unfit as a hard gate). key_valid still gates
+    label cleanliness."""
     if no_judge:
-        return "INCONCLUSIVE (judge off)", "Programmatic checks only — expert-grade and key_valid are unmeasured. Re-run with a judge configured for a real verdict."
+        return "INCONCLUSIVE (judge off)", "Programmatic checks only — expert-quality and key_valid are unmeasured. Re-run with a judge configured for a real verdict."
     if best_small is not None and best_small >= 0.80:
-        return "DON'T BUILD", "A prompted small model already clears >=80% expert-grade; ship a prompt, not a fine-tune."
+        return "DON'T BUILD", "A prompted small model already clears >=80% expert-quality (near-miss); ship a prompt, not a fine-tune."
     if teacher_kv is not None and teacher_kv < 0.70:
         return "RETHINK", "Frontier teacher key_valid_rate <70%: no clean labels to distill. Reframe (richer sources / candidate-set grounding / repair-an-item output)."
     if s_frontier is not None and s_frontier < 0.50:
-        return "RETHINK", "Even the frontier teacher can't reliably produce expert-grade items (<50%)."
+        return "RETHINK", "Even the frontier teacher can't reliably produce expert-quality items (<50% near-miss)."
     if s_frontier is not None and s_frontier >= 0.70 and best_small is not None and best_small <= 0.55:
-        return "BUILD (distill)", "Teacher can (>=70%), prompted small can't (<=55%): the exact gap QLoRA distillation closes. Target regime."
+        return "BUILD (distill)", "Teacher can (>=70% near-miss), prompted small can't (<=55%): the exact gap QLoRA distillation closes. Target regime."
     if best_small is not None and 0.45 < best_small < 0.80:
         return "BUILD (narrow first)", "Promising but shaky small-model prompt; scope to the highest-gap archetypes and distill."
     return "INCONCLUSIVE", "Numbers don't match a clean door; inspect per-archetype gaps and re-run with more items."
@@ -241,9 +319,10 @@ def write_report(results, meta, out_dir):
 
     small = {k: v for k, v in results.items() if v["role"] == "candidate"}
     teacher = next((v for v in results.values() if v["role"] == "teacher"), None)
-    small_pass = [v["agg"]["pass_rate"] for v in small.values() if v["agg"]["pass_rate"] is not None]
+    # Door metric = near-miss (calibrated expert-quality), not the strict expert-grade.
+    small_pass = [v["agg"]["near_miss_rate"] for v in small.values() if v["agg"].get("near_miss_rate") is not None]
     best_small = max(small_pass) if small_pass else None
-    s_front = teacher["agg"]["pass_rate"] if teacher else None
+    s_front = teacher["agg"].get("near_miss_rate") if teacher else None
     teacher_kv = teacher["agg"]["key_valid_rate"] if teacher else None
     door, why = decide(best_small, s_front, teacher_kv, meta["no_judge"])
 
@@ -256,17 +335,19 @@ def write_report(results, meta, out_dir):
              f"Scope: {meta['archetypes']} on split `{meta['split']}` "
              f"({meta['n_sources']} sources x {meta['n']} items x {meta['runs']} runs)."
              + (" **DRY-RUN (mock models — numbers are not real).**" if meta["dry_run"] else "")
-             + (" **PROGRAMMATIC-ONLY (no judge).**" if meta["no_judge"] else "") + "\n")
+             + (" **PROGRAMMATIC-ONLY (no judge).**" if meta["no_judge"] else "")
+             + (" **+REPAIR pass (distractors rewritten by the same model).**" if meta.get("repair") else "") + "\n")
     L.append(f"## Decision: **{door}**\n\n{why}\n")
-    L.append("| Model | Role | Items | Expert-grade | key_valid | Consistency (std) | date-fail | leak |")
-    L.append("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |")
+    L.append("| Model | Role | Items | Expert-grade | Near-miss | key_valid | Consistency (std) | date-fail | leak |")
+    L.append("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for name, v in results.items():
         a = v["agg"]
         L.append(f"| {name} | {v['role']} | {a['n_items']} | {pct(a['pass_rate'])} | "
+                 f"{pct(a.get('near_miss_rate'))} | "
                  f"{pct(a['key_valid_rate'])} | {a['consistency_std']:.03f} | "
                  f"{a['date_fail_rate']:.0%} | {a['source_leak_rate']:.0%} |")
     L.append("")
-    L.append("### Per-archetype expert-grade pass rate")
+    L.append("### Per-archetype near-miss (expert-quality) pass rate")
     L.append("| Model | " + " | ".join(sorted({a for v in results.values() for a in v["agg"]["by_archetype"]})) + " |")
     archs = sorted({a for v in results.values() for a in v["agg"]["by_archetype"]})
     L.append("| :--- | " + " | ".join("---:" for _ in archs) + " |")
@@ -275,10 +356,17 @@ def write_report(results, meta, out_dir):
         L.append(f"| {name} | " + " | ".join(row) + " |")
     L.append("")
     L.append("### Gate reference (docs/02 §6)")
-    L.append("- **P1** teacher expert-grade >=70% AND key_valid >=70-75%  |  "
+    L.append("- The decision **door is the near-miss (expert-quality) rate**: "
+             "**P1** teacher near-miss >=70% AND key_valid >=70-75%  |  "
              "**P2** best prompted small <=45-55%  |  **DON'T BUILD** if small >=80%.")
-    L.append(f"\n_best prompted small pass = {pct(best_small)}_ · "
-             f"_teacher pass = {pct(s_front)}_ · _teacher key_valid = {pct(teacher_kv)}_")
+    L.append("- _Near-miss_ = passes every expert-grade gate EXCEPT the strict "
+             "`spec_adherence==2`. Calibration (G-cal) showed judge–human agreement on "
+             "`spec_adherence` was ~40% (negative kappa), so it is reported as a secondary "
+             "quality score, not used as a hard gate. _Expert-grade_ (spec==2) is the "
+             "stricter column; a big near-miss-minus-expert-grade gap is distractor polish only.")
+    L.append(f"\n**Door (near-miss):** _best prompted small = {pct(best_small)}_ · "
+             f"_teacher = {pct(s_front)}_ · _teacher key_valid = {pct(teacher_kv)}_ · "
+             f"_teacher expert-grade (strict) = {pct(teacher['agg']['pass_rate']) if teacher else 'n/a'}_")
     md_path = os.path.join(out_dir, "litmus_results.md")
     open(md_path, "w").write("\n".join(L) + "\n")
     return md_path, door, why
@@ -293,6 +381,9 @@ def main():
     ap.add_argument("--runs", type=int, default=3, help="repeats per model (consistency)")
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--fewshot", action="store_true", help="include the few-shot exemplar block")
+    ap.add_argument("--repair", action="store_true",
+                    help="add a generate->repair pass: each item's distractors are rewritten "
+                         "by the SAME model (targets the distractor-craft gap; one extra call/item)")
     ap.add_argument("--no-judge", action="store_true", help="programmatic checks only (fast/free)")
     ap.add_argument("--limit", type=int, default=0, help="limit number of sources (quick test)")
     ap.add_argument("--gen-concurrency", type=int, default=8,
@@ -346,13 +437,18 @@ def main():
 
     # Phase 1 — GENERATION (per model; gateway models run concurrent requests,
     # local Ollama stays serial). Two phases keep the progress UI unambiguous.
-    print("Phase 1/2: generation")
+    print("Phase 1/2: generation" + (" + repair" if args.repair else ""))
     gen_records = []
     for role, cfg in roster:
-        gen_records += generate_all(
+        recs = generate_all(
             cfg, role, sources, prompt, n=args.n, runs=args.runs,
             temperature=args.temperature, include_fewshot=args.fewshot,
             limit=args.limit, concurrency=_concurrency_for(cfg, args.gen_concurrency))
+        if args.repair:
+            recs = repair_all(cfg, role, recs, sources_by_id,
+                              temperature=args.temperature,
+                              concurrency=_concurrency_for(cfg, args.gen_concurrency))
+        gen_records += recs
 
     # Phase 2 — JUDGING (all items from all models judged in parallel: the big win).
     print("Phase 2/2: judging")
@@ -370,7 +466,8 @@ def main():
         item_records.append({
             "model": x["model"], "role": x["role"], "run": x["run"],
             "source_id": it.get("_source_id"), "archetype": it.get("archetype"),
-            "expert_grade": x["expert_grade"], "key_valid": x["key_valid"],
+            "expert_grade": x["expert_grade"], "near_miss": x["near_miss"],
+            "key_valid": x["key_valid"],
             "prog": x["prog"], "judge": x["judge"],
             "stem": it.get("stem"), "options": it.get("options"),
             "answer": it.get("answer"), "answer_dating": it.get("answer_dating"),
@@ -382,7 +479,7 @@ def main():
         "split": args.split, "n": args.n, "runs": args.runs,
         "n_sources": len(sources[:args.limit] if args.limit else sources),
         "archetypes": DEFAULT_ARCHETYPES, "dry_run": args.dry_run,
-        "no_judge": args.no_judge, "fewshot": args.fewshot,
+        "no_judge": args.no_judge, "fewshot": args.fewshot, "repair": args.repair,
     }
     md_path, door, why = write_report(results, meta, args.out)
     items_path = os.path.join(args.out, "litmus_items.jsonl")

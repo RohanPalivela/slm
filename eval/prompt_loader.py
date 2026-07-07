@@ -64,6 +64,32 @@ class LitmusPrompt:
         return system, user
 
 
+# Keys under which a model may nest the item list when it wraps the array in an
+# object (e.g. {"questions": [...]}) instead of returning a bare array.
+_ITEM_LIST_KEYS = ("items", "questions", "mcqs", "data", "results", "output")
+
+
+def _normalize_items(obj) -> list[dict]:
+    """Coerce a parsed JSON value into a list of item dicts, honoring the contract
+    that callers only ever receive dicts.
+
+    Handles the shapes models actually emit: a bare array, a single item object,
+    or a wrapper object nesting the array under a key. Any non-dict elements
+    (e.g. a stray array of bare strings) are discarded rather than propagated —
+    they have no schema the downstream checks/judge can use, and letting them
+    through crashes the harness."""
+    if isinstance(obj, dict):
+        # A wrapper object like {"questions": [...]}: unwrap the first list-valued
+        # candidate key, else treat the object itself as a single item.
+        for key in _ITEM_LIST_KEYS:
+            if isinstance(obj.get(key), list):
+                return _normalize_items(obj[key])
+        return [obj]
+    if isinstance(obj, list):
+        return [x for x in obj if isinstance(x, dict)]
+    return []
+
+
 def extract_items(text: str) -> list[dict]:
     """Tolerantly pull a JSON array (or object) of items out of a model response
     that may include prose or ```json fences. Always returns a list of dicts."""
@@ -75,8 +101,7 @@ def extract_items(text: str) -> list[dict]:
     t = re.sub(r"\s*```$", "", t)
     # fast path
     try:
-        obj = json.loads(t)
-        return obj if isinstance(obj, list) else [obj]
+        return _normalize_items(json.loads(t))
     except json.JSONDecodeError:
         pass
     # scan for the first balanced [...] or {...}
@@ -104,8 +129,7 @@ def extract_items(text: str) -> list[dict]:
                 if depth == 0:
                     cand = t[start:j + 1]
                     try:
-                        obj = json.loads(cand)
-                        return obj if isinstance(obj, list) else [obj]
+                        return _normalize_items(json.loads(cand))
                     except json.JSONDecodeError:
                         break
     return []

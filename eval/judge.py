@@ -11,23 +11,46 @@ import providers
 from prompt_loader import extract_items
 
 JUDGE_SYSTEM = """You are a senior AP U.S. History assessment expert grading a \
-single machine-generated stimulus-based multiple-choice question. You are strict, \
-fair, and you know U.S. history well. You are NOT the model that wrote the item.
+single machine-generated stimulus-based multiple-choice question. You know U.S. \
+history well and you are NOT the model that wrote the item.
+
+Grade like a real test-development reviewer: be STRICT about correctness (is the \
+keyed answer right, is it uniquely best, does the skill match the command phrase) \
+but FAIR about craft. An item a real APUSH exam would actually use is expert-grade \
+even if a distractor could be marginally stronger. Do NOT invent flaws or hold \
+items to a standard of perfection the operational test itself does not meet.
 
 You will receive the SOURCE (stimulus) and the ITEM (stem, 4 options, keyed \
 answer, rationale). Judge ONLY against the source + standard APUSH knowledge.
+
+CALIBRATION — apply these two most-misjudged fields exactly as written:
+- distractors_period_plausible is TRUE unless a distractor is genuinely absurd,
+  fabricated (not real history), or off-topic FILLER with no real connection to the
+  question's theme. A distractor is STILL plausible if it is a real development that
+  is merely from a NEIGHBORING era, somewhat weaker, or slightly off — those are
+  legitimate traps that test chronology/theme discrimination. Mark FALSE only when a
+  distractor is (a) not real history, or (b) so obviously wrong-century AND off-theme
+  that essentially every student eliminates it instantly. ONE soft-but-real
+  distractor among the three does NOT make the set implausible.
+- spec_adherence: 2 = operationally usable on a real test (correct, uniquely-best
+  key + right skill + no disqualifying flaw), EVEN IF one distractor is soft. 1 = a
+  genuine craft weakness short of disqualifying (e.g. two weak/filler distractors, a
+  length or grammar tell, or a borderline second-best option). 0 = a DISQUALIFYING
+  flaw only (wrong or non-unique key, more than one defensible answer, the answer
+  merely echoes the source, or an all/none-of-the-above option). Do NOT drop to 1
+  just because a single distractor could be stronger.
 
 Return ONLY a JSON object (no prose) with these fields:
 {
   "requires_outside_knowledge": true|false,   // answering needs a development NOT stated in the source (not a paraphrase of it)
   "every_distractor_named_trap": true|false,  // each wrong option maps to a real error: wrong-era / true-but-irrelevant / scope-mismatch / partially-true
-  "distractors_period_plausible": true|false, // each distractor is a real, era-plausible development a good student would consider (no absurd/off-topic filler)
+  "distractors_period_plausible": true|false, // per CALIBRATION above: FALSE only for absurd/fabricated/off-topic filler, not for a merely-soft or neighboring-era trap
   "skill_matches_command_phrase": true|false, // a "cause" stem is answered by a cause; "led to" by an effect; etc.
   "key_historically_correct": true|false,     // the keyed answer is factually correct history
   "key_uniquely_best": true|false,            // exactly one option is defensibly best; no second option is also correct
   "single_best_answer": true|false,           // overall: one clearly-best answer
-  "spec_adherence": 0|1|2,                     // 0 violates >=1 disqualifying check; 1 minor wobble; 2 fully expert-grade
-  "distractor_craft": 0|1|2,                   // 0 has filler/absurd option; 2 every distractor a named, plausible trap
+  "spec_adherence": 0|1|2,                     // per CALIBRATION above: 2 = usable on a real test (a single soft distractor is still a 2); 1 = real craft weakness; 0 = disqualifying flaw
+  "distractor_craft": 0|1|2,                   // 2 = every distractor a real tempting trap (one soft-but-real one is fine); 1 = a couple are weak; 0 = a genuinely absurd/fabricated/filler option
   "outside_knowledge_skill_fit": 0|1|2,        // 0 echoes the source or answer mismatches the skill; 2 genuine outside knowledge + right skill
   "notes": "<one sentence: the main flaw, or 'clean'>"
 }"""
@@ -120,11 +143,19 @@ def judge_item(judge_cfg: dict, source: dict, item: dict, *, role: str = "") -> 
     return _normalize(parsed[0])
 
 
-def expert_grade(prog_ok: bool, j: dict) -> bool:
-    """docs/02 §4b: all disqualifying checks pass (programmatic + judge) AND every
-    graded dim >=1 AND spec_adherence==2 AND a valid key."""
+def near_grade(prog_ok: bool, j: dict) -> bool:
+    """Near-miss tier: passes every expert-grade gate EXCEPT the strict
+    spec_adherence==2 (i.e. all disqualifiers clean + every graded dim >=1 + a
+    valid key). Separates 'one distractor is soft' (spec_adherence==1) from
+    'fundamentally broken', so the report doesn't collapse both into 0."""
     judge_disq = (j["requires_outside_knowledge"] and j["every_distractor_named_trap"]
                   and j["distractors_period_plausible"] and j["skill_matches_command_phrase"]
                   and j["single_best_answer"] and j["key_valid"])
     dims_ok = min(j["spec_adherence"], j["distractor_craft"], j["outside_knowledge_skill_fit"]) >= 1
-    return bool(prog_ok and judge_disq and dims_ok and j["spec_adherence"] == 2)
+    return bool(prog_ok and judge_disq and dims_ok)
+
+
+def expert_grade(prog_ok: bool, j: dict) -> bool:
+    """docs/02 §4b: all disqualifying checks pass (programmatic + judge) AND every
+    graded dim >=1 AND spec_adherence==2 AND a valid key."""
+    return bool(near_grade(prog_ok, j) and j["spec_adherence"] == 2)

@@ -12,8 +12,9 @@
       "think": false,
       "keep_alive": "15m",
       "format": "json",
-      "max_tokens": 1024,
-      "_note": "native Ollama provider tuned for a laptop: think:false (Qwen3 thinking off), format:'json' (constrains output to clean JSON so the base model doesn't ramble for minutes), keep_alive (stay warm), and max_tokens=1024 (num_predict) which is the main SPEED lever — generation time is ~ num_predict / (~20 tok/s), so 1024 => ~25-30s/source warm (first source adds a one-time ~1-2 min load). Do NOT set num_ctx > 4096 on a small Air (memory pressure + reload). format:'json' tends to yield ~1 item/call; raise --runs for a bigger sample, or point at a hosted Qwen3-4B (provider 'openai_compatible', base_url '.../v1') for a fast full run."
+      "max_tokens": 1536,
+      "num_ctx": 4096,
+      "_note": "native Ollama provider: think:false (Qwen3 thinking off), format:'json' (clean JSON, no rambling). NOTE: under format:'json' this 4B reliably emits ONE complete item per call regardless of N — that's a model choice, not truncation (the harness now verifies completeness and says so). The harness issues one call PER ARCHETYPE so both CAUSE and EFFECT get measured anyway. max_tokens=1536/num_ctx=4096 comfortably fit the ~2.1k-token prompt + a complete item (~375 tok) with headroom, and keep each call fast (~ num_predict/(~20 tok/s)). For a faster full run point at a hosted Qwen3-4B (provider 'openai_compatible', base_url '.../v1')."
     }
   ],
 
@@ -23,7 +24,8 @@
     "model": "claude-group/claude-opus-4-8",
     "base_url": "https://tfy.promptlens.trilogy.com/v1",
     "api_key_env": "PROMPTLENS_API_KEY",
-    "max_tokens": 4096
+    "max_tokens": 8192,
+    "_note": "max_tokens=8192 fits all N=6 items comfortably; 4096 occasionally truncated the 6th item."
   },
 
   "judge": {
