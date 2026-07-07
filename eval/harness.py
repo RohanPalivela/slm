@@ -18,10 +18,12 @@ See eval/README.md.
 """
 from __future__ import annotations
 import argparse
+import concurrent.futures as cf
 import json
 import os
 import statistics
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -79,47 +81,110 @@ def score_item(item, source, judge_cfg, role, no_judge):
     return {"prog": prog, "judge": j, "expert_grade": eg, "key_valid": kv}
 
 
-def run_model(model_cfg, role, sources, prompt, judge_cfg, *, n, runs, temperature,
-              include_fewshot, no_judge, limit):
-    """Return a list of per-run records; each record is a list of scored items."""
-    per_run = []
+class Progress:
+    """Thread-safe single-line progress bar. Accurately reflects completed/total
+    across parallel workers."""
+
+    def __init__(self, total, label):
+        self.total = max(total, 1)
+        self.label = label
+        self.done = 0
+        self.fails = 0
+        self.items = 0
+        self._lock = threading.Lock()
+        self._t0 = time.time()
+        self._render()
+
+    def tick(self, n_items=0, failed=False):
+        with self._lock:
+            self.done += 1
+            self.items += n_items
+            if failed:
+                self.fails += 1
+            self._render()
+
+    def _render(self):
+        pct = self.done / self.total
+        bar_n = int(pct * 20)
+        bar = "#" * bar_n + "-" * (20 - bar_n)
+        el = time.time() - self._t0
+        extra = f" items={self.items}" if self.items else ""
+        fails = f" fails={self.fails}" if self.fails else ""
+        sys.stdout.write(f"\r    {self.label:22} [{bar}] {self.done}/{self.total}"
+                         f"{extra}{fails} {el:4.0f}s   ")
+        sys.stdout.flush()
+
+    def finish(self):
+        with self._lock:
+            self._render()
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+
+
+def _concurrency_for(cfg, gateway_default):
+    """Local Ollama is served serially — parallelism there hurts. Gateway/API
+    models can run concurrent requests."""
+    if cfg.get("provider") in ("ollama", "mock"):
+        return 1
+    return int(cfg.get("concurrency", gateway_default))
+
+
+def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
+                 include_fewshot, limit, concurrency):
+    """Parallel generation for one model. Returns raw (unjudged) records:
+    {model, role, run, source_id, item}. Order-independent; progress is live."""
     srcs = sources[:limit] if limit else sources
-    for r in range(runs):
-        run_items = []
-        for si, src in enumerate(srcs, 1):
-            t0 = time.time()
-            system, user = prompt.build(
-                source=src["text"], attribution=src.get("attribution", ""),
-                note="", n=n, archetypes=DEFAULT_ARCHETYPES, difficulty=DIFFICULTY,
-                include_fewshot=include_fewshot)
-            print(f"    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']} ... "
-                  "generating", end="", flush=True)
-            try:
-                raw = providers.generate(model_cfg, system, user, temperature, role=role)
-            except providers.ProviderError as e:
-                print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
-                      f"GEN FAILED ({e})", flush=True)
-                continue
-            items = extract_items(raw)
-            if not items:
-                print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
-                      f"0 items parsed ({time.time() - t0:.1f}s; model returned "
-                      f"{len(raw)} chars) \u2014 check output format", flush=True)
-                continue
-            print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
-                  f"{len(items)} items, judging...", end="", flush=True)
-            for it in items:
-                it["_source_id"] = src["id"]
-                scored = score_item(it, src, judge_cfg, role, no_judge)
-                run_items.append({"item": it, **scored})
-            eg = sum(1 for x in run_items[-len(items):] if x["expert_grade"])
-            print(f"\r    run {r + 1}/{runs}  source {si}/{len(srcs)}  {src['id']}: "
-                  f"{len(items)} items, {eg} expert-grade ({time.time() - t0:.1f}s)"
-                  + " " * 12, flush=True)
-            time.sleep(0.0 if model_cfg.get("provider") == "mock" else 0.3)
-        per_run.append(run_items)
-        print(f"    run {r + 1}/{runs} done: {len(run_items)} items total", flush=True)
-    return per_run
+    tasks = [(r, s) for r in range(runs) for s in srcs]
+    prog = Progress(len(tasks), f"gen[{cfg['name']}]")
+    records, lock = [], threading.Lock()
+
+    def work(task):
+        r, s = task
+        system, user = prompt.build(
+            source=s["text"], attribution=s.get("attribution", ""), note="",
+            n=n, archetypes=DEFAULT_ARCHETYPES, difficulty=DIFFICULTY,
+            include_fewshot=include_fewshot)
+        try:
+            raw = providers.generate(cfg, system, user, temperature, role=role)
+            return r, s["id"], extract_items(raw), None
+        except providers.ProviderError as e:
+            return r, s["id"], [], str(e)
+
+    with cf.ThreadPoolExecutor(max_workers=concurrency) as ex:
+        futs = [ex.submit(work, t) for t in tasks]
+        for fut in cf.as_completed(futs):
+            r, sid, items, err = fut.result()
+            with lock:
+                for it in items:
+                    it["_source_id"] = sid
+                    records.append({"model": cfg["name"], "role": role,
+                                    "run": r, "source_id": sid, "item": it})
+            prog.tick(n_items=len(items), failed=bool(err))
+    prog.finish()
+    return records
+
+
+def judge_all(gen_records, judge_cfg, sources_by_id, *, no_judge, concurrency):
+    """Parallel judging over ALL generated items (both models at once) — this is
+    the biggest speedup since each judge call is an independent gateway request."""
+    prog = Progress(len(gen_records), "judge" if not no_judge else "score(no-judge)")
+    out, lock = [], threading.Lock()
+
+    def work(rec):
+        src = sources_by_id[rec["source_id"]]
+        scored = score_item(rec["item"], src, judge_cfg, rec["role"], no_judge)
+        return {**rec, **scored}
+
+    workers = 1 if no_judge else concurrency
+    with cf.ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = [ex.submit(work, rec) for rec in gen_records]
+        for fut in cf.as_completed(futs):
+            r = fut.result()
+            with lock:
+                out.append(r)
+            prog.tick()
+    prog.finish()
+    return out
 
 
 def _rate(items, key):
@@ -127,24 +192,26 @@ def _rate(items, key):
     return (sum(1 for v in vals if v) / len(vals)) if vals else None
 
 
-def aggregate(per_run):
-    flat = [x for run in per_run for x in run]
-    n = len(flat)
-    run_pass = [p for p in (_rate(run, "expert_grade") for run in per_run if run) if p is not None]
+def aggregate(scored):
+    """scored: flat list of judged records for ONE model (each has run,
+    expert_grade, key_valid, prog, judge, item)."""
+    n = len(scored)
+    runs = sorted({x["run"] for x in scored})
+    run_pass = [p for p in (_rate([x for x in scored if x["run"] == r], "expert_grade")
+                            for r in runs) if p is not None]
     dims = ["spec_adherence", "distractor_craft", "outside_knowledge_skill_fit"]
-    judged = [x["judge"] for x in flat if x["judge"] is not None]
+    judged = [x["judge"] for x in scored if x["judge"] is not None]
     by_arch = {}
-    for x in flat:
-        a = x["item"].get("archetype", "?")
-        by_arch.setdefault(a, []).append(x)
+    for x in scored:
+        by_arch.setdefault(x["item"].get("archetype", "?"), []).append(x)
     return {
         "n_items": n,
-        "pass_rate": _rate(flat, "expert_grade"),
-        "key_valid_rate": _rate(flat, "key_valid"),
+        "pass_rate": _rate(scored, "expert_grade"),
+        "key_valid_rate": _rate(scored, "key_valid"),
         "consistency_std": statistics.pstdev(run_pass) if len(run_pass) > 1 else 0.0,
         "run_pass_rates": [round(p, 3) for p in run_pass],
-        "date_fail_rate": (sum(1 for x in flat if x["prog"]["date_direction"] == "fail") / n) if n else 0.0,
-        "source_leak_rate": (sum(1 for x in flat if x["prog"]["source_leak"]) / n) if n else 0.0,
+        "date_fail_rate": (sum(1 for x in scored if x["prog"]["date_direction"] == "fail") / n) if n else 0.0,
+        "source_leak_rate": (sum(1 for x in scored if x["prog"]["source_leak"]) / n) if n else 0.0,
         "mean_dims": {d: (round(statistics.mean(j[d] for j in judged), 2) if judged else None) for d in dims},
         "by_archetype": {a: _rate(v, "expert_grade") for a, v in by_arch.items()},
     }
@@ -228,6 +295,10 @@ def main():
     ap.add_argument("--fewshot", action="store_true", help="include the few-shot exemplar block")
     ap.add_argument("--no-judge", action="store_true", help="programmatic checks only (fast/free)")
     ap.add_argument("--limit", type=int, default=0, help="limit number of sources (quick test)")
+    ap.add_argument("--gen-concurrency", type=int, default=8,
+                    help="parallel generation requests for gateway/API models (local Ollama stays serial)")
+    ap.add_argument("--judge-concurrency", type=int, default=8,
+                    help="parallel judge requests")
     ap.add_argument("--out", default=os.path.join(ROOT, "results"))
     ap.add_argument("--check", action="store_true",
                     help="ping every configured model with a trivial prompt and exit")
@@ -271,27 +342,40 @@ def main():
     if not roster:
         raise SystemExit("no models to run (need 'candidates' and/or 'teacher')")
 
-    results = {}
-    item_records = []
+    sources_by_id = {s["id"]: s for s in sources}
+
+    # Phase 1 — GENERATION (per model; gateway models run concurrent requests,
+    # local Ollama stays serial). Two phases keep the progress UI unambiguous.
+    print("Phase 1/2: generation")
+    gen_records = []
     for role, cfg in roster:
-        print(f"[{role}] {cfg['name']}")
-        per_run = run_model(cfg, role, sources, prompt, judge_cfg,
-                            n=args.n, runs=args.runs, temperature=args.temperature,
-                            include_fewshot=args.fewshot, no_judge=args.no_judge,
-                            limit=args.limit)
-        results[cfg["name"]] = {"role": role, "agg": aggregate(per_run)}
-        for ri, run in enumerate(per_run):
-            for x in run:
-                it = x["item"]
-                item_records.append({
-                    "model": cfg["name"], "role": role, "run": ri,
-                    "source_id": it.get("_source_id"), "archetype": it.get("archetype"),
-                    "expert_grade": x["expert_grade"], "key_valid": x["key_valid"],
-                    "prog": x["prog"], "judge": x["judge"],
-                    "stem": it.get("stem"), "options": it.get("options"),
-                    "answer": it.get("answer"), "answer_dating": it.get("answer_dating"),
-                    "rationale": it.get("rationale"), "trap_types": it.get("trap_types"),
-                })
+        gen_records += generate_all(
+            cfg, role, sources, prompt, n=args.n, runs=args.runs,
+            temperature=args.temperature, include_fewshot=args.fewshot,
+            limit=args.limit, concurrency=_concurrency_for(cfg, args.gen_concurrency))
+
+    # Phase 2 — JUDGING (all items from all models judged in parallel: the big win).
+    print("Phase 2/2: judging")
+    scored = judge_all(gen_records, judge_cfg, sources_by_id,
+                       no_judge=args.no_judge, concurrency=args.judge_concurrency)
+
+    results = {}
+    for role, cfg in roster:
+        model_scored = [x for x in scored if x["model"] == cfg["name"]]
+        results[cfg["name"]] = {"role": role, "agg": aggregate(model_scored)}
+
+    item_records = []
+    for x in scored:
+        it = x["item"]
+        item_records.append({
+            "model": x["model"], "role": x["role"], "run": x["run"],
+            "source_id": it.get("_source_id"), "archetype": it.get("archetype"),
+            "expert_grade": x["expert_grade"], "key_valid": x["key_valid"],
+            "prog": x["prog"], "judge": x["judge"],
+            "stem": it.get("stem"), "options": it.get("options"),
+            "answer": it.get("answer"), "answer_dating": it.get("answer_dating"),
+            "rationale": it.get("rationale"), "trap_types": it.get("trap_types"),
+        })
 
     meta = {
         "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),

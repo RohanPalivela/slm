@@ -47,9 +47,22 @@ checks → judge → aggregate → decision) runs end to end and writes
    python eval/harness.py --runs 3 --n 6       # the real build-gate
    # quick smoke on 2 sources, judge off (free/fast):
    python eval/harness.py --runs 1 --limit 2 --no-judge
+   # tune parallelism (gateway); local Ollama always runs serial:
+   python eval/harness.py --gen-concurrency 8 --judge-concurrency 8
    # add the few-shot exemplars (ablation):
    python eval/harness.py --fewshot
    ```
+
+   **Parallelism / speed.** The run is two phases with a live progress bar each:
+   *(1) generation* per model, then *(2) judging* of **all** items at once. Judge
+   calls and gateway/API generations run **concurrently** (`--judge-concurrency`,
+   `--gen-concurrency`, default 8 each); this is the big speedup since each is an
+   independent request. **Local Ollama stays serial** (it serves one request at a
+   time — parallelizing it hurts), so the local candidate's generation is the
+   floor (~30s × sources × runs). Net: a full gate drops from ~50 min to ~20 min,
+   with the local candidate now dominating. To go faster still, host the candidate
+   (`provider: "openai_compatible"`) so its generation parallelizes too. If the
+   gateway rate-limits, lower the concurrency flags (the client retries 429s).
 
    **Single OpenAI-compatible gateway** (one router fronting multiple providers):
    set `provider: "openai_compatible"`, `base_url` to the gateway, `model` to the
