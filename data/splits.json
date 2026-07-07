@@ -34,8 +34,19 @@
       ]
     },
     "TRAIN": {
-      "role": "generation seeds. EMPTY until A3 corpus expansion; do not draw training seeds from LITMUS/EVAL.",
-      "source_ids": []
+      "role": "generation seeds (disjoint from LITMUS/EVAL). Seeded from the A3 fetch (public-domain primaries); extend as the corpus grows toward ~150.",
+      "source_ids": [
+        "mayflower_compact_1620",
+        "northwest_ordinance_1787",
+        "va_religious_freedom_1786",
+        "homestead_act_1862",
+        "bryan_cross_of_gold_1896",
+        "washington_atlanta_1895",
+        "chinese_exclusion_act_1882",
+        "fdr_four_freedoms_1941",
+        "marshall_plan_1947",
+        "jfk_inaugural_1961"
+      ]
     }
   },
   "out_of_v1_scope_secondary": [
@@ -49,7 +60,7 @@
     "secondary_cold_war_origins"
   ],
   "pending": {
-    "A3_corpus_expansion": "14 -> ~150 primary sources (license-provenanced); then re-populate TRAIN and grow EVAL_HELDOUT to >=25-30. HARD gate before M3 bulk gen.",
+    "A3_corpus_expansion": "in progress: 14 -> 24 primary (public-domain, fetched via build_seed_corpus.py --build-corpus). TRAIN seeded with 10; continue extending the CORPUS_CATALOG toward ~150 and grow EVAL_HELDOUT to >=25-30 before the real product eval.",
     "A6_developments_table": "already expanded 84 -> 167 (data/apush_key_developments.json)."
   }
 }

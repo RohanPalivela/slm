@@ -109,6 +109,75 @@ WIKISOURCE_PD_SOURCES = [
     {"title": "The March of the Flag", "year": 1898, "period": 7, "themes": ["WOR", "NAT"]},
 ]
 
+# ---------------------------------------------------------------------------
+# A3 corpus-expansion catalog (14 -> ~150). Every entry is either (a) a U.S.
+# work first published in 1930 or earlier, or (b) a U.S. federal work / Supreme
+# Court opinion (uncopyrightable at ANY date). We route all fetches through
+# en.wikisource.org since it hosts faithful transcriptions of both classes.
+#
+# DELIBERATELY EXCLUDED (still under copyright): private-authored works after
+# 1930 — e.g. MLK's speeches/letters, most mid-century essays. Only *federal*
+# post-1930 works (presidential addresses, statutes, court opinions) are here.
+#
+# `ws` = exact en.wikisource.org page title. `id` = corpus id. `pd` = the
+# public-domain basis recorded as the license. Fetched text is verified + the
+# lead excerpt length-gated before anything is written (build_corpus).
+# ---------------------------------------------------------------------------
+
+_PD_PRE1930 = "public domain (published <=1930)"
+_PD_FEDERAL = "public domain (U.S. federal government work)"
+_PD_COURT = "public domain (U.S. court opinion — uncopyrightable)"
+
+CORPUS_CATALOG = [
+    # --- Period 2-3: colonial + revolutionary + founding (pre-1800) ---
+    {"ws": "Mayflower Compact", "id": "mayflower_compact_1620", "author": "Mayflower signers", "attribution": "Mayflower Compact, 1620", "year": 1620, "period": 2, "themes": ["NAT", "PCE"], "pd": _PD_PRE1930},
+    {"ws": "Sinners in the Hands of an Angry God", "id": "edwards_sinners_1741", "author": "Jonathan Edwards", "attribution": "Jonathan Edwards, 'Sinners in the Hands of an Angry God', 1741", "year": 1741, "period": 2, "themes": ["SOC", "ARC"], "pd": _PD_PRE1930},
+    {"ws": "Common Sense", "id": "paine_common_sense_1776", "author": "Thomas Paine", "attribution": "Thomas Paine, 'Common Sense', 1776", "year": 1776, "period": 3, "themes": ["NAT", "PCE"], "pd": _PD_PRE1930},
+    {"ws": "The Federalist/51", "id": "federalist_51_1788", "author": "James Madison", "attribution": "James Madison, Federalist No. 51, 1788", "year": 1788, "period": 3, "themes": ["PCE"], "pd": _PD_PRE1930},
+    {"ws": "Constitution of the United States of America", "id": "us_constitution_1787", "author": "Constitutional Convention", "attribution": "U.S. Constitution (Preamble + Article I), 1787", "year": 1787, "period": 3, "themes": ["PCE", "NAT"], "pd": _PD_FEDERAL},
+    {"ws": "United States Bill of Rights", "id": "bill_of_rights_1791", "author": "1st U.S. Congress", "attribution": "U.S. Bill of Rights, 1791", "year": 1791, "period": 3, "themes": ["PCE", "NAT"], "pd": _PD_FEDERAL},
+    {"ws": "Northwest Ordinance", "id": "northwest_ordinance_1787", "author": "Confederation Congress", "attribution": "Northwest Ordinance, 1787", "year": 1787, "period": 3, "themes": ["MIG", "GEO"], "pd": _PD_FEDERAL},
+    {"ws": "Virginia Statute for Religious Freedom", "id": "va_religious_freedom_1786", "author": "Thomas Jefferson", "attribution": "Virginia Statute for Religious Freedom, 1786", "year": 1786, "period": 3, "themes": ["SOC", "PCE"], "pd": _PD_PRE1930},
+    {"ws": "Kentucky Resolutions of 1798", "id": "kentucky_resolutions_1798", "author": "Thomas Jefferson", "attribution": "Kentucky Resolutions, 1798", "year": 1798, "period": 3, "themes": ["PCE"], "pd": _PD_PRE1930},
+
+    # --- Period 4: 1800-1848 ---
+    {"ws": "Marbury v. Madison/Opinion of the Court", "id": "marbury_madison_1803", "author": "Chief Justice John Marshall", "attribution": "Marbury v. Madison (opinion), 1803", "year": 1803, "period": 4, "themes": ["PCE"], "pd": _PD_COURT},
+    {"ws": "McCulloch v. Maryland/Opinion of the Court", "id": "mcculloch_maryland_1819", "author": "Chief Justice John Marshall", "attribution": "McCulloch v. Maryland (opinion), 1819", "year": 1819, "period": 4, "themes": ["PCE"], "pd": _PD_COURT},
+    {"ws": "Andrew Jackson's Veto Message of July 10, 1832", "id": "jackson_bank_veto_1832", "author": "Andrew Jackson", "attribution": "Andrew Jackson, Bank Veto Message, 1832", "year": 1832, "period": 4, "themes": ["PCE", "WXT"], "pd": _PD_FEDERAL},
+    {"ws": "The American Scholar", "id": "emerson_american_scholar_1837", "author": "Ralph Waldo Emerson", "attribution": "Ralph Waldo Emerson, 'The American Scholar', 1837", "year": 1837, "period": 4, "themes": ["ARC", "NAT"], "pd": _PD_PRE1930},
+    {"ws": "Second Reply to Hayne", "id": "webster_reply_hayne_1830", "author": "Daniel Webster", "attribution": "Daniel Webster, Second Reply to Hayne, 1830", "year": 1830, "period": 4, "themes": ["PCE", "NAT"], "pd": _PD_PRE1930},
+
+    # --- Period 5: 1844-1877 ---
+    {"ws": "House Divided Speech", "id": "lincoln_house_divided_1858", "author": "Abraham Lincoln", "attribution": "Abraham Lincoln, 'House Divided' Speech, 1858", "year": 1858, "period": 5, "themes": ["PCE", "NAT"], "pd": _PD_PRE1930},
+    {"ws": "Dred Scott v. Sandford/Opinion of the Court", "id": "dred_scott_1857", "author": "Chief Justice Roger Taney", "attribution": "Dred Scott v. Sandford (opinion), 1857", "year": 1857, "period": 5, "themes": ["PCE", "SOC"], "pd": _PD_COURT},
+    {"ws": "Emancipation Proclamation", "id": "emancipation_proclamation_1863", "author": "Abraham Lincoln", "attribution": "Emancipation Proclamation, 1863", "year": 1863, "period": 5, "themes": ["PCE", "SOC"], "pd": _PD_FEDERAL},
+    {"ws": "Second Inaugural Address of Abraham Lincoln", "id": "lincoln_second_inaugural_1865", "author": "Abraham Lincoln", "attribution": "Abraham Lincoln, Second Inaugural Address, 1865", "year": 1865, "period": 5, "themes": ["NAT", "SOC"], "pd": _PD_FEDERAL},
+    {"ws": "Homestead Act", "id": "homestead_act_1862", "author": "37th U.S. Congress", "attribution": "Homestead Act, 1862", "year": 1862, "period": 5, "themes": ["MIG", "GEO"], "pd": _PD_FEDERAL},
+
+    # --- Period 6: 1865-1898 ---
+    {"ws": "Plessy v. Ferguson/Opinion of the Court", "id": "plessy_ferguson_1896", "author": "Justice Henry Billings Brown", "attribution": "Plessy v. Ferguson (opinion), 1896", "year": 1896, "period": 6, "themes": ["PCE", "SOC"], "pd": _PD_COURT},
+    {"ws": "Cross of Gold Speech", "id": "bryan_cross_of_gold_1896", "author": "William Jennings Bryan", "attribution": "William Jennings Bryan, 'Cross of Gold' Speech, 1896", "year": 1896, "period": 6, "themes": ["PCE", "WXT"], "pd": _PD_PRE1930},
+    {"ws": "The Significance of the Frontier in American History", "id": "turner_frontier_1893", "author": "Frederick Jackson Turner", "attribution": "Frederick Jackson Turner, 'The Significance of the Frontier in American History', 1893", "year": 1893, "period": 6, "themes": ["MIG", "GEO"], "pd": _PD_PRE1930},
+    {"ws": "Atlanta Compromise", "id": "washington_atlanta_1895", "author": "Booker T. Washington", "attribution": "Booker T. Washington, Atlanta Compromise Address, 1895", "year": 1895, "period": 6, "themes": ["SOC", "WXT"], "pd": _PD_PRE1930},
+    {"ws": "Chinese Exclusion Act", "id": "chinese_exclusion_act_1882", "author": "47th U.S. Congress", "attribution": "Chinese Exclusion Act, 1882", "year": 1882, "period": 6, "themes": ["MIG", "SOC"], "pd": _PD_FEDERAL},
+
+    # --- Period 7: 1890-1945 ---
+    {"ws": "The Souls of Black Folk/Chapter 1", "id": "dubois_souls_1903", "author": "W. E. B. Du Bois", "attribution": "W. E. B. Du Bois, 'The Souls of Black Folk', 1903", "year": 1903, "period": 7, "themes": ["SOC", "NAT"], "pd": _PD_PRE1930},
+    {"ws": "New Nationalism (Roosevelt)", "id": "tr_new_nationalism_1910", "author": "Theodore Roosevelt", "attribution": "Theodore Roosevelt, 'New Nationalism' Speech, 1910", "year": 1910, "period": 7, "themes": ["PCE", "WXT"], "pd": _PD_PRE1930},
+    {"ws": "Woodrow Wilson's Fourteen Points", "id": "wilson_fourteen_points_1918", "author": "Woodrow Wilson", "attribution": "Woodrow Wilson, Fourteen Points, 1918", "year": 1918, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Schenck v. United States/Opinion of the Court", "id": "schenck_us_1919", "author": "Justice Oliver Wendell Holmes Jr.", "attribution": "Schenck v. United States (opinion), 1919", "year": 1919, "period": 7, "themes": ["PCE"], "pd": _PD_COURT},
+    {"ws": "Address to Congress Requesting a Declaration of War Against Germany", "id": "wilson_war_message_1917", "author": "Woodrow Wilson", "attribution": "Woodrow Wilson, War Message to Congress, 1917", "year": 1917, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Four Freedoms", "id": "fdr_four_freedoms_1941", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, 'Four Freedoms' Address, 1941", "year": 1941, "period": 7, "themes": ["WOR", "PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Franklin Roosevelt's Day of Infamy speech", "id": "fdr_day_of_infamy_1941", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, 'Day of Infamy' Address, 1941", "year": 1941, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+
+    # --- Period 8: 1945-1980 (federal works only for post-1930 private authors) ---
+    {"ws": "Marshall Plan speech", "id": "marshall_plan_1947", "author": "George C. Marshall", "attribution": "George C. Marshall, Marshall Plan Address (Harvard), 1947", "year": 1947, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Inaugural Address of John F. Kennedy", "id": "jfk_inaugural_1961", "author": "John F. Kennedy", "attribution": "John F. Kennedy, Inaugural Address, 1961", "year": 1961, "period": 8, "themes": ["WOR", "NAT"], "pd": _PD_FEDERAL},
+    {"ws": "Eisenhower's farewell address", "id": "eisenhower_farewell_1961", "author": "Dwight D. Eisenhower", "attribution": "Dwight D. Eisenhower, Farewell Address, 1961", "year": 1961, "period": 8, "themes": ["WOR", "PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Gulf of Tonkin Resolution", "id": "gulf_of_tonkin_1964", "author": "88th U.S. Congress", "attribution": "Gulf of Tonkin Resolution, 1964", "year": 1964, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Civil Rights Act of 1964", "id": "civil_rights_act_1964", "author": "88th U.S. Congress", "attribution": "Civil Rights Act of 1964 (Title II/VII)", "year": 1964, "period": 8, "themes": ["SOC", "PCE"], "pd": _PD_FEDERAL},
+]
+
 # Public-domain U.S. federal works (any date) — official repositories.
 FEDERAL_PD_SOURCES = [
     {"title": "FDR First Inaugural Address", "year": 1933, "period": 7, "themes": ["WXT", "PCE"],
@@ -120,31 +189,79 @@ FEDERAL_PD_SOURCES = [
 ]
 
 WIKISOURCE_REST = "https://en.wikisource.org/w/rest.php/v1/page/{title}"
+WIKISOURCE_SEARCH = "https://en.wikisource.org/w/rest.php/v1/search/page?q={q}&limit=3"
 USER_AGENT = "apush-slm-seed-corpus/1.0 (research; contact: project maintainer)"
+
+
+def _http_json(url: str, timeout: int = 25):
+    """GET JSON with polite retry/backoff on 429/5xx. Returns dict or None."""
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503):
+                time.sleep(3 * (attempt + 1))
+                continue
+            return None
+        except Exception:  # noqa: BLE001
+            time.sleep(1.5)
+    return None
+
+
+def _ws_page_source(page_key: str) -> str | None:
+    data = _http_json(WIKISOURCE_REST.format(title=urllib.parse.quote(page_key)))
+    src = (data or {}).get("source")
+    return _strip_wikitext(src) if src else None
+
+
+def _ws_resolve(query: str) -> str | None:
+    """Resolve a human title to an exact Wikisource page key via search — avoids
+    the brittle exact-title guessing that 404s."""
+    data = _http_json(WIKISOURCE_SEARCH.format(q=urllib.parse.quote(query)))
+    pages = (data or {}).get("pages") or []
+    return pages[0].get("key") if pages else None
 
 
 def _strip_wikitext(s: str) -> str:
     """Best-effort wikitext -> plain text for excerpting. Not exhaustive."""
-    s = re.sub(r"\{\{[^{}]*\}\}", "", s)          # templates
+    # Iteratively remove templates INNERMOST-first so nested {{header|...{{x}}...}}
+    # blocks (which carry doc metadata, not prose) are fully stripped, not leaked.
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r"\{\{[^{}]*\}\}", "", s)
     s = re.sub(r"<ref[^>]*>.*?</ref>", "", s, flags=re.S)  # refs
+    s = re.sub(r"<ref[^>]*/\s*>", "", s)          # self-closing refs
     s = re.sub(r"<[^>]+>", "", s)                  # html tags
-    s = re.sub(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]", r"\1", s)  # links
+    s = re.sub(r"\[\[(?:File|Image):[^\]]*\]\]", "", s, flags=re.I)  # media
+    s = re.sub(r"\[\[(?:[^\]|]*\|)?([^\]]*)\]\]", r"\1", s)  # links -> label
     s = re.sub(r"'''?", "", s)                     # bold/italic
     s = re.sub(r"^[=*#:;].*$", "", s, flags=re.M)  # headings/lists
     s = re.sub(r"\n{2,}", "\n\n", s)
     return s.strip()
 
 
+def _looks_like_markup(p: str) -> bool:
+    """True if a 'paragraph' is actually leftover template/metadata, not prose.
+    Targets template SYNTAX (braces, `|param=`) and Wikisource metadata keywords,
+    so it won't reject ordinary historical prose."""
+    return ("{{" in p or "}}" in p
+            or re.search(r"\|\s*[\w ]{1,24}=", p) is not None       # |param = ...
+            or re.search(r"\b(commonscat|wikidata|statvolume|billtype|override_author|portal\s*=)\b", p, re.I) is not None)
+
+
 def fetch_wikisource(title: str, timeout: int = 20) -> str | None:
-    url = WIKISOURCE_REST.format(title=urllib.parse.quote(title.replace(" ", "_")))
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.load(r)
-        return _strip_wikitext(data.get("source", ""))
-    except Exception as e:  # noqa: BLE001
-        print(f"  ! fetch failed for {title!r}: {e}", file=sys.stderr)
-        return None
+    """Fetch a public-domain transcription: try the exact title, then fall back to
+    a search-resolved page key. Returns plain text or None."""
+    direct = _ws_page_source(title.replace(" ", "_"))
+    if direct:
+        return direct
+    key = _ws_resolve(title)
+    if key:
+        return _ws_page_source(key)
+    return None
 
 
 def cmd_validate() -> int:
@@ -198,6 +315,117 @@ def cmd_fetch_wikisource() -> int:
     return 0
 
 
+def _lead_excerpt(text: str, lo: int = 200, hi: int = 1000) -> str | None:
+    """Pull a clean, coherent stimulus excerpt from a fetched document: the first
+    substantive prose paragraph(s), skipping short header/metadata lines, trimmed
+    to a sentence boundary. Returns None if nothing usable is found."""
+    if not text:
+        return None
+    paras = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n{2,}", text)]
+    # a real prose paragraph: long enough, has sentence punctuation, not a heading,
+    # and not leftover template/metadata markup
+    good = [p for p in paras
+            if len(p) >= 120 and p.count(" ") >= 15 and re.search(r"[.!?]", p)
+            and not p.isupper() and not _looks_like_markup(p)]
+    if not good:
+        return None
+    buf = ""
+    for p in good:
+        buf = p if not buf else f"{buf} {p}"
+        if len(buf) >= lo:
+            break
+    if len(buf) < lo:
+        return None
+    if len(buf) > hi:
+        cut = buf[:hi]
+        end = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
+        buf = cut[:end + 1] if end > lo else cut.rsplit(" ", 1)[0]
+    return buf.strip()
+
+
+def _existing_seed_ids() -> set:
+    ids = set()
+    if os.path.exists(SEED_PATH):
+        with open(SEED_PATH, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        ids.add(json.loads(line).get("id"))
+                    except json.JSONDecodeError:
+                        pass
+    return ids
+
+
+def cmd_build_corpus() -> int:
+    """A3 corpus expansion: fetch every catalog entry from Wikisource, extract a
+    length-gated lead excerpt, and STAGE the results (full seed schema) to
+    fetched_primary_sources.jsonl for review. Nothing is written to the
+    source-of-truth seed_stimuli.jsonl here — run --promote-fetched after eyeing
+    the staged file. Idempotent: skips ids already in the seed corpus."""
+    have = _existing_seed_ids()
+    staged, skipped, failed = [], [], []
+    for src in CORPUS_CATALOG:
+        if src["id"] in have:
+            skipped.append((src["id"], "already in seed corpus"))
+            continue
+        print(f"fetching: {src['ws']}")
+        raw = fetch_wikisource(src["ws"])
+        excerpt = _lead_excerpt(raw or "")
+        if not excerpt:
+            failed.append((src["id"], "no usable excerpt (404 or unparseable)"))
+            time.sleep(0.5)
+            continue
+        staged.append({
+            "id": src["id"], "stimulus_type": "primary_text",
+            "attribution": src["attribution"], "author": src["author"],
+            "year": src["year"], "period": src["period"], "themes": src["themes"],
+            "text": excerpt, "license": src["pd"],
+            "source_url": WIKISOURCE_REST.format(title=urllib.parse.quote(src["ws"].replace(" ", "_"))),
+            "provenance": "fetched from en.wikisource.org (A3); lead excerpt, length-gated",
+        })
+        time.sleep(1.0)  # be polite
+    with open(FETCHED_PATH, "w", encoding="utf-8") as f:
+        for o in staged:
+            f.write(json.dumps(o, ensure_ascii=False) + "\n")
+    print(f"\nstaged {len(staged)} sources -> {FETCHED_PATH}")
+    if skipped:
+        print(f"skipped {len(skipped)} (already present)")
+    if failed:
+        print(f"FAILED {len(failed)} (fix the ws title or drop from catalog):")
+        for fid, why in failed:
+            print(f"  - {fid}: {why}")
+    print("\nreview the staged file, then:  python build_seed_corpus.py --promote-fetched")
+    return 0
+
+
+def cmd_promote_fetched() -> int:
+    """Append staged sources (fetched_primary_sources.jsonl) that pass validation
+    into the source-of-truth seed_stimuli.jsonl, de-duplicating by id."""
+    if not os.path.exists(FETCHED_PATH):
+        print("no staged file; run --build-corpus first", file=sys.stderr)
+        return 1
+    have = _existing_seed_ids()
+    added = 0
+    with open(FETCHED_PATH, encoding="utf-8") as f, open(SEED_PATH, "a", encoding="utf-8") as out:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            obj = json.loads(line)
+            if obj.get("id") in have:
+                continue
+            if len(obj.get("text", "")) < 150:
+                print(f"  skip {obj.get('id')}: excerpt too short", file=sys.stderr)
+                continue
+            out.write(json.dumps(obj, ensure_ascii=False) + "\n")
+            have.add(obj["id"])
+            added += 1
+    print(f"appended {added} sources to {SEED_PATH}")
+    print("now run:  python build_seed_corpus.py --validate")
+    return 0
+
+
 def cmd_openstax_info() -> int:
     print(json.dumps(OPENSTAX, indent=2))
     print("\nTo ingest OpenStax at scale: clone the CC BY CNXML repo and parse "
@@ -235,7 +463,9 @@ def cmd_manifest() -> int:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--validate", action="store_true", help="validate seed_stimuli.jsonl")
-    p.add_argument("--fetch-wikisource", action="store_true", help="fetch public-domain primary sources")
+    p.add_argument("--fetch-wikisource", action="store_true", help="fetch the original 9 PD primary sources")
+    p.add_argument("--build-corpus", action="store_true", help="A3: fetch the full catalog + stage length-gated excerpts for review")
+    p.add_argument("--promote-fetched", action="store_true", help="append staged sources into seed_stimuli.jsonl")
     p.add_argument("--openstax-info", action="store_true", help="print OpenStax CC BY pointers")
     p.add_argument("--manifest", action="store_true", help="write provenance manifest")
     args = p.parse_args()
@@ -243,6 +473,10 @@ def main() -> int:
         return cmd_validate()
     if args.fetch_wikisource:
         return cmd_fetch_wikisource()
+    if args.build_corpus:
+        return cmd_build_corpus()
+    if args.promote_fetched:
+        return cmd_promote_fetched()
     if args.openstax_info:
         return cmd_openstax_info()
     if args.manifest:

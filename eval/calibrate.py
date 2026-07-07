@@ -36,6 +36,7 @@ and the RETHINK — is a judge artifact, not a real ceiling).
 """
 from __future__ import annotations
 import argparse
+import collections
 import json
 import os
 import random
@@ -52,6 +53,7 @@ HUMAN_DIMS = BOOL_DIMS + ORD_DIMS
 
 BLIND_PATH = os.path.join(ROOT, "results", "calibration_blind.jsonl")
 KEY_PATH = os.path.join(ROOT, "results", "calibration_key.jsonl")
+GOLD_PATH = os.path.join(ROOT, "data", "gold", "gold.jsonl")
 
 
 def _load_jsonl(path):
@@ -323,6 +325,98 @@ def cmd_rejudge(args):
 
 
 # --------------------------------------------------------------------------- #
+# promote-gold / certify — the A4 gold set + the G-cal blocking gate
+# --------------------------------------------------------------------------- #
+
+def cmd_promote_gold(args):
+    """Promote your graded calibration items into a persistent gold set
+    (data/gold/gold.jsonl): human labels + the full item (recovered from
+    litmus_items.jsonl). This is A4 — the ground truth the automated filter is
+    certified against before any bulk generation."""
+    if not os.path.exists(BLIND_PATH):
+        raise SystemExit("no graded blind file; run export + grade first")
+    blind = _load_jsonl(BLIND_PATH)
+    full = {}
+    if os.path.exists(args.path):
+        for r in _load_jsonl(args.path):
+            full[(r["source_id"], r.get("stem"))] = r
+    rows, per_arch = [], collections.Counter()
+    for b in blind:
+        h = b.get("human", {})
+        if not _fully_graded(h):
+            continue
+        rec = full.get((b["source_id"], b.get("stem")), {})
+        rows.append({
+            "source_id": b["source_id"], "archetype": b.get("archetype"),
+            "attribution": b.get("attribution"), "source_text": b.get("source_text"),
+            "stem": b.get("stem"), "options": b.get("options"), "answer": b.get("answer"),
+            "answer_dating": rec.get("answer_dating"), "rationale": rec.get("rationale"),
+            "human": {k: h.get(k) for k in HUMAN_DIMS},
+        })
+        per_arch[b.get("archetype")] += 1
+    if not rows:
+        raise SystemExit("no fully-graded items to promote")
+    os.makedirs(os.path.dirname(GOLD_PATH), exist_ok=True)
+    with open(GOLD_PATH, "w", encoding="utf-8") as f:
+        for r in rows:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    print(f"wrote {len(rows)} gold items -> {os.path.relpath(GOLD_PATH, ROOT)}")
+    for a, n in per_arch.items():
+        flag = "" if n >= 10 else "  (plan wants >=10/archetype)"
+        print(f"  {a}: {n}{flag}")
+    print("\ncertify the automated filter against it:  python eval/calibrate.py certify")
+
+
+def cmd_certify(args):
+    """G-cal blocking gate: run the judge + key-verifier over the gold set and
+    check they agree with the human on whether each KEY is good (>=90%). If this
+    passes, the automated keep/trash filter is trusted for bulk generation."""
+    import judge, verifier  # local import: needs the model stack
+
+    if not os.path.exists(GOLD_PATH):
+        raise SystemExit("no gold set; run `promote-gold` first")
+    gold = _load_jsonl(GOLD_PATH)
+    if not os.path.exists(args.models):
+        raise SystemExit(f"model config not found: {args.models}")
+    models = json.load(open(args.models))
+    judge_cfg = models.get("judge")
+    ver_cfg = models.get("verifier") or judge_cfg
+    if not judge_cfg:
+        raise SystemExit("no 'judge' configured")
+    if not models.get("verifier"):
+        print("note: no 'verifier' configured — using the judge model for the solve check.")
+
+    agree_key = agree_kv = n = 0
+    print(f"certifying {len(gold)} gold items with judge '{judge_cfg.get('name')}' + "
+          f"verifier '{ver_cfg.get('name')}' ...")
+    for g in gold:
+        src = {"attribution": g.get("attribution"), "text": g.get("source_text")}
+        item = {k: g.get(k) for k in ("archetype", "stem", "options", "answer",
+                                      "answer_dating", "rationale")}
+        j = judge.judge_item(judge_cfg, src, item, role="teacher")
+        v = verifier.verify_item(ver_cfg, src, item, n=args.verify_n)
+        h = g["human"]
+        human_key_ok = bool(h["key_historically_correct"]) and bool(h["key_uniquely_best"])
+        judge_kv = bool(j.get("key_historically_correct") and j.get("key_uniquely_best"))
+        auto_key_ok = judge_kv and v["verified"]   # full automated filter verdict
+        n += 1
+        agree_kv += (judge_kv == human_key_ok)
+        agree_key += (auto_key_ok == human_key_ok)
+        print(f"  {g['source_id']:26} {g.get('archetype','?'):16} "
+              f"human_key={human_key_ok}  judge_kv={judge_kv}  verify={v['verified']}({v['agreement']})")
+    kv_rate = agree_kv / n if n else 0
+    auto_rate = agree_key / n if n else 0
+    print("\n" + "=" * 66)
+    print(f"judge key_valid agreement vs human   : {kv_rate:.0%}")
+    print(f"judge+verifier agreement vs human    : {auto_rate:.0%}")
+    gate = "PASS" if auto_rate >= 0.90 else "FAIL"
+    print(f"G-cal gate (>=90% judge+verifier)    : {gate}")
+    print("=" * 66)
+    if gate != "PASS":
+        print("Below gate — recalibrate the judge and/or tune verify_n/threshold before bulk gen.")
+
+
+# --------------------------------------------------------------------------- #
 # grade (interactive)
 # --------------------------------------------------------------------------- #
 
@@ -509,6 +603,16 @@ def main():
     ps = sub.add_parser("score", help="score judge-vs-human agreement on the graded sample")
     ps.add_argument("--show-disagreements", action="store_true", help="list every item you and the judge disagree on")
     ps.set_defaults(func=cmd_score)
+
+    pgold = sub.add_parser("promote-gold", help="promote graded items into data/gold/gold.jsonl (A4)")
+    pgold_path = os.path.join(ROOT, "results", "litmus_items.jsonl")
+    pgold.add_argument("--path", default=pgold_path, help="source of full item text (rationale/dating)")
+    pgold.set_defaults(func=cmd_promote_gold)
+
+    pc = sub.add_parser("certify", help="G-cal gate: judge+verifier vs human on the gold set (>=90%)")
+    pc.add_argument("--models", default=os.path.join(HERE, "models.json"))
+    pc.add_argument("--verify-n", type=int, default=3, help="independent solves per item")
+    pc.set_defaults(func=cmd_certify)
 
     args = ap.parse_args()
     args.func(args)
