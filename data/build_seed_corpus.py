@@ -176,6 +176,108 @@ CORPUS_CATALOG = [
     {"ws": "Eisenhower's farewell address", "id": "eisenhower_farewell_1961", "author": "Dwight D. Eisenhower", "attribution": "Dwight D. Eisenhower, Farewell Address, 1961", "year": 1961, "period": 8, "themes": ["WOR", "PCE"], "pd": _PD_FEDERAL},
     {"ws": "Gulf of Tonkin Resolution", "id": "gulf_of_tonkin_1964", "author": "88th U.S. Congress", "attribution": "Gulf of Tonkin Resolution, 1964", "year": 1964, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
     {"ws": "Civil Rights Act of 1964", "id": "civil_rights_act_1964", "author": "88th U.S. Congress", "attribution": "Civil Rights Act of 1964 (Title II/VII)", "year": 1964, "period": 8, "themes": ["SOC", "PCE"], "pd": _PD_FEDERAL},
+
+    # --- Batch 2: single-page PD speeches / essays / documents (higher fetch yield) ---
+    # Period 3 — revolution & early republic
+    {"ws": "Give Me Liberty or Give Me Death", "id": "henry_liberty_1775", "author": "Patrick Henry", "attribution": "Patrick Henry, 'Give Me Liberty or Give Me Death', 1775", "year": 1775, "period": 3, "themes": ["NAT", "PCE"], "pd": _PD_PRE1930},
+    {"ws": "Thomas Jefferson's First Inaugural Address", "id": "jefferson_first_inaugural_1801", "author": "Thomas Jefferson", "attribution": "Thomas Jefferson, First Inaugural Address, 1801", "year": 1801, "period": 3, "themes": ["PCE", "NAT"], "pd": _PD_FEDERAL},
+    # Period 4 — 1800-1848
+    {"ws": "Andrew Jackson's First Inaugural Address", "id": "jackson_first_inaugural_1829", "author": "Andrew Jackson", "attribution": "Andrew Jackson, First Inaugural Address, 1829", "year": 1829, "period": 4, "themes": ["PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Slavery a Positive Good", "id": "calhoun_positive_good_1837", "author": "John C. Calhoun", "attribution": "John C. Calhoun, 'Slavery a Positive Good', 1837", "year": 1837, "period": 4, "themes": ["SOC", "PCE"], "pd": _PD_PRE1930},
+    {"ws": "Civil Disobedience (Thoreau)", "id": "thoreau_civil_disobedience_1849", "author": "Henry David Thoreau", "attribution": "Henry David Thoreau, 'Civil Disobedience', 1849", "year": 1849, "period": 4, "themes": ["SOC", "ARC"], "pd": _PD_PRE1930},
+    {"ws": "The Great Nation of Futurity", "id": "osullivan_futurity_1839", "author": "John L. O'Sullivan", "attribution": "John L. O'Sullivan on Manifest Destiny, 1839", "year": 1839, "period": 4, "themes": ["MIG", "WOR"], "pd": _PD_PRE1930},
+    # Period 5 — 1844-1877
+    {"ws": "Ain't I a Woman?", "id": "truth_aint_i_a_woman_1851", "author": "Sojourner Truth", "attribution": "Sojourner Truth, 'Ain't I a Woman?', 1851", "year": 1851, "period": 5, "themes": ["SOC"], "pd": _PD_PRE1930},
+    {"ws": "Gettysburg Address", "id": "gettysburg_address_1863", "author": "Abraham Lincoln", "attribution": "Abraham Lincoln, Gettysburg Address, 1863", "year": 1863, "period": 5, "themes": ["NAT"], "pd": _PD_FEDERAL},
+    {"ws": "Abraham Lincoln's First Inaugural Address", "id": "lincoln_first_inaugural_1861", "author": "Abraham Lincoln", "attribution": "Abraham Lincoln, First Inaugural Address, 1861", "year": 1861, "period": 5, "themes": ["PCE", "NAT"], "pd": _PD_FEDERAL},
+    {"ws": "Cooper Union Address", "id": "lincoln_cooper_union_1860", "author": "Abraham Lincoln", "attribution": "Abraham Lincoln, Cooper Union Address, 1860", "year": 1860, "period": 5, "themes": ["PCE"], "pd": _PD_PRE1930},
+    # Period 6 — 1865-1898
+    {"ws": "The New Colossus", "id": "lazarus_new_colossus_1883", "author": "Emma Lazarus", "attribution": "Emma Lazarus, 'The New Colossus', 1883", "year": 1883, "period": 6, "themes": ["MIG"], "pd": _PD_PRE1930},
+    {"ws": "Southern Horrors: Lynch Law in All Its Phases", "id": "wells_southern_horrors_1892", "author": "Ida B. Wells", "attribution": "Ida B. Wells, 'Southern Horrors', 1892", "year": 1892, "period": 6, "themes": ["SOC"], "pd": _PD_PRE1930},
+    {"ws": "The Talented Tenth", "id": "dubois_talented_tenth_1903", "author": "W. E. B. Du Bois", "attribution": "W. E. B. Du Bois, 'The Talented Tenth', 1903", "year": 1903, "period": 7, "themes": ["SOC"], "pd": _PD_PRE1930},
+    # Period 7 — 1890-1945
+    {"ws": "Woodrow Wilson's First Inaugural Address", "id": "wilson_first_inaugural_1913", "author": "Woodrow Wilson", "attribution": "Woodrow Wilson, First Inaugural Address, 1913", "year": 1913, "period": 7, "themes": ["PCE"], "pd": _PD_FEDERAL},
+    {"ws": "The Man with the Muck-Rake", "id": "tr_muckrake_1906", "author": "Theodore Roosevelt", "attribution": "Theodore Roosevelt, 'The Man with the Muck-Rake', 1906", "year": 1906, "period": 7, "themes": ["PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Quarantine Speech", "id": "fdr_quarantine_1937", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, Quarantine Speech, 1937", "year": 1937, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Address to Congress on the State of the Union (January 11, 1944)", "id": "fdr_second_bill_of_rights_1944", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, 'Second Bill of Rights' (1944 State of the Union)", "year": 1944, "period": 7, "themes": ["PCE", "WXT"], "pd": _PD_FEDERAL},
+    # Period 8-9 — 1945-present (federal works only)
+    {"ws": "Address at the Brandenburg Gate", "id": "reagan_brandenburg_1987", "author": "Ronald Reagan", "attribution": "Ronald Reagan, Address at the Brandenburg Gate, 1987", "year": 1987, "period": 9, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Ronald Reagan's First Inaugural Address", "id": "reagan_first_inaugural_1981", "author": "Ronald Reagan", "attribution": "Ronald Reagan, First Inaugural Address, 1981", "year": 1981, "period": 9, "themes": ["PCE", "WXT"], "pd": _PD_FEDERAL},
+    {"ws": "We Shall Overcome (speech)", "id": "lbj_we_shall_overcome_1965", "author": "Lyndon B. Johnson", "attribution": "Lyndon B. Johnson, 'We Shall Overcome' Address, 1965", "year": 1965, "period": 8, "themes": ["SOC", "PCE"], "pd": _PD_FEDERAL},
+]
+
+# Presidential inaugural addresses: all U.S. federal works (public domain at any
+# date), single-page prose on Wikisource, spanning every APUSH period — the
+# highest-yield way to scale the stimulus corpus. (president, ordinal, year,
+# period). Ones already in the corpus/catalog by another id are omitted.
+_INAUGURALS = [
+    ("George Washington", "First", 1789, 3), ("George Washington", "Second", 1793, 3),
+    ("John Adams", "", 1797, 3), ("Thomas Jefferson", "Second", 1805, 4),
+    ("James Madison", "First", 1809, 4), ("James Madison", "Second", 1813, 4),
+    ("James Monroe", "First", 1817, 4), ("James Monroe", "Second", 1821, 4),
+    ("John Quincy Adams", "", 1825, 4), ("Andrew Jackson", "Second", 1833, 4),
+    ("Martin Van Buren", "", 1837, 4), ("William Henry Harrison", "", 1841, 4),
+    ("James K. Polk", "", 1845, 5), ("Zachary Taylor", "", 1849, 5),
+    ("Franklin Pierce", "", 1853, 5), ("James Buchanan", "", 1857, 5),
+    ("Ulysses S. Grant", "First", 1869, 5), ("Ulysses S. Grant", "Second", 1873, 6),
+    ("Rutherford B. Hayes", "", 1877, 6), ("James A. Garfield", "", 1881, 6),
+    ("Grover Cleveland", "First", 1885, 6), ("Benjamin Harrison", "", 1889, 6),
+    ("Grover Cleveland", "Second", 1893, 6), ("William McKinley", "First", 1897, 7),
+    ("William McKinley", "Second", 1901, 7), ("Theodore Roosevelt", "", 1905, 7),
+    ("William Howard Taft", "", 1909, 7), ("Woodrow Wilson", "Second", 1917, 7),
+    ("Warren G. Harding", "", 1921, 7), ("Calvin Coolidge", "", 1925, 7),
+    ("Herbert Hoover", "", 1929, 7), ("Franklin D. Roosevelt", "Second", 1937, 7),
+    ("Franklin D. Roosevelt", "Third", 1941, 7), ("Franklin D. Roosevelt", "Fourth", 1945, 7),
+    ("Harry S. Truman", "", 1949, 8), ("Dwight D. Eisenhower", "First", 1953, 8),
+    ("Dwight D. Eisenhower", "Second", 1957, 8), ("Lyndon B. Johnson", "", 1965, 8),
+    ("Richard Nixon", "First", 1969, 8), ("Richard Nixon", "Second", 1973, 8),
+    ("Jimmy Carter", "", 1977, 8), ("Ronald Reagan", "Second", 1985, 9),
+    ("George H. W. Bush", "", 1989, 9), ("Bill Clinton", "First", 1993, 9),
+    ("Bill Clinton", "Second", 1997, 9),
+]
+
+
+def _inaugural_entries():
+    out = []
+    for name, ordinal, year, period in _INAUGURALS:
+        last = re.sub(r"[^a-z]", "", name.split()[-1].lower())
+        ord_slug = (ordinal.lower() + "_") if ordinal else ""
+        title = f"{name}'s {ordinal} Inaugural Address" if ordinal else f"{name}'s Inaugural Address"
+        label = f"{name}, {ordinal} Inaugural Address, {year}" if ordinal else f"{name}, Inaugural Address, {year}"
+        out.append({"ws": title, "id": f"{last}_{ord_slug}inaugural_{year}",
+                    "author": name, "attribution": label, "year": year,
+                    "period": period, "themes": ["PCE", "NAT"], "pd": _PD_FEDERAL})
+    return out
+
+
+CORPUS_CATALOG += _inaugural_entries()
+
+# Batch 3: high-relevance APUSH speeches/documents (federal at any date, or <=1930).
+CORPUS_CATALOG += [
+    {"ws": "The American Crisis/I", "id": "paine_american_crisis_1776", "author": "Thomas Paine", "attribution": "Thomas Paine, 'The American Crisis' No. I, 1776", "year": 1776, "period": 3, "themes": ["NAT", "PCE"], "pd": _PD_PRE1930},
+    {"ws": "President Jackson's Message to Congress On Indian Removal", "id": "jackson_indian_removal_1830", "author": "Andrew Jackson", "attribution": "Andrew Jackson, Message on Indian Removal, 1830", "year": 1830, "period": 4, "themes": ["MIG", "GEO"], "pd": _PD_FEDERAL},
+    {"ws": "Theodore Roosevelt's Fourth Annual Message", "id": "tr_roosevelt_corollary_1904", "author": "Theodore Roosevelt", "attribution": "Theodore Roosevelt, Roosevelt Corollary (Annual Message), 1904", "year": 1904, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "The Fourteen Points", "id": "wilson_fourteen_points_speech_1918", "author": "Woodrow Wilson", "attribution": "Woodrow Wilson, Fourteen Points, 1918", "year": 1918, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Farewell address (Eisenhower)", "id": "eisenhower_farewell_address_1961", "author": "Dwight D. Eisenhower", "attribution": "Dwight D. Eisenhower, Farewell Address (military-industrial complex), 1961", "year": 1961, "period": 8, "themes": ["WOR", "PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Address to the Nation on the War in Vietnam (November 3, 1969)", "id": "nixon_silent_majority_1969", "author": "Richard Nixon", "attribution": "Richard Nixon, 'Silent Majority' Address, 1969", "year": 1969, "period": 8, "themes": ["WOR", "PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Crisis of Confidence", "id": "carter_crisis_confidence_1979", "author": "Jimmy Carter", "attribution": "Jimmy Carter, 'Crisis of Confidence' Address, 1979", "year": 1979, "period": 8, "themes": ["PCE", "WXT"], "pd": _PD_FEDERAL},
+    {"ws": "Address to the Nation Announcing Steps to Lower the Rate of Inflation", "id": "reagan_evil_empire_1983", "author": "Ronald Reagan", "attribution": "Ronald Reagan, 'Evil Empire' Speech, 1983", "year": 1983, "period": 9, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Address at Rice University on the Nation's Space Effort", "id": "jfk_rice_moon_1962", "author": "John F. Kennedy", "attribution": "John F. Kennedy, Rice University 'Moon' Speech, 1962", "year": 1962, "period": 8, "themes": ["WOR", "WXT"], "pd": _PD_FEDERAL},
+    {"ws": "Cuban Missile Crisis Address to the Nation", "id": "jfk_cuban_missile_1962", "author": "John F. Kennedy", "attribution": "John F. Kennedy, Cuban Missile Crisis Address, 1962", "year": 1962, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Arsenal of Democracy", "id": "fdr_arsenal_democracy_1940", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, 'Arsenal of Democracy' Fireside Chat, 1940", "year": 1940, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Brutus I", "id": "antifederalist_brutus_1_1787", "author": "Brutus (Anti-Federalist)", "attribution": "Anti-Federalist 'Brutus' No. I, 1787", "year": 1787, "period": 3, "themes": ["PCE"], "pd": _PD_PRE1930},
+    {"ws": "The Federalist/78", "id": "federalist_78_1788", "author": "Alexander Hamilton", "attribution": "Alexander Hamilton, Federalist No. 78, 1788", "year": 1788, "period": 3, "themes": ["PCE"], "pd": _PD_PRE1930},
+    {"ws": "Address Accepting the Presidential Nomination (1932)", "id": "fdr_new_deal_nomination_1932", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, 'New Deal' Nomination Address, 1932", "year": 1932, "period": 7, "themes": ["WXT", "PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Nixon's resignation speech", "id": "nixon_resignation_1974", "author": "Richard Nixon", "attribution": "Richard Nixon, Resignation Address, 1974", "year": 1974, "period": 8, "themes": ["PCE"], "pd": _PD_FEDERAL},
+    {"ws": "Special Message to the Congress on Greece and Turkey", "id": "truman_doctrine_speech_1947", "author": "Harry S. Truman", "attribution": "Harry S. Truman, Special Message on Greece and Turkey, 1947", "year": 1947, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Old Soldiers Never Die", "id": "macarthur_old_soldiers_1951", "author": "Douglas MacArthur", "attribution": "Douglas MacArthur, 'Old Soldiers Never Die' Address, 1951", "year": 1951, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "The Chance for Peace", "id": "eisenhower_chance_peace_1953", "author": "Dwight D. Eisenhower", "attribution": "Dwight D. Eisenhower, 'Chance for Peace', 1953", "year": 1953, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Speech to the Second Virginia Convention", "id": "henry_virginia_convention_1775", "author": "Patrick Henry", "attribution": "Patrick Henry, Speech to the Virginia Convention, 1775", "year": 1775, "period": 3, "themes": ["NAT"], "pd": _PD_PRE1930},
+    {"ws": "The Significance of the Frontier in American History", "id": "turner_frontier_thesis_1893", "author": "Frederick Jackson Turner", "attribution": "Frederick Jackson Turner, Frontier Thesis, 1893", "year": 1893, "period": 6, "themes": ["MIG", "GEO"], "pd": _PD_PRE1930},
+    {"ws": "Cross of Gold speech", "id": "bryan_cross_gold_speech_1896", "author": "William Jennings Bryan", "attribution": "William Jennings Bryan, 'Cross of Gold', 1896 (full)", "year": 1896, "period": 6, "themes": ["PCE", "WXT"], "pd": _PD_PRE1930},
+    {"ws": "Declaration of War against Japan", "id": "fdr_declaration_war_1941", "author": "Franklin D. Roosevelt", "attribution": "Franklin D. Roosevelt, Request for Declaration of War, 1941", "year": 1941, "period": 7, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Kennedy's Berlin Wall speech", "id": "jfk_ich_bin_berliner_1963", "author": "John F. Kennedy", "attribution": "John F. Kennedy, 'Ich bin ein Berliner', 1963", "year": 1963, "period": 8, "themes": ["WOR"], "pd": _PD_FEDERAL},
+    {"ws": "Watergate/Address to the Nation about the Watergate Investigations", "id": "nixon_watergate_1973", "author": "Richard Nixon", "attribution": "Richard Nixon, Address on Watergate, 1973", "year": 1973, "period": 8, "themes": ["PCE"], "pd": _PD_FEDERAL},
 ]
 
 # Public-domain U.S. federal works (any date) — official repositories.

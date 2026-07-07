@@ -2,10 +2,21 @@
   "schema_version": 1,
   "title": "Frozen train/eval/litmus partitions (contamination firewall)",
   "note": "Sources are DISJOINT across splits: no stimulus is used both to litmus/eval and to generate training data. v1 scope = the causation pair (CAUSE_OF_SOURCE + EFFECT_OF_SOURCE) on TEXT PRIMARY sources only. Secondary-source stimuli are F5 (out of v1 scope) and listed separately. TRAIN is intentionally empty until the A3 corpus expansion (14 -> ~150 primary) runs; the current 14 primaries are reserved for the litmus build-gate + a small held-out eval. Freeze this file before any generation (plan_v2 M0).",
-  "scope": { "archetypes": ["CAUSE_OF_SOURCE", "EFFECT_OF_SOURCE"], "stimulus_types": ["primary_text"] },
+  "scope": {
+    "archetypes": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "stimulus_types": [
+      "primary_text"
+    ]
+  },
   "firewall": {
     "rule": "LITMUS \u2229 EVAL_HELDOUT \u2229 TRAIN = \u2205 (by source id)",
-    "embedding_dedup": { "intra_split_max_cosine": 0.92, "cross_split_max_cosine": 0.90 },
+    "embedding_dedup": {
+      "intra_split_max_cosine": 0.92,
+      "cross_split_max_cosine": 0.9
+    },
     "novelty_tracking": "also track held-out (development, archetype) novelty, not just stem/answer cosine (validator minor note)"
   },
   "splits": {
@@ -45,7 +56,69 @@
         "chinese_exclusion_act_1882",
         "fdr_four_freedoms_1941",
         "marshall_plan_1947",
-        "jfk_inaugural_1961"
+        "jfk_inaugural_1961",
+        "jefferson_first_inaugural_1801",
+        "jackson_first_inaugural_1829",
+        "calhoun_positive_good_1837",
+        "osullivan_futurity_1839",
+        "truth_aint_i_a_woman_1851",
+        "dubois_talented_tenth_1903",
+        "wilson_first_inaugural_1913",
+        "tr_muckrake_1906",
+        "fdr_second_bill_of_rights_1944",
+        "reagan_first_inaugural_1981",
+        "washington_second_inaugural_1793",
+        "adams_inaugural_1797",
+        "jefferson_second_inaugural_1805",
+        "madison_first_inaugural_1809",
+        "madison_second_inaugural_1813",
+        "monroe_first_inaugural_1817",
+        "monroe_second_inaugural_1821",
+        "adams_inaugural_1825",
+        "jackson_second_inaugural_1833",
+        "buren_inaugural_1837",
+        "harrison_inaugural_1841",
+        "polk_inaugural_1845",
+        "taylor_inaugural_1849",
+        "pierce_inaugural_1853",
+        "buchanan_inaugural_1857",
+        "grant_first_inaugural_1869",
+        "grant_second_inaugural_1873",
+        "hayes_inaugural_1877",
+        "garfield_inaugural_1881",
+        "cleveland_first_inaugural_1885",
+        "harrison_inaugural_1889",
+        "cleveland_second_inaugural_1893",
+        "mckinley_first_inaugural_1897",
+        "mckinley_second_inaugural_1901",
+        "roosevelt_inaugural_1905",
+        "taft_inaugural_1909",
+        "harding_inaugural_1921",
+        "coolidge_inaugural_1925",
+        "hoover_inaugural_1929",
+        "roosevelt_second_inaugural_1937",
+        "roosevelt_third_inaugural_1941",
+        "roosevelt_fourth_inaugural_1945",
+        "truman_inaugural_1949",
+        "eisenhower_second_inaugural_1957",
+        "johnson_inaugural_1965",
+        "nixon_first_inaugural_1969",
+        "nixon_second_inaugural_1973",
+        "carter_inaugural_1977",
+        "bush_inaugural_1989",
+        "clinton_first_inaugural_1993",
+        "clinton_second_inaugural_1997",
+        "fdr_quarantine_1937",
+        "washington_first_inaugural_1789",
+        "wilson_second_inaugural_1917",
+        "wilson_fourteen_points_speech_1918",
+        "nixon_silent_majority_1969",
+        "carter_crisis_confidence_1979",
+        "reagan_evil_empire_1983",
+        "jfk_cuban_missile_1962",
+        "fdr_arsenal_democracy_1940",
+        "fdr_new_deal_nomination_1932",
+        "nixon_resignation_1974"
       ]
     }
   },
@@ -60,7 +133,7 @@
     "secondary_cold_war_origins"
   ],
   "pending": {
-    "A3_corpus_expansion": "in progress: 14 -> 24 primary (public-domain, fetched via build_seed_corpus.py --build-corpus). TRAIN seeded with 10; continue extending the CORPUS_CATALOG toward ~150 and grow EVAL_HELDOUT to >=25-30 before the real product eval.",
+    "A3_corpus_expansion": "86 primary sources (public-domain, fetched via build_seed_corpus.py). TRAIN has 72 generation seeds; LITMUS/EVAL disjoint. Extend the CORPUS_CATALOG + re-run --build-corpus to grow further.",
     "A6_developments_table": "already expanded 84 -> 167 (data/apush_key_developments.json)."
   }
 }
