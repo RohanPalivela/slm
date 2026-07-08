@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-07-08T03:04:59+00:00",
+  "split": "TRAIN",
+  "archetypes": [
+    "CAUSE_OF_SOURCE",
+    "EFFECT_OF_SOURCE"
+  ],
+  "target_per_slot": 6,
+  "kept": 816,
+  "elapsed_s": 9831.8,
+  "dry_run": false,
+  "repair": true,
+  "audited": true,
+  "dropped_sources": [
+    "adams_inaugural_1797",
+    "dubois_talented_tenth_1903",
+    "jfk_cuban_missile_1962",
+    "reagan_evil_empire_1983"
+  ]
+}
