@@ -13,8 +13,9 @@ a development_id); the bulk data-gen pipeline does the strict id-based version.
 from __future__ import annotations
 import re
 
+from date_utils import direction_against_source, source_year
+
 ABSOLUTE_OR_ALLNONE = re.compile(r"\b(all|none)\s+of\s+the\s+above\b|\balways\b|\bnever\b", re.I)
-_YEAR = re.compile(r"\b(1[4-9]\d\d|20\d\d)s?\b")
 PARENTHETICAL_DATE_LABEL = re.compile(
     r"\(\s*(?:c\.\s*)?(?:1[4-9]\d\d|20\d\d)"
     r"(?:\s*[-–]\s*(?:c\.\s*)?(?:\d{2,4}|present))?"
@@ -44,19 +45,6 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").lower()).strip()
 
 
-def _years(text: str) -> list[int]:
-    return [int(y) for y in _YEAR.findall(text or "")]
-
-
-def _source_year(source: dict):
-    y = source.get("year")
-    if isinstance(y, list) and y:
-        return int(y[0])
-    if isinstance(y, int):
-        return y
-    return None
-
-
 def _rationale_complete(item: dict) -> bool:
     rat = item.get("rationale")
     if not isinstance(rat, dict):
@@ -84,18 +72,12 @@ def _rationale_marks_key(item: dict) -> bool:
 def date_direction(item: dict, source: dict) -> str:
     """'pass' | 'fail' | 'unknown' — does the keyed answer's implied date obey the
     stem's time direction relative to the source date?"""
-    src_year = _source_year(source)
+    src_year = source_year(source)
     arch = item.get("archetype", "")
-    if src_year is None or (arch not in CAUSE_ARCHETYPES and arch not in EFFECT_ARCHETYPES):
-        return "unknown"
-    ys = [y for y in _years(item.get("answer_dating", "")) if y != src_year]
-    if not ys:
-        return "unknown"
-    if arch in CAUSE_ARCHETYPES:
-        # a cause should predate the source; fail if the earliest cited year is after it
-        return "fail" if min(ys) > src_year else "pass"
-    # effect should postdate the source; fail if the latest cited year is before it
-    return "fail" if max(ys) < src_year else "pass"
+    return direction_against_source(
+        arch, item.get("answer_dating", ""), src_year,
+        CAUSE_ARCHETYPES, EFFECT_ARCHETYPES,
+    )
 
 
 def source_leak(item: dict, source: dict) -> bool:

@@ -17,14 +17,17 @@ import argparse
 import json
 import os
 import re
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "eval"))
+from date_utils import date_spans, source_year  # noqa: E402
+
 VALID_TRAPS = {"WRONG_ERA", "TRUE_BUT_IRRELEVANT", "SCOPE_MISMATCH", "PARTIALLY_TRUE"}
 OPTION_LABEL = re.compile(r"^\s*[A-D][).:]\s+")
-YEAR = re.compile(r"\b(1[4-9]\d\d|20\d\d)\b")
 TRAP_RE = re.compile(
     r"^\s*(WRONG_ERA|TRUE_BUT_IRRELEVANT|SCOPE_MISMATCH|PARTIALLY_TRUE)\b",
     re.I,
@@ -115,17 +118,8 @@ def infer_trap_types(rec: dict) -> list[str] | None:
     return traps if len(traps) == 3 else None
 
 
-def source_year(source: dict | None) -> int | None:
-    if not source:
-        return None
-    year = source.get("year")
-    if isinstance(year, list):
-        year = year[0] if year else None
-    return year if isinstance(year, int) else None
-
-
 def years_in(text: str) -> list[int]:
-    return [int(match) for match in YEAR.findall(text or "")]
+    return [end for _, end in date_spans(text or "")]
 
 
 def keyed_option(rec: dict) -> str:
@@ -176,8 +170,11 @@ def audit_record(rec: dict, source: dict | None = None) -> list[str]:
     traps = rec.get("trap_types")
     rationale = rec.get("rationale")
     sy = source_year(source)
-    dated_years = years_in(dating)
-    non_source_years = [year for year in dated_years if sy is None or year != sy]
+    dated_spans = date_spans(dating)
+    non_source_spans = [
+        (start, end) for start, end in dated_spans
+        if sy is None or not (start == end == sy)
+    ]
 
     if arch not in {"CAUSE_OF_SOURCE", "EFFECT_OF_SOURCE"}:
         reasons.append("bad_archetype")
@@ -209,14 +206,14 @@ def audit_record(rec: dict, source: dict | None = None) -> list[str]:
             reasons.append("cause_record_has_effect_stem")
         if CAUSE_BAD_DATING.search(dating):
             reasons.append("cause_record_has_effect_dating_language")
-        if sy is not None and non_source_years and min(non_source_years) > sy:
+        if sy is not None and non_source_spans and min(start for start, _ in non_source_spans) > sy:
             reasons.append("cause_answer_dates_after_source")
     elif arch == "EFFECT_OF_SOURCE":
         if EFFECT_WITH_CAUSE_STEM.search(stem):
             reasons.append("effect_record_has_cause_stem")
         if EFFECT_BAD_DATING.search(dating):
             reasons.append("effect_record_has_cause_dating_language")
-        if sy is not None and dated_years and max(dated_years) <= sy:
+        if sy is not None and non_source_spans and max(end for _, end in non_source_spans) <= sy:
             reasons.append("effect_answer_not_explicitly_later")
         if EFFECT_CONTEMPORANEOUS.search(dating):
             reasons.append("effect_contemporaneous_needs_review")
@@ -270,6 +267,20 @@ def rebalance_answers(rows: list[dict]) -> int:
         inferred = infer_trap_types(rec)
         if inferred:
             rec["trap_types"] = inferred
+
+        verify = rec.get("verify")
+        if isinstance(verify, dict):
+            verify["key"] = target_answer
+            if "votes" in verify:
+                agreement = verify.get("agreement")
+                n_solved = verify.get("n_solved")
+                if isinstance(n_solved, int) and n_solved > 0 and agreement == 1.0:
+                    verify["votes"] = {target_answer: n_solved}
+                elif isinstance(verify.get("votes"), dict):
+                    verify["votes"] = {
+                        target_answer if str(k).strip().upper()[:1] == old_answer else k: v
+                        for k, v in verify["votes"].items()
+                    }
 
         changed += 1
     return changed

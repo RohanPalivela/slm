@@ -1,80 +1,31 @@
 {
   "input": "data/generated/train.jsonl",
   "total_records": 816,
-  "clean_records": 629,
-  "quarantined_records": 187,
+  "clean_records": 728,
+  "quarantined_records": 88,
   "answer_distribution": {
-    "A": 158,
-    "B": 157,
-    "C": 157,
-    "D": 157
+    "A": 182,
+    "B": 182,
+    "C": 182,
+    "D": 182
   },
   "repair_counts": {
     "added_requires_outside_knowledge": 816,
     "stripped_option_labels": 33,
     "inferred_trap_types": 4,
     "corrected_trap_types_from_rationales": 2,
-    "answer_position_rebalanced": 473
+    "answer_position_rebalanced": 547
   },
   "reason_counts": {
-    "effect_answer_not_explicitly_later": 135,
     "cause_record_has_effect_stem": 36,
     "effect_contemporaneous_needs_review": 43,
+    "effect_answer_not_explicitly_later": 4,
     "cause_record_has_effect_dating_language": 13,
     "low_trap_diversity": 2,
+    "cause_answer_dates_after_source": 3,
     "too_many_wrong_era": 1
   },
   "examples": {
-    "effect_answer_not_explicitly_later": [
-      {
-        "line": 2,
-        "source_id": "northwest_ordinance_1787",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The territorial framework in the excerpt most immediately contributed to which of the following outcomes in the region it governed?"
-      },
-      {
-        "line": 26,
-        "source_id": "mayflower_compact_1620",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The tradition established by the document in the excerpt most directly contributed to which later characteristic of colonial New England?"
-      },
-      {
-        "line": 27,
-        "source_id": "mayflower_compact_1620",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The collective act described in the excerpt most immediately resulted in which of the following for the signers?"
-      },
-      {
-        "line": 28,
-        "source_id": "mayflower_compact_1620",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The practice of self-government reflected in the excerpt most immediately led to which of the following developments in early New England?"
-      },
-      {
-        "line": 29,
-        "source_id": "mayflower_compact_1620",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The agreement described in the excerpt most immediately contributed to which of the following in the Plymouth settlement?"
-      },
-      {
-        "line": 31,
-        "source_id": "va_religious_freedom_1786",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The passage of the measure described in the excerpt most immediately contributed to which of the following?"
-      },
-      {
-        "line": 37,
-        "source_id": "homestead_act_1862",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The legislation described in the excerpt most immediately led to which of the following developments in the decades following its passage?"
-      },
-      {
-        "line": 38,
-        "source_id": "homestead_act_1862",
-        "archetype": "EFFECT_OF_SOURCE",
-        "stem": "The policy established in the excerpt most immediately contributed to which of the following economic outcomes in the late nineteenth century?"
-      }
-    ],
     "cause_record_has_effect_stem": [
       {
         "line": 14,
@@ -175,6 +126,32 @@
         "stem": "The exclusion enacted in the excerpt most immediately contributed to which of the following social developments among Chinese immigrants already in the United States?"
       }
     ],
+    "effect_answer_not_explicitly_later": [
+      {
+        "line": 26,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The tradition established by the document in the excerpt most directly contributed to which later characteristic of colonial New England?"
+      },
+      {
+        "line": 207,
+        "source_id": "tr_muckrake_1906",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The growth in federal functions that Roosevelt notes most immediately led to which of the following changes in the presidency in the early twentieth century?"
+      },
+      {
+        "line": 618,
+        "source_id": "truman_inaugural_1949",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "Truman's assertion of American responsibility for global affairs, as expressed in this address, most directly contributed to which later characteristic of U.S. foreign policy?"
+      },
+      {
+        "line": 717,
+        "source_id": "fdr_quarantine_1937",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The expanded federal role in local 'civic betterment' celebrated in the excerpt most immediately led to which of the following developments?"
+      }
+    ],
     "cause_record_has_effect_dating_language": [
       {
         "line": 79,
@@ -237,6 +214,26 @@
         "source_id": "truth_aint_i_a_woman_1851",
         "archetype": "CAUSE_OF_SOURCE",
         "stem": "Which of the following contributed most directly to the type of activism reflected in Sojourner Truth's remarks?"
+      }
+    ],
+    "cause_answer_dates_after_source": [
+      {
+        "line": 153,
+        "source_id": "osullivan_futurity_1839",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The confident belief that the United States is 'destined to be the great nation of futurity' contributed most directly to which contemporaneous development?"
+      },
+      {
+        "line": 385,
+        "source_id": "pierce_inaugural_1853",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The 'rare manifestation of the nation's confidence' Pierce describes—his sweeping 1852 election victory—contributed most directly to which subsequent political development?"
+      },
+      {
+        "line": 808,
+        "source_id": "nixon_resignation_1974",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The circumstances that produced the address in the excerpt contributed most directly to which of the following developments?"
       }
     ],
     "too_many_wrong_era": [

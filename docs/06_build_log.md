@@ -192,7 +192,7 @@ fine-tune via **Unsloth**.
 | Max sequence length | 4096 (prompt ~2.1k tok + JSON completion fits) |
 | Loss | **response-only** — the prompt is masked, so the model is scored *only* on the JSON it should produce |
 | Batch | 2 × grad-accum 8 = effective 16 |
-| Epochs / steps | 2 epochs (~78 optimizer steps on the 629-item strict-clean set) |
+| Epochs / steps | 2 epochs (~92 optimizer steps on the 728-item strict-clean v3 set) |
 | LR / scheduler | 2e‑4, cosine, 5 warmup steps, adamw_8bit, weight decay 0.01 |
 | Resilience | checkpoints every 20 steps to Google Drive → survives a Colab disconnect and auto-resumes |
 | Mask check | notebook decodes non-`-100` label tokens before training and asserts they are assistant JSON |
@@ -275,22 +275,30 @@ question construction.
   prefixes before final audit.
 - 2 records had `trap_types` lists that contradicted the rationale prefixes; the
   rationale prefixes were treated as source of truth.
-- 187 total records were quarantined under strict v2 rules. This includes clear
-  cause/effect direction contradictions, weak trap-diversity rows, one row with two
-  `WRONG_ERA` traps, and same-year/contemporaneous `EFFECT_OF_SOURCE` rows that
-  need regeneration or human review before training.
+- 187 total records were quarantined under the first strict v2 rules. A later
+  date-parser fix recovered legitimate decade-phrased `EFFECT_OF_SOURCE` rows
+  while still holding genuinely bad direction/trap rows out of training.
 
 **Fix added:** `train/audit_dataset.py` now builds a strict-clean split:
 
-- `data/generated/train_clean.jsonl` — 629 repaired/validated, answer-balanced records
+- `data/generated/train_clean.jsonl` — 728 repaired/validated, answer-balanced records
 - `data/generated/train_sft_clean.jsonl` — SFT chat triples for training
-- `data/generated/train_quarantine.jsonl` — 187 records held out for regeneration or
+- `data/generated/train_quarantine.jsonl` — 88 records held out for regeneration or
   human review
 - `data/generated/train_audit_report.json` — reproducible counts/examples
 
 The QLoRA notebook now trains from `train_sft_clean.jsonl`. The original
 `train.jsonl` / `train_sft.jsonl` files remain as the historical generated set, but
-they should not be treated as the canonical v2 training input.
+they should not be treated as the canonical v3 training input.
+
+**July 9 v3 readiness pass:** the prompt schema was aligned with the target data
+so options are unlabeled strings, `eval/date_utils.py` now shares decade-aware date
+checks across train/eval, verifier metadata is updated when answer positions are
+rebalanced, and `scripts/validate_retrain_ready.py` gates the final artifacts. The
+current gate reports 728 clean SFT records, A/B/C/D = 182 each,
+CAUSE/EFFECT = 367/361, 68 train sources, zero date-direction failures, and zero
+verifier-key mismatches. The next run should publish as
+`qwen3-4b-apush-v3-clean-lora`, not overwrite v2.
 
 **Still-open process risks:** the generated data still follows the litmus/free-recall
 prompt rather than the fuller candidate-development contract in `prompts/data_gen_prompt.md`;
@@ -307,8 +315,8 @@ GGUF export before claiming a clean base-vs-tuned comparison.
 - ✅ Gold set + calibration (which corrected our own scoring)
 - ✅ Corpus grown, 4 bad sources dropped, **816-item dataset generated**
 - ✅ Training notebook built and configured
-- ✅ SFT data re-audited; **629-record answer-balanced strict-clean training set** produced
-- ⏳ **Next:** run the fine-tune, then the base-vs-tuned eval
+- ✅ SFT data re-audited; **728-record answer-balanced strict-clean v3 training set** produced
+- ⏳ **Next:** run the v3 fine-tune, then the base-vs-tuned-teacher eval
 
 > _Training results + base-vs-tuned comparison will be appended below once the run
 > completes._

@@ -156,13 +156,14 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
     """Parallel generation for one model. One call per (run, source, ARCHETYPE) —
     so every archetype is measured even for a model that emits a single item per
     call (e.g. a 4B under format:json, which otherwise only ever produces the first
-    requested archetype). Returns raw (unjudged) records; progress is live."""
+    requested archetype). Returns raw (unjudged) item records plus per-call
+    attempt records; progress is live."""
     srcs = sources[:limit] if limit else sources
     archs = [a.strip() for a in DEFAULT_ARCHETYPES.split(",") if a.strip()]
     n_per = max(1, round(n / len(archs)))
     tasks = [(r, s, a) for r in range(runs) for s in srcs for a in archs]
     prog = Progress(len(tasks), f"gen[{cfg['name']}]")
-    records, lock = [], threading.Lock()
+    records, attempts, lock = [], [], threading.Lock()
     empty = trunc = short = 0  # call classification (see warning below)
 
     def work(task):
@@ -173,22 +174,29 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
             include_fewshot=include_fewshot)
         try:
             raw = providers.generate(cfg, system, user, temperature, role=role)
-            return r, s["id"], arch, extract_items(raw), None
+            return r, s["id"], arch, raw, extract_items(raw), None
         except providers.ProviderError as e:
-            return r, s["id"], arch, [], str(e)
+            return r, s["id"], arch, "", [], str(e)
 
     with cf.ThreadPoolExecutor(max_workers=concurrency) as ex:
         futs = [ex.submit(work, t) for t in tasks]
         for fut in cf.as_completed(futs):
-            r, sid, arch, items, err = fut.result()
+            r, sid, arch, raw, items, err = fut.result()
             with lock:
+                complete = sum(1 for it in items if _item_complete(it))
+                attempts.append({
+                    "model": cfg["name"], "role": role, "run": r,
+                    "source_id": sid, "archetype": arch,
+                    "requested_n": n_per, "n_items": len(items),
+                    "complete_items": complete, "error": err,
+                    "raw": raw,
+                })
                 for it in items:
                     it = canonicalize_item_archetype(it, requested_archetype=arch)
                     it["_source_id"] = sid
                     records.append({"model": cfg["name"], "role": role,
                                     "run": r, "source_id": sid, "item": it})
                 if not err:
-                    complete = sum(1 for it in items if _item_complete(it))
                     if len(items) == 0:
                         empty += 1
                     elif complete < len(items):
@@ -210,7 +218,7 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
             f"FEWER than the {n_per} items requested (model's choice, not truncation); "
             f"coverage is valid, the sample is just smaller.\n")
     sys.stdout.flush()
-    return records
+    return records, attempts
 
 
 def repair_all(cfg, role, records, sources_by_id, *, temperature, concurrency):
@@ -448,11 +456,13 @@ def main():
     # local Ollama/HF stays serial). Two phases keep the progress UI unambiguous.
     print("Phase 1/2: generation" + (" + repair" if args.repair else ""))
     gen_records = []
+    generation_attempts = []
     for role, cfg in roster:
-        recs = generate_all(
+        recs, attempts = generate_all(
             cfg, role, sources, prompt, n=args.n, runs=args.runs,
             temperature=args.temperature, include_fewshot=args.fewshot,
             limit=args.limit, concurrency=_concurrency_for(cfg, args.gen_concurrency))
+        generation_attempts += attempts
         if args.repair:
             recs = repair_all(cfg, role, recs, sources_by_id,
                               temperature=args.temperature,
@@ -497,10 +507,14 @@ def main():
     with open(items_path, "w", encoding="utf-8") as f:
         for rec in item_records:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    attempts_path = os.path.join(args.out, "generation_attempts.json")
+    with open(attempts_path, "w", encoding="utf-8") as f:
+        json.dump(generation_attempts, f, indent=2, ensure_ascii=False)
     print("\n" + "=" * 70)
     print(f"DECISION: {door}\n  {why}")
     print(f"report:      {md_path}")
     print(f"per-item:    {items_path}   (each item + judge reasoning; read to see WHY items failed)")
+    print(f"attempts:    {attempts_path}   (one raw generation call per source/archetype/run)")
     if meta["n_sources"] * meta["runs"] < 8:
         print("NOTE: tiny sample + uncalibrated judge -> the door is NOT reliable yet. "
               "Calibrate the judge (plan_v2 G-cal) and run more sources/runs.")

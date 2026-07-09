@@ -112,7 +112,7 @@ OUTPUT FORMAT. Return ONLY a JSON array, no prose before or after. Each element:
   "period": <1-9>,
   "theme": "<NAT|WXT|GEO|MIG|PCE|WOR|ARC|SOC>",
   "stem": "<the full question stem, referencing the source>",
-  "options": ["A ...", "B ...", "C ...", "D ..."],
+  "options": ["<option text only; no A/B/C/D label>", "<option text only>", "<option text only>", "<option text only>"],
   "answer": "A|B|C|D",
   "answer_dating": "<the date/era of the keyed development and why it obeys the stem's time direction>",
   "rationale": {
