@@ -41,7 +41,31 @@
         "federalist_10_1787",
         "carnegie_gospel_wealth_1889",
         "chief_joseph_1877",
-        "addams_hull_house_1910"
+        "addams_hull_house_1910",
+        "us_constitution_1787",
+        "bill_of_rights_1791",
+        "articles_confederation_1777",
+        "treaty_paris_1783",
+        "marbury_madison_1803",
+        "mcculloch_maryland_1819",
+        "missouri_compromise_1820",
+        "indian_removal_act_1830",
+        "worcester_georgia_1832",
+        "treaty_guadalupe_hidalgo_1848",
+        "dred_scott_1857",
+        "emancipation_proclamation_1863",
+        "fourteenth_amendment_1868",
+        "dawes_act_1887",
+        "plessy_ferguson_1896",
+        "clayton_antitrust_act_1914",
+        "schenck_us_1919",
+        "immigration_act_1924",
+        "social_security_act_1935",
+        "executive_order_9066_1942",
+        "executive_order_9981_1948",
+        "civil_rights_act_1964",
+        "voting_rights_act_1965",
+        "war_powers_resolution_1973"
       ]
     },
     "TRAIN": {
@@ -129,7 +153,7 @@
     "secondary_cold_war_origins"
   ],
   "pending": {
-    "A3_corpus_expansion": "86 primary sources (public-domain, fetched via build_seed_corpus.py). TRAIN has 72 generation seeds; LITMUS/EVAL disjoint. Extend the CORPUS_CATALOG + re-run --build-corpus to grow further.",
+    "A3_corpus_expansion": "106 primary sources (public-domain / federal / court-opinion sources). TRAIN has 68 generation seeds; EVAL_HELDOUT has 28 disjoint sources for the product base-vs-tuned eval. Extend the CORPUS_CATALOG + re-run --build-corpus to grow further.",
     "A6_developments_table": "already expanded 84 -> 167 (data/apush_key_developments.json)."
   }
 }

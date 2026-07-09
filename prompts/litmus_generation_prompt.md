@@ -88,39 +88,27 @@ draft fails any gate, silently discard it and write another.
    developments, or all purposes, or all responses), similar length and grammar;
    the correct answer is not the longest or most-qualified. Never use "all of the
    above," "none of the above," or absolute words ("always," "never") that are
-   trivially false.
+   trivially false. Do not put parenthetical year labels or date ranges in option
+   text, such as "The Cold War (1947-1991)". Use dates only in `answer_dating`
+   and rationales, unless the official name of the development contains a year
+   (for example, "Civil Rights Act of 1964").
 
-CLOSED STEM MENU (pick the one that fits the requested archetype):
-- cause_of:            "Which of the following contributed most directly to <X>?"        (CAUSE)
-- effect_immediate:    "The <action> in the excerpt most immediately led to ..."          (SHORT EFFECT)
-- effect_longterm:     "... most directly contributed to which later characteristic ...?" (LEGACY)
-- reflects_illustrates:"The <source> best illustrates / most directly reflects ...?"       (DEVELOPMENT)
-- context_response_to: "The <source> was most likely given in response to ...?"            (SITUATION)
-- influenced_by:       "The ideas in the excerpt were most directly influenced by ..."     (ANTECEDENT)
-- purpose_intended_to: "The <source/image> was most likely intended to ..."                (PURPOSE)
-- evidence_supports:   "Which could best be used as evidence to SUPPORT the argument ...?" (STRENGTHENER)
-- evidence_undermines: "Which could best be used to CHALLENGE the argument ...?"           (WEAKENER)
-- similar_effect:      "Which later development had an effect most SIMILAR to ...?"         (ANALOG)
-- continuation_change: "In <later decade>, this would be most CHALLENGED/CONTINUED by ..." (LATER SHIFT)
-- differs_from:        "The view differs from <other> most significantly in that ..."      (AXIS OF DIFFERENCE)
+V1 CLOSED ARCHETYPE MENU. This eval uses ONLY these two canonical archetype ids:
+- CAUSE_OF_SOURCE: "Which of the following contributed most directly to the
+  position, argument, policy, or action expressed in the source?" The answer must
+  be a specific prior development that caused or shaped the source.
+- EFFECT_OF_SOURCE: "The position, argument, policy, or action expressed in the
+  source most directly contributed to which later development?" The answer must
+  be a specific later consequence of the source's ideas, policy, or action. Do
+  NOT choose a same-year feature that already existed before the source was
+  written or delivered.
 
-ARCHETYPE -> stem mapping (write to the requested archetype):
-- DEVELOPMENT_ILLUSTRATED (P1) -> reflects_illustrates
-- SOURCE_POV_PURPOSE (P2)      -> purpose_intended_to / point_of_view
-- CONTEXT_SITUATION (P4)       -> context_response_to
-- CONTEXT_INFLUENCED_BY (P4)   -> influenced_by
-- CAUSE_OF_SOURCE (R2)         -> cause_of
-- EFFECT_OF_SOURCE (R2)        -> effect_immediate
-- LONGTERM_LEGACY (R2/R3)      -> effect_longterm
-- COMPARATIVE_ANALOG (R1)      -> similar_effect
-- CONTINUITY_OR_CHANGE (R3)    -> continuation_change
-- EVIDENCE_SUPPORTS_CLAIM (P3) -> evidence_supports
-- EVIDENCE_UNDERMINES_CLAIM(P3)-> evidence_undermines
-- COMPETING_INTERPRETATIONS(R1)-> differs_from (needs a two-source stimulus)
+IMPORTANT OUTPUT LABEL RULE: the `archetype` field must copy the requested
+uppercase archetype id exactly: `CAUSE_OF_SOURCE` or `EFFECT_OF_SOURCE`.
 
 OUTPUT FORMAT. Return ONLY a JSON array, no prose before or after. Each element:
 {
-  "archetype": "<one of the archetype ids>",
+  "archetype": "<the requested canonical uppercase archetype id, e.g. CAUSE_OF_SOURCE or EFFECT_OF_SOURCE>",
   "period": <1-9>,
   "theme": "<NAT|WXT|GEO|MIG|PCE|WOR|ARC|SOC>",
   "stem": "<the full question stem, referencing the source>",
@@ -129,10 +117,10 @@ OUTPUT FORMAT. Return ONLY a JSON array, no prose before or after. Each element:
   "answer_dating": "<the date/era of the keyed development and why it obeys the stem's time direction>",
   "rationale": {
     "correct": "<why the answer is correct AND matches the command-phrase skill, one sentence>",
-    "A": "<if correct: 'correct'; if distractor: the trap id + the named error>",
+    "A": "<if A is keyed: 'correct'; otherwise: the trap id + the named error>",
     "B": "...", "C": "...", "D": "..."
   },
-  "trap_types": ["<trap id for each distractor>"],
+  "trap_types": ["<exactly 3 ids, one for each wrong option, chosen only from WRONG_ERA, TRUE_BUT_IRRELEVANT, SCOPE_MISMATCH, PARTIALLY_TRUE>"],
   "requires_outside_knowledge": "<one line: the development outside the source the answer depends on>"
 }
 ```
@@ -151,12 +139,16 @@ STUDY NOTE (the concept the item should test, if provided):
 """
 
 Write {{N}} APUSH stimulus-based multiple-choice questions on this source.
-Requested archetypes (cycle through them in order): {{ARCHETYPES}}
+Requested canonical archetypes (cycle through them in order; copy these exact
+uppercase ids into each JSON `archetype` field): {{ARCHETYPES}}
 Target difficulty: {{DIFFICULTY}}   (e.g. "operational / test-day")
 
-Before finalizing each item, silently verify all 7 gates and that every distractor
-is labeled with a trap id. Discard and rewrite any item that fails. Return only the
-JSON array.
+Before finalizing each item, silently verify all 7 gates, that every distractor is
+labeled with one of the four allowed trap ids, that there are exactly 3
+`trap_types`, that the rationale object contains all four keys A/B/C/D, that the
+keyed option's rationale is exactly "correct", and that no option uses a
+parenthetical date label/range. Discard and rewrite any item that fails. Return
+only the JSON array.
 ```
 
 ---

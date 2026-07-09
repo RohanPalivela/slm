@@ -10,6 +10,9 @@ eval/models.json
 # Harness outputs (regenerated; canonical summary is copied into docs/02b_litmus_results.md)
 results/
 
+# Local model artifacts (GGUFs, Ollama Modelfiles, HF download cache)
+models/
+
 # Python
 __pycache__/
 *.pyc

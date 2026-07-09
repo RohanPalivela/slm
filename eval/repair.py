@@ -38,11 +38,16 @@ Fix these specific, common defects:
    must span at least TWO distinct trap types.
 3. TELLS. Keep all four options the same category, similar length and grammar; the
    key must not be the longest or most-qualified. No "all/none of the above", no
-   "always/never".
+   "always/never". Do not put parenthetical year labels or date ranges in option
+   text, such as "The Cold War (1947-1991)"; dates belong in answer_dating and
+   rationales, not as answer-choice tells.
 
 Every distractor must remain factually real history for its era, wrong for exactly
-ONE nameable reason, and its rationale must name that trap. Keep the keyed answer
-uniquely best.
+ONE nameable reason, and its rationale must name that trap. The `trap_types` array
+must contain exactly 3 ids chosen only from WRONG_ERA, TRUE_BUT_IRRELEVANT,
+SCOPE_MISMATCH, and PARTIALLY_TRUE. The rationale object must contain all four
+keys A/B/C/D, and the keyed option's rationale must be exactly "correct". Keep the
+keyed answer uniquely best.
 
 Return ONLY the full item as a single JSON object in the SAME schema you received
 (archetype, period, theme, stem, options, answer, answer_dating, rationale,

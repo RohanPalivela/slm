@@ -39,13 +39,13 @@ import checks             # noqa: E402
 import judge              # noqa: E402
 import repair             # noqa: E402
 import verifier           # noqa: E402
-from prompt_loader import LitmusPrompt, extract_items  # noqa: E402
+from prompt_loader import LitmusPrompt, extract_items, canonicalize_item_archetype  # noqa: E402
 from harness import load_sources, DEFAULT_ARCHETYPES, DIFFICULTY, dry_run_models  # noqa: E402
 
 
 def _stage_a(item, source):
     prog = checks.run_checks(item, source)
-    return (prog["disqualifying_ok"] and prog["wrong_era_le1"]), prog
+    return (prog["disqualifying_ok"] and prog["craft_ok"]), prog
 
 
 class Funnel:
@@ -91,9 +91,10 @@ def run_slot(source, archetype, *, gen_cfg, judge_cfg, ver_cfg, prompt, cfg, fun
         for it in items:
             if len(kept) >= cfg["target"]:
                 break
-            it.setdefault("archetype", archetype)
+            it = canonicalize_item_archetype(it, requested_archetype=archetype)
             if cfg["repair"]:
                 it = repair.repair_item(gen_cfg, source, it, cfg["temperature"], role="teacher")
+                it = canonicalize_item_archetype(it, requested_archetype=archetype)
             ok_a, prog = _stage_a(it, source)
             if not ok_a:
                 continue
@@ -103,7 +104,7 @@ def run_slot(source, archetype, *, gen_cfg, judge_cfg, ver_cfg, prompt, cfg, fun
                 j = judge._normalize(j)
             else:
                 j = judge.judge_item(judge_cfg, source, it, role="teacher")
-            if not judge.near_grade(prog["disqualifying_ok"] and prog["wrong_era_le1"], j):
+            if not judge.near_grade(prog["disqualifying_ok"] and prog["craft_ok"], j):
                 continue
             funnel.add(pass_b=1)
             if cfg["dry_run"]:

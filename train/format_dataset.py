@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +32,14 @@ from prompt_loader import LitmusPrompt  # noqa: E402
 DIFFICULTY = "operational / test-day"
 # The exact fields the generation prompt's OUTPUT FORMAT asks for (docs/prompt).
 _ITEM_FIELDS = ("archetype", "period", "theme", "stem", "options", "answer",
-                "answer_dating", "rationale", "trap_types")
+                "answer_dating", "rationale", "trap_types",
+                "requires_outside_knowledge")
+
+_OPTION_LABEL = re.compile(r"^\s*[A-D][).:]\s+")
+_TRAP_RE = re.compile(
+    r"^\s*(WRONG_ERA|TRUE_BUT_IRRELEVANT|SCOPE_MISMATCH|PARTIALLY_TRUE)\b",
+    re.I,
+)
 
 
 def _completion_item(rec: dict) -> dict:
@@ -43,13 +51,52 @@ def _completion_item(rec: dict) -> dict:
         "period": rec.get("period"),
         "theme": themes[0] if themes else None,
         "stem": rec.get("stem"),
-        "options": rec.get("options"),
+        "options": [_OPTION_LABEL.sub("", str(o)).strip()
+                    for o in (rec.get("options") or [])],
         "answer": rec.get("answer"),
         "answer_dating": rec.get("answer_dating"),
         "rationale": rec.get("rationale"),
         "trap_types": rec.get("trap_types"),
+        "requires_outside_knowledge": rec.get("requires_outside_knowledge"),
     }
+
+    if not item["requires_outside_knowledge"]:
+        answer = str(item.get("answer", "")).strip().upper()
+        options = item.get("options") or []
+        if answer and answer[0] in "ABCD" and len(options) >= "ABCD".index(answer[0]) + 1:
+            keyed = options["ABCD".index(answer[0])]
+            item["requires_outside_knowledge"] = (
+                f"{keyed} — {item.get('answer_dating', '')}".strip(" —")
+            )
+
+    if not isinstance(item.get("trap_types"), list) or len(item["trap_types"]) != 3:
+        inferred = _infer_trap_types(item)
+        if inferred:
+            item["trap_types"] = inferred
+
     return {k: v for k, v in item.items() if v is not None}
+
+
+def _infer_trap_types(item: dict) -> list[str] | None:
+    """Infer the three distractor trap labels from A/B/C/D rationales.
+
+    The generator occasionally kept only two `trap_types`, while the rationales
+    still contain one trap label per wrong option. Prefer that explicit evidence
+    over leaving the SFT target schema incomplete.
+    """
+    answer = str(item.get("answer", "")).strip().upper()[:1]
+    rationale = item.get("rationale")
+    if answer not in "ABCD" or not isinstance(rationale, dict):
+        return None
+    traps: list[str] = []
+    for label in "ABCD":
+        if label == answer:
+            continue
+        match = _TRAP_RE.search(str(rationale.get(label, "")))
+        if not match:
+            return None
+        traps.append(match.group(1).upper())
+    return traps if len(traps) == 3 else None
 
 
 def main():

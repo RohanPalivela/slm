@@ -459,7 +459,7 @@ def _existing_seed_ids() -> set:
     return ids
 
 
-def cmd_build_corpus() -> int:
+def cmd_build_corpus(max_new: int = 0) -> int:
     """A3 corpus expansion: fetch every catalog entry from Wikisource, extract a
     length-gated lead excerpt, and STAGE the results (full seed schema) to
     fetched_primary_sources.jsonl for review. Nothing is written to the
@@ -467,26 +467,32 @@ def cmd_build_corpus() -> int:
     the staged file. Idempotent: skips ids already in the seed corpus."""
     have = _existing_seed_ids()
     staged, skipped, failed = [], [], []
-    for src in CORPUS_CATALOG:
-        if src["id"] in have:
-            skipped.append((src["id"], "already in seed corpus"))
-            continue
-        print(f"fetching: {src['ws']}")
-        raw = fetch_wikisource(src["ws"])
-        excerpt = _lead_excerpt(raw or "")
-        if not excerpt:
-            failed.append((src["id"], "no usable excerpt (404 or unparseable)"))
-            time.sleep(0.5)
-            continue
-        staged.append({
-            "id": src["id"], "stimulus_type": "primary_text",
-            "attribution": src["attribution"], "author": src["author"],
-            "year": src["year"], "period": src["period"], "themes": src["themes"],
-            "text": excerpt, "license": src["pd"],
-            "source_url": WIKISOURCE_REST.format(title=urllib.parse.quote(src["ws"].replace(" ", "_"))),
-            "provenance": "fetched from en.wikisource.org (A3); lead excerpt, length-gated",
-        })
-        time.sleep(1.0)  # be polite
+    with open(FETCHED_PATH, "w", encoding="utf-8") as f:
+        for src in CORPUS_CATALOG:
+            if max_new and len(staged) >= max_new:
+                break
+            if src["id"] in have:
+                skipped.append((src["id"], "already in seed corpus"))
+                continue
+            print(f"fetching: {src['ws']}", flush=True)
+            raw = fetch_wikisource(src["ws"])
+            excerpt = _lead_excerpt(raw or "")
+            if not excerpt:
+                failed.append((src["id"], "no usable excerpt (404 or unparseable)"))
+                time.sleep(0.5)
+                continue
+            obj = {
+                "id": src["id"], "stimulus_type": "primary_text",
+                "attribution": src["attribution"], "author": src["author"],
+                "year": src["year"], "period": src["period"], "themes": src["themes"],
+                "text": excerpt, "license": src["pd"],
+                "source_url": WIKISOURCE_REST.format(title=urllib.parse.quote(src["ws"].replace(" ", "_"))),
+                "provenance": "fetched from en.wikisource.org (A3); lead excerpt, length-gated",
+            }
+            staged.append(obj)
+            f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+            f.flush()
+            time.sleep(1.0)  # be polite
     with open(FETCHED_PATH, "w", encoding="utf-8") as f:
         for o in staged:
             f.write(json.dumps(o, ensure_ascii=False) + "\n")
@@ -567,6 +573,7 @@ def main() -> int:
     p.add_argument("--validate", action="store_true", help="validate seed_stimuli.jsonl")
     p.add_argument("--fetch-wikisource", action="store_true", help="fetch the original 9 PD primary sources")
     p.add_argument("--build-corpus", action="store_true", help="A3: fetch the full catalog + stage length-gated excerpts for review")
+    p.add_argument("--max-new", type=int, default=0, help="with --build-corpus, stop after staging this many new sources")
     p.add_argument("--promote-fetched", action="store_true", help="append staged sources into seed_stimuli.jsonl")
     p.add_argument("--openstax-info", action="store_true", help="print OpenStax CC BY pointers")
     p.add_argument("--manifest", action="store_true", help="write provenance manifest")
@@ -576,7 +583,7 @@ def main() -> int:
     if args.fetch_wikisource:
         return cmd_fetch_wikisource()
     if args.build_corpus:
-        return cmd_build_corpus()
+        return cmd_build_corpus(args.max_new)
     if args.promote_fetched:
         return cmd_promote_fetched()
     if args.openstax_info:

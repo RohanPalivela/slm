@@ -56,9 +56,16 @@ def main():
         if prog.get("source_leak"): trips.append("source-leak (echoes source)")
         if prog.get("date_direction") == "fail": trips.append("anachronism (date direction)")
         if prog.get("trap_diversity_ge2") is False: trips.append("<2 distinct traps")
+        if prog.get("trap_count_3") is False: trips.append("trap_types length != 3")
+        if prog.get("trap_types_valid") is False: trips.append("invalid trap id")
+        if prog.get("no_parenthetical_option_dates") is False: trips.append("parenthetical option date")
+        if prog.get("rationale_complete") is False: trips.append("incomplete rationale")
+        if prog.get("rationale_marks_key") is False: trips.append("key rationale mismatch")
         if prog.get("homogeneous_length") is False: trips.append("option length imbalance")
         print(f"  programmatic: {'OK' if prog.get('disqualifying_ok') else 'FAIL'}"
               + (f"  [{', '.join(trips)}]" if trips else ""))
+        if "craft_ok" in prog:
+            print(f"  craft/schema: {'OK' if prog.get('craft_ok') else 'FAIL'}")
         j = r.get("judge")
         if j:
             print(f"  judge dims: spec={j['spec_adherence']} distractor={j['distractor_craft']} "

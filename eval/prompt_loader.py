@@ -68,6 +68,49 @@ class LitmusPrompt:
 # object (e.g. {"questions": [...]}) instead of returning a bare array.
 _ITEM_LIST_KEYS = ("items", "questions", "mcqs", "data", "results", "output")
 
+# The prompt contains lower-level stem-template ids as writer guidance. Models,
+# especially tuned small models, sometimes copy those into the output
+# `archetype` field even though the eval contract uses the canonical archetype
+# ids. Keep this mapping central so generation, repair, checks, and reports can
+# score against the requested contract while preserving the model's raw label for
+# debugging.
+ARCHETYPE_ALIASES = {
+    "cause_of": "CAUSE_OF_SOURCE",
+    "effect_immediate": "EFFECT_OF_SOURCE",
+    "effect_longterm": "LONGTERM_LEGACY",
+    "continuation_change": "CONTINUITY_OR_CHANGE",
+    "reflects_illustrates": "DEVELOPMENT_ILLUSTRATED",
+    "context_response_to": "CONTEXT_SITUATION",
+    "influenced_by": "CONTEXT_INFLUENCED_BY",
+    "purpose_intended_to": "SOURCE_POV_PURPOSE",
+    "point_of_view": "SOURCE_POV_PURPOSE",
+    "evidence_supports": "EVIDENCE_SUPPORTS_CLAIM",
+    "evidence_undermines": "EVIDENCE_UNDERMINES_CLAIM",
+    "similar_effect": "COMPARATIVE_ANALOG",
+    "differs_from": "COMPETING_INTERPRETATIONS",
+}
+
+
+def canonicalize_item_archetype(item: dict, requested_archetype: str | None = None) -> dict:
+    """Return a shallow copy whose `archetype` is the canonical contract id.
+
+    If `requested_archetype` is provided, it wins: each harness call asks for one
+    archetype, so the item should be evaluated against that requested skill even
+    if the model wrote a lower-level template id or some other label. The raw
+    model-emitted value is preserved as `_model_archetype`.
+    """
+    out = dict(item)
+    raw = out.get("archetype")
+    if raw is not None and "_model_archetype" not in out:
+        out["_model_archetype"] = raw
+    if requested_archetype:
+        out["archetype"] = requested_archetype
+        out["_requested_archetype"] = requested_archetype
+        return out
+    if isinstance(raw, str):
+        out["archetype"] = ARCHETYPE_ALIASES.get(raw.strip(), raw)
+    return out
+
 
 def _normalize_items(obj) -> list[dict]:
     """Coerce a parsed JSON value into a list of item dicts, honoring the contract

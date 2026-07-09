@@ -35,7 +35,7 @@ import providers          # noqa: E402
 import checks             # noqa: E402
 import judge              # noqa: E402
 import repair             # noqa: E402
-from prompt_loader import LitmusPrompt, extract_items  # noqa: E402
+from prompt_loader import LitmusPrompt, extract_items, canonicalize_item_archetype  # noqa: E402
 
 DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"  # v1 causation subset (docs/03)
 DIFFICULTY = "operational / test-day"
@@ -81,7 +81,7 @@ def score_item(item, source, judge_cfg, role, no_judge):
         # expert_grade / near_miss also require the distractor-craft gate
         # (<=1 wrong-era); key_valid measures ONLY label cleanliness, so it must
         # not depend on it.
-        craft_ok = prog["disqualifying_ok"] and prog["wrong_era_le1"]
+        craft_ok = prog["disqualifying_ok"] and prog.get("craft_ok", prog["wrong_era_le1"])
         eg = judge.expert_grade(craft_ok, j)
         nm = judge.near_grade(craft_ok, j)
         kv = j["key_valid"] and prog["disqualifying_ok"]
@@ -183,8 +183,8 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
             r, sid, arch, items, err = fut.result()
             with lock:
                 for it in items:
+                    it = canonicalize_item_archetype(it, requested_archetype=arch)
                     it["_source_id"] = sid
-                    it.setdefault("archetype", arch)  # tag if the model omitted it
                     records.append({"model": cfg["name"], "role": role,
                                     "run": r, "source_id": sid, "item": it})
                 if not err:
@@ -224,6 +224,8 @@ def repair_all(cfg, role, records, sources_by_id, *, temperature, concurrency):
     def work(rec):
         src = sources_by_id[rec["source_id"]]
         rec["item"] = repair.repair_item(cfg, src, rec["item"], temperature, role=role)
+        rec["item"] = canonicalize_item_archetype(
+            rec["item"], requested_archetype=rec["item"].get("_requested_archetype"))
         return rec
 
     with cf.ThreadPoolExecutor(max_workers=concurrency) as ex:
@@ -286,6 +288,10 @@ def aggregate(scored):
         "run_pass_rates": [round(p, 3) for p in run_pass],
         "date_fail_rate": (sum(1 for x in scored if x["prog"]["date_direction"] == "fail") / n) if n else 0.0,
         "source_leak_rate": (sum(1 for x in scored if x["prog"]["source_leak"]) / n) if n else 0.0,
+        "craft_fail_rate": (sum(1 for x in scored if not x["prog"].get("craft_ok", True)) / n) if n else 0.0,
+        "schema_fail_rate": (sum(1 for x in scored if not x["prog"].get("schema_ok", True)) / n) if n else 0.0,
+        "invalid_trap_rate": (sum(1 for x in scored if not x["prog"].get("trap_types_valid", True)) / n) if n else 0.0,
+        "option_date_tell_rate": (sum(1 for x in scored if not x["prog"].get("no_parenthetical_option_dates", True)) / n) if n else 0.0,
         "mean_dims": {d: (round(statistics.mean(j[d] for j in judged), 2) if judged else None) for d in dims},
         "by_archetype": {a: _rate(v, "near_miss") for a, v in by_arch.items()},
     }
@@ -338,13 +344,16 @@ def write_report(results, meta, out_dir):
              + (" **PROGRAMMATIC-ONLY (no judge).**" if meta["no_judge"] else "")
              + (" **+REPAIR pass (distractors rewritten by the same model).**" if meta.get("repair") else "") + "\n")
     L.append(f"## Decision: **{door}**\n\n{why}\n")
-    L.append("| Model | Role | Items | Expert-grade | Near-miss | key_valid | Consistency (std) | date-fail | leak |")
-    L.append("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    L.append("| Model | Role | Items | Expert-grade | Near-miss | key_valid | Consistency (std) | craft-fail | schema-fail | invalid-trap | option-date | date-fail | leak |")
+    L.append("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for name, v in results.items():
         a = v["agg"]
         L.append(f"| {name} | {v['role']} | {a['n_items']} | {pct(a['pass_rate'])} | "
                  f"{pct(a.get('near_miss_rate'))} | "
                  f"{pct(a['key_valid_rate'])} | {a['consistency_std']:.03f} | "
+                 f"{a['craft_fail_rate']:.0%} | {a['schema_fail_rate']:.0%} | "
+                 f"{a['invalid_trap_rate']:.0%} | "
+                 f"{a['option_date_tell_rate']:.0%} | "
                  f"{a['date_fail_rate']:.0%} | {a['source_leak_rate']:.0%} |")
     L.append("")
     L.append("### Per-archetype near-miss (expert-quality) pass rate")
@@ -466,6 +475,8 @@ def main():
         item_records.append({
             "model": x["model"], "role": x["role"], "run": x["run"],
             "source_id": it.get("_source_id"), "archetype": it.get("archetype"),
+            "model_archetype": it.get("_model_archetype"),
+            "requested_archetype": it.get("_requested_archetype"),
             "expert_grade": x["expert_grade"], "near_miss": x["near_miss"],
             "key_valid": x["key_valid"],
             "prog": x["prog"], "judge": x["judge"],

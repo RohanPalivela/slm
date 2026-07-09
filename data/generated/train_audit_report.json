@@ -1,0 +1,251 @@
+{
+  "input": "data/generated/train.jsonl",
+  "total_records": 816,
+  "clean_records": 629,
+  "quarantined_records": 187,
+  "answer_distribution": {
+    "A": 158,
+    "B": 157,
+    "C": 157,
+    "D": 157
+  },
+  "repair_counts": {
+    "added_requires_outside_knowledge": 816,
+    "stripped_option_labels": 33,
+    "inferred_trap_types": 4,
+    "corrected_trap_types_from_rationales": 2,
+    "answer_position_rebalanced": 473
+  },
+  "reason_counts": {
+    "effect_answer_not_explicitly_later": 135,
+    "cause_record_has_effect_stem": 36,
+    "effect_contemporaneous_needs_review": 43,
+    "cause_record_has_effect_dating_language": 13,
+    "low_trap_diversity": 2,
+    "too_many_wrong_era": 1
+  },
+  "examples": {
+    "effect_answer_not_explicitly_later": [
+      {
+        "line": 2,
+        "source_id": "northwest_ordinance_1787",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The territorial framework in the excerpt most immediately contributed to which of the following outcomes in the region it governed?"
+      },
+      {
+        "line": 26,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The tradition established by the document in the excerpt most directly contributed to which later characteristic of colonial New England?"
+      },
+      {
+        "line": 27,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The collective act described in the excerpt most immediately resulted in which of the following for the signers?"
+      },
+      {
+        "line": 28,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The practice of self-government reflected in the excerpt most immediately led to which of the following developments in early New England?"
+      },
+      {
+        "line": 29,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The agreement described in the excerpt most immediately contributed to which of the following in the Plymouth settlement?"
+      },
+      {
+        "line": 31,
+        "source_id": "va_religious_freedom_1786",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The passage of the measure described in the excerpt most immediately contributed to which of the following?"
+      },
+      {
+        "line": 37,
+        "source_id": "homestead_act_1862",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The legislation described in the excerpt most immediately led to which of the following developments in the decades following its passage?"
+      },
+      {
+        "line": 38,
+        "source_id": "homestead_act_1862",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The policy established in the excerpt most immediately contributed to which of the following economic outcomes in the late nineteenth century?"
+      }
+    ],
+    "cause_record_has_effect_stem": [
+      {
+        "line": 14,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The religious motivation reflected in the invocation that opens the excerpt contributed most directly to which of the following?"
+      },
+      {
+        "line": 50,
+        "source_id": "bryan_cross_of_gold_1896",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The monetary policy debate that gave rise to Bryan's speech was contributed to most directly by which of the following?"
+      },
+      {
+        "line": 79,
+        "source_id": "fdr_four_freedoms_1941",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The concern for American security that Roosevelt expresses in the excerpt contributed most directly to which of the following developments?"
+      },
+      {
+        "line": 97,
+        "source_id": "jfk_inaugural_1961",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The emphasis on a 'celebration of freedom' and global renewal that pervades Kennedy's 1961 inaugural address contributed most directly to which of the following?"
+      },
+      {
+        "line": 121,
+        "source_id": "jefferson_first_inaugural_1801",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The peaceful transfer of executive power reflected in Jefferson's 1801 inaugural address contributed most directly to which of the following?"
+      },
+      {
+        "line": 153,
+        "source_id": "osullivan_futurity_1839",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The confident belief that the United States is 'destined to be the great nation of futurity' contributed most directly to which contemporaneous development?"
+      },
+      {
+        "line": 155,
+        "source_id": "osullivan_futurity_1839",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The author's declaration that 'our national birth was the beginning of a new history' contributed most directly to which cultural development of the antebellum period?"
+      },
+      {
+        "line": 156,
+        "source_id": "osullivan_futurity_1839",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The author's observation that 'the American people having derived their origin from many other nations' contributed most directly to which of the following that shaped his outlook?"
+      }
+    ],
+    "effect_contemporaneous_needs_review": [
+      {
+        "line": 25,
+        "source_id": "mayflower_compact_1620",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The agreement referenced in the excerpt most immediately led to which of the following developments in the Plymouth Colony?"
+      },
+      {
+        "line": 31,
+        "source_id": "va_religious_freedom_1786",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The passage of the measure described in the excerpt most immediately contributed to which of the following?"
+      },
+      {
+        "line": 33,
+        "source_id": "va_religious_freedom_1786",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The adoption of the statute in the excerpt most immediately reinforced which broader trend of the Revolutionary era?"
+      },
+      {
+        "line": 41,
+        "source_id": "homestead_act_1862",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The law in the excerpt most immediately reflected and reinforced which of the following political shifts made possible during the Civil War?"
+      },
+      {
+        "line": 55,
+        "source_id": "bryan_cross_of_gold_1896",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The argument advanced by the author in the excerpt most immediately led to which of the following political developments in 1896?"
+      },
+      {
+        "line": 60,
+        "source_id": "bryan_cross_of_gold_1896",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The advocacy expressed in Bryan's speech most immediately led to which of the following developments in the 1896 presidential election?"
+      },
+      {
+        "line": 73,
+        "source_id": "chinese_exclusion_act_1882",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The passage of the legislation excerpted above most immediately led to which of the following developments?"
+      },
+      {
+        "line": 76,
+        "source_id": "chinese_exclusion_act_1882",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The exclusion enacted in the excerpt most immediately contributed to which of the following social developments among Chinese immigrants already in the United States?"
+      }
+    ],
+    "cause_record_has_effect_dating_language": [
+      {
+        "line": 79,
+        "source_id": "fdr_four_freedoms_1941",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The concern for American security that Roosevelt expresses in the excerpt contributed most directly to which of the following developments?"
+      },
+      {
+        "line": 97,
+        "source_id": "jfk_inaugural_1961",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The emphasis on a 'celebration of freedom' and global renewal that pervades Kennedy's 1961 inaugural address contributed most directly to which of the following?"
+      },
+      {
+        "line": 121,
+        "source_id": "jefferson_first_inaugural_1801",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The peaceful transfer of executive power reflected in Jefferson's 1801 inaugural address contributed most directly to which of the following?"
+      },
+      {
+        "line": 153,
+        "source_id": "osullivan_futurity_1839",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The confident belief that the United States is 'destined to be the great nation of futurity' contributed most directly to which contemporaneous development?"
+      },
+      {
+        "line": 198,
+        "source_id": "tr_muckrake_1906",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The expansion of the federal government's business and physical footprint described in the excerpt contributed most directly to which of the following developments of the early twentieth century?"
+      },
+      {
+        "line": 385,
+        "source_id": "pierce_inaugural_1853",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The 'rare manifestation of the nation's confidence' Pierce describes—his sweeping 1852 election victory—contributed most directly to which subsequent political development?"
+      },
+      {
+        "line": 469,
+        "source_id": "cleveland_second_inaugural_1893",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "Which of the following economic developments contributed most directly to the challenges Grover Cleveland would confront during the presidential term he inaugurates in the excerpt?"
+      },
+      {
+        "line": 566,
+        "source_id": "roosevelt_second_inaugural_1937",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The author's imagery of driving 'from the temple of our ancient faith those who had profaned it' was most directly a response to which of the following?"
+      }
+    ],
+    "low_trap_diversity": [
+      {
+        "line": 135,
+        "source_id": "jackson_first_inaugural_1829",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "The excerpt presents the presidency as an office directly accountable to the people. This conception was shaped most directly by which broader trend of the early nineteenth century?"
+      },
+      {
+        "line": 157,
+        "source_id": "truth_aint_i_a_woman_1851",
+        "archetype": "CAUSE_OF_SOURCE",
+        "stem": "Which of the following contributed most directly to the type of activism reflected in Sojourner Truth's remarks?"
+      }
+    ],
+    "too_many_wrong_era": [
+      {
+        "line": 372,
+        "source_id": "polk_inaugural_1845",
+        "archetype": "EFFECT_OF_SOURCE",
+        "stem": "The expansionist agenda of the president who delivered this address most immediately led to which of the following in the Pacific Northwest?"
+      }
+    ]
+  }
+}
