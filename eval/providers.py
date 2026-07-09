@@ -1,11 +1,14 @@
 """
-Model providers for the litmus harness — stdlib only (urllib), no SDK required.
+Model providers for the litmus harness. API providers use stdlib urllib; the
+optional hf_local provider lazy-imports Transformers/PEFT only when selected.
 
 Supported provider types (set per-model in eval/models.json):
   - "openai"            : OpenAI /v1/chat/completions   (env OPENAI_API_KEY)
   - "openai_compatible" : any OpenAI-compatible server (vLLM/Ollama/Together/…)
                           set "base_url"; api key from "api_key_env" (optional)
   - "anthropic"         : Anthropic /v1/messages        (env ANTHROPIC_API_KEY)
+  - "hf_local"          : local Hugging Face Transformers model, optionally with
+                          a PEFT/LoRA adapter; intended for notebook GPU evals
   - "mock"              : offline canned output for --dry-run (no network/keys)
 
 A model config is a dict:
@@ -14,6 +17,7 @@ A model config is a dict:
 from __future__ import annotations
 import json
 import os
+import re
 import time
 import urllib.request
 import urllib.error
@@ -134,6 +138,155 @@ def _call_anthropic(cfg: dict, system: str, user: str, temperature: float) -> st
     return "".join(b.get("text", "") for b in resp.get("content", []) if b.get("type") == "text")
 
 
+# ------------------------ local Hugging Face / PEFT ------------------------
+
+_HF_LOCAL = {"key": None, "tokenizer": None, "model": None}
+
+
+def _clear_hf_local() -> None:
+    _HF_LOCAL.update({"key": None, "tokenizer": None, "model": None})
+    try:
+        import gc
+        import torch
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    except Exception:
+        pass
+
+
+def _torch_dtype(torch, name: str):
+    if name == "auto":
+        return "auto"
+    return {
+        "float16": torch.float16,
+        "fp16": torch.float16,
+        "bfloat16": torch.bfloat16,
+        "bf16": torch.bfloat16,
+        "float32": torch.float32,
+        "fp32": torch.float32,
+    }.get(str(name).lower(), torch.float16)
+
+
+def _load_hf_local(cfg: dict):
+    """Load exactly one local HF model at a time. Keeping both base and tuned
+    4B models resident can exceed Colab/T4 VRAM, so switching configs clears the
+    previous model before loading the next one."""
+    key = json.dumps({
+        "model": cfg["model"],
+        "adapter": cfg.get("adapter"),
+        "load_in_4bit": cfg.get("load_in_4bit", True),
+        "torch_dtype": cfg.get("torch_dtype", "float16"),
+        "device_map": cfg.get("device_map", "auto"),
+    }, sort_keys=True)
+    if _HF_LOCAL["key"] == key:
+        return _HF_LOCAL["tokenizer"], _HF_LOCAL["model"]
+
+    _clear_hf_local()
+    try:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+    except Exception as e:
+        raise ProviderError(
+            "hf_local provider needs transformers + torch. In the notebook, run: "
+            "pip install -U transformers accelerate peft bitsandbytes"
+        ) from e
+
+    model_id = cfg["model"]
+    adapter_id = cfg.get("adapter")
+    tokenizer_id = cfg.get("tokenizer") or adapter_id or model_id
+    token_env = cfg.get("hf_token_env", "HF_TOKEN")
+    token = os.environ.get(token_env) or None
+    common = {"token": token, "trust_remote_code": cfg.get("trust_remote_code", True)}
+
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_id, **common)
+    except Exception:
+        if tokenizer_id == model_id:
+            raise
+        tokenizer = AutoTokenizer.from_pretrained(model_id, **common)
+    if tokenizer.pad_token_id is None and tokenizer.eos_token_id is not None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    dtype = _torch_dtype(torch, cfg.get("torch_dtype", "float16"))
+    model_kwargs = {
+        **common,
+        "device_map": cfg.get("device_map", "auto"),
+        "torch_dtype": dtype,
+    }
+    if cfg.get("load_in_4bit", True):
+        try:
+            from transformers import BitsAndBytesConfig
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=dtype if dtype != "auto" else torch.float16,
+                bnb_4bit_quant_type=cfg.get("bnb_4bit_quant_type", "nf4"),
+                bnb_4bit_use_double_quant=cfg.get("bnb_4bit_use_double_quant", True),
+            )
+        except Exception as e:
+            raise ProviderError(
+                "load_in_4bit=True requires bitsandbytes. Either install it or set "
+                "'load_in_4bit': false in the hf_local model config."
+            ) from e
+
+    model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
+    if adapter_id:
+        try:
+            from peft import PeftModel
+        except Exception as e:
+            raise ProviderError("hf_local adapter configs require peft.") from e
+        model = PeftModel.from_pretrained(model, adapter_id, token=token)
+    model.eval()
+
+    _HF_LOCAL.update({"key": key, "tokenizer": tokenizer, "model": model})
+    return tokenizer, model
+
+
+def _apply_chat_template(tokenizer, messages: list[dict], think: bool) -> str:
+    kwargs = {"tokenize": False, "add_generation_prompt": True}
+    try:
+        return tokenizer.apply_chat_template(messages, enable_thinking=think, **kwargs)
+    except TypeError:
+        return tokenizer.apply_chat_template(messages, **kwargs)
+
+
+def _call_hf_local(cfg: dict, system: str, user: str, temperature: float) -> str:
+    tokenizer, model = _load_hf_local(cfg)
+    try:
+        import torch
+    except Exception as e:
+        raise ProviderError("hf_local provider needs torch.") from e
+
+    messages = [
+        {"role": "system", "content": system + cfg.get("system_suffix", "")},
+        {"role": "user", "content": user},
+    ]
+    prompt = _apply_chat_template(tokenizer, messages, bool(cfg.get("think", False)))
+    device = next(model.parameters()).device
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+
+    temp = cfg.get("temperature", temperature)
+    do_sample = temp is not None and float(temp) > 0
+    gen_kwargs = {
+        "max_new_tokens": cfg.get("max_tokens", 1536),
+        "do_sample": do_sample,
+        "pad_token_id": tokenizer.pad_token_id or tokenizer.eos_token_id,
+        "eos_token_id": tokenizer.eos_token_id,
+    }
+    if do_sample:
+        gen_kwargs["temperature"] = float(temp)
+        if cfg.get("top_p") is not None:
+            gen_kwargs["top_p"] = cfg["top_p"]
+        if cfg.get("top_k") is not None:
+            gen_kwargs["top_k"] = cfg["top_k"]
+
+    with torch.inference_mode():
+        out = model.generate(**inputs, **gen_kwargs)
+    new_tokens = out[0, inputs["input_ids"].shape[-1]:]
+    text = tokenizer.decode(new_tokens, skip_special_tokens=True)
+    return re.sub(r"^\s*<think>\s*</think>\s*", "", text).strip()
+
+
 # --------------------------- mock (offline dry-run) -------------------------
 
 def _mock_generation(cfg: dict, user: str, role: str) -> str:
@@ -190,6 +343,8 @@ def generate(cfg: dict, system: str, user: str, temperature: float, role: str = 
         return _call_openai(cfg, system, user, temperature)
     if p == "ollama":
         return _call_ollama(cfg, system, user, temperature)
+    if p == "hf_local":
+        return _call_hf_local(cfg, system, user, temperature)
     if p == "anthropic":
         return _call_anthropic(cfg, system, user, temperature)
     raise ProviderError(f"unknown provider {p!r} for model {cfg.get('name')!r}")

@@ -129,9 +129,9 @@ class Progress:
 
 
 def _concurrency_for(cfg, gateway_default):
-    """Local Ollama is served serially — parallelism there hurts. Gateway/API
+    """Local inference is served serially — parallelism there hurts. Gateway/API
     models can run concurrent requests."""
-    if cfg.get("provider") in ("ollama", "mock"):
+    if cfg.get("provider") in ("ollama", "hf_local", "mock"):
         return 1
     return int(cfg.get("concurrency", gateway_default))
 
@@ -396,7 +396,7 @@ def main():
     ap.add_argument("--no-judge", action="store_true", help="programmatic checks only (fast/free)")
     ap.add_argument("--limit", type=int, default=0, help="limit number of sources (quick test)")
     ap.add_argument("--gen-concurrency", type=int, default=8,
-                    help="parallel generation requests for gateway/API models (local Ollama stays serial)")
+                    help="parallel generation requests for gateway/API models (local Ollama/HF stays serial)")
     ap.add_argument("--judge-concurrency", type=int, default=8,
                     help="parallel judge requests")
     ap.add_argument("--out", default=os.path.join(ROOT, "results"))
@@ -445,7 +445,7 @@ def main():
     sources_by_id = {s["id"]: s for s in sources}
 
     # Phase 1 — GENERATION (per model; gateway models run concurrent requests,
-    # local Ollama stays serial). Two phases keep the progress UI unambiguous.
+    # local Ollama/HF stays serial). Two phases keep the progress UI unambiguous.
     print("Phase 1/2: generation" + (" + repair" if args.repair else ""))
     gen_records = []
     for role, cfg in roster:
