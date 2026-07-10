@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Format the generated dataset (data/generated/train.jsonl) into supervised
-fine-tuning examples for QLoRA — one example per kept item.
+Format the audited clean dataset into supervised fine-tuning examples for QLoRA,
+one example per kept item.
 
 Each example is a chat triple:
   system  = the litmus generation SYSTEM prompt (the full item-writing spec)
@@ -14,7 +14,7 @@ prompt shape the harness/inference uses.
 
 Usage:
     python train/format_dataset.py
-    python train/format_dataset.py --in data/generated/train.jsonl --out data/generated/train_sft.jsonl
+    python train/format_dataset.py --in data/generated/train_clean.jsonl --out data/generated/train_sft_clean.jsonl
 """
 from __future__ import annotations
 import argparse
@@ -101,8 +101,8 @@ def _infer_trap_types(item: dict) -> list[str] | None:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--in", dest="inp", default=os.path.join(ROOT, "data", "generated", "train.jsonl"))
-    ap.add_argument("--out", default=os.path.join(ROOT, "data", "generated", "train_sft.jsonl"))
+    ap.add_argument("--in", dest="inp", default=os.path.join(ROOT, "data", "generated", "train_clean.jsonl"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "data", "generated", "train_sft_clean.jsonl"))
     ap.add_argument("--sources", default=os.path.join(ROOT, "data", "seed_stimuli.jsonl"))
     ap.add_argument("--fewshot", action="store_true", help="include the few-shot block in the system prompt")
     args = ap.parse_args()

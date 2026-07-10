@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """
-Litmus harness — Deliverable 2 build-gate for the APUSH notes/source -> questions SLM.
+Local APUSH eval harness.
 
-Runs the maximal litmus prompt (prompts/litmus_generation_prompt.md) over a fixed
-set of LITMUS sources for each configured model, grades every generated item with
-programmatic checks + an LLM judge, and reports pass-rate / key-valid-rate /
-consistency per model, then prints the BUILD / DON'T-BUILD / RETHINK door
-(docs/02 §6).
+Runs the current prompt over a fixed split for each configured model, grades every
+generated item with programmatic checks plus an optional LLM judge, and writes a
+report plus per-item and per-attempt JSON artifacts.
 
 Quick start (no keys, proves the pipeline):
     python eval/harness.py --dry-run
@@ -37,7 +35,7 @@ import judge              # noqa: E402
 import repair             # noqa: E402
 from prompt_loader import LitmusPrompt, extract_items, canonicalize_item_archetype  # noqa: E402
 
-DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"  # v1 causation subset (docs/03)
+DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"
 DIFFICULTY = "operational / test-day"
 
 
@@ -306,7 +304,7 @@ def aggregate(scored):
 
 
 def decide(best_small, s_frontier, teacher_kv, no_judge):
-    """docs/02 §6 decision matrix. The pass metric is the NEAR-MISS
+    """Legacy build-gate decision matrix. The pass metric is the NEAR-MISS
     (expert-quality) rate — every expert-grade gate except the strict, poorly-
     calibrated `spec_adherence==2` (see G-cal: judge–human agreement on spec was
     ~40%/negative-kappa, so it is unfit as a hard gate). key_valid still gates
@@ -372,7 +370,7 @@ def write_report(results, meta, out_dir):
         row = [pct(v['agg']['by_archetype'].get(a)) for a in archs]
         L.append(f"| {name} | " + " | ".join(row) + " |")
     L.append("")
-    L.append("### Gate reference (docs/02 §6)")
+    L.append("### Gate reference")
     L.append("- The decision **door is the near-miss (expert-quality) rate**: "
              "**P1** teacher near-miss >=70% AND key_valid >=70-75%  |  "
              "**P2** best prompted small <=45-55%  |  **DON'T BUILD** if small >=80%.")
@@ -517,7 +515,7 @@ def main():
     print(f"attempts:    {attempts_path}   (one raw generation call per source/archetype/run)")
     if meta["n_sources"] * meta["runs"] < 8:
         print("NOTE: tiny sample + uncalibrated judge -> the door is NOT reliable yet. "
-              "Calibrate the judge (plan_v2 G-cal) and run more sources/runs.")
+              "Run more sources/runs before trusting the comparison.")
     print("=" * 70)
 
 

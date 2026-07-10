@@ -1,83 +1,109 @@
-# APUSH Notes/Source → Expert Questions (SLM)
+# APUSH SLM
 
-Fine-tune a small language model (**Qwen3-4B**, QLoRA) to turn a provided
-**historical source (+ optional study note)** into **expert-grade AP U.S. History
-stimulus-based multiple-choice questions** — the kind that feel human-written, not
-the on-the-nose items LLMs usually produce (obvious wrong answers, testing the
-source back to itself).
+Notebook-first workflow for training and evaluating a Qwen3-4B AP U.S. History
+item writer.
 
-**Start here:** [`docs/00_process_index.md`](docs/00_process_index.md)
+The current production candidate is the v3 clean LoRA:
 
-## The idea in one line
+```text
+rohanpalviela/qwen3-4b-apush-v3-clean-lora
+```
 
-Expert APUSH questions hang on a **source**, require connecting it to an **outside
-development**, and give **four true-but-wrong distractors**, each a *named trap*
-(wrong-era, true-but-irrelevant, scope-mismatch, partially-true). That last part is
-what LLMs get wrong — and what a narrow, grounded fine-tune can get right reliably.
+## Current Workflow
 
-## Verdict (feasibility)
+1. Validate the training artifacts:
 
-**BUILD — but narrow hard.** Scope = the two **date-anchored causation archetypes**
-(they share one deep skill):
+   ```bash
+   python3 scripts/validate_retrain_ready.py
+   ```
 
-- `CAUSE_OF_SOURCE` — "which development contributed *most directly* to the source?"
-- `EFFECT_OF_SOURCE` — "the source most immediately *led to*…?"
+   Expected result:
 
-Base model: **Qwen3-4B-Instruct**. **~91% confidence** on the required base-vs-tuned
-bar, **conditional** on: the answer being **grounded** to a curated date-tagged
-developments table (selection, not free-recall), an inference-time **verifier**, and
-a confirmed frontier-teacher key-validity in the litmus run. Crux = **single-best
-historical correctness (SC-KEY)**. Explicitly excluded from v1: argument-evidence /
-competing-interpretation items (highest expert-feel but no usable verifier), and the
-comprehension-only `DEVELOPMENT_ILLUSTRATED` (a prompted base likely already passes).
+   ```text
+   RETRAIN_READY: yes
+   ```
 
-Full reasoning: [`docs/03_feasibility_assessment.md`](docs/03_feasibility_assessment.md).
+2. Train in Colab with:
 
-## Status
+   ```text
+   train/qlora_qwen3_4b.ipynb
+   ```
 
-| Phase | Status |
+   The notebook reads `data/generated/train_sft_clean.jsonl` and publishes the
+   adapter as `rohanpalviela/qwen3-4b-apush-v3-clean-lora`.
+
+3. Evaluate from Hugging Face with:
+
+   ```text
+   notebooks/eval_hf_gpu.ipynb
+   ```
+
+   Start with a smoke run:
+
+   ```python
+   RUNS = 2
+   LIMIT = 5
+   N = 2
+   ```
+
+   Then run the full eval:
+
+   ```python
+   RUNS = 3
+   LIMIT = 0
+   N = 2
+   ```
+
+4. Inspect failures:
+
+   ```bash
+   python3 scripts/analyze_eval_failures.py \
+     --items <items.jsonl> \
+     --attempts <generation_attempts.json> \
+     --out <summary.json>
+   ```
+
+## Canonical Data
+
+Use these files for v3:
+
+| Path | Role |
 | :--- | :--- |
-| APUSH question taxonomy | ✅ [`docs/01_apush_question_taxonomy.md`](docs/01_apush_question_taxonomy.md) + [`taxonomy/apush_question_archetypes.json`](taxonomy/apush_question_archetypes.json) |
-| Litmus test protocol + prompt | ✅ [`docs/02_litmus_test_prompt.md`](docs/02_litmus_test_prompt.md) |
-| Feasibility (BUILD-narrow, 91%) | ✅ [`docs/03_feasibility_assessment.md`](docs/03_feasibility_assessment.md) |
-| Data sourcing & legal + seed corpus | ✅ [`docs/05_data_sourcing_and_legal.md`](docs/05_data_sourcing_and_legal.md) + [`data/`](data/) |
-| Training plan (validator-approved) | ✅ [`docs/planning/plan_v2.md`](docs/planning/plan_v2.md) |
-| Litmus empirical run | ⏳ Pending (blocks training) |
-| Dataset + model | ⏳ Not started |
+| `data/generated/train_clean.jsonl` | Audited item records with judge/verifier metadata |
+| `data/generated/train_sft_clean.jsonl` | Supervised fine-tuning chat triples |
+| `data/generated/train_quarantine.jsonl` | Rejected records kept for diagnosis |
+| `data/generated/train_audit_report.json` | Reproducible audit counts |
+| `data/seed_stimuli.jsonl` | Source corpus |
+| `data/splits.json` | Train/litmus/eval split firewall |
 
-## How this was built (the pipeline)
+The stale pre-clean SFT artifact is intentionally not kept. If you need to rebuild
+the SFT file, run:
 
+```bash
+python3 train/audit_dataset.py --in data/generated/train.jsonl --write-clean
+python3 train/format_dataset.py
 ```
-Research (taxonomy) → Litmus prompt → Feasibility agent (>90% gate)
-   → Brainstormer (plan_v1) → Validator (REVISE major, 12 fixes)
-   → Brainstormer (plan_v2) → Validator (APPROVE)
+
+## Repo Layout
+
+```text
+train/       Colab training notebook and clean-data formatting/audit scripts
+notebooks/   Standalone HF GPU eval notebook
+eval/        Shared prompt loading, checks, providers, judge, and local harness
+scripts/     Readiness and failure-analysis utilities
+prompts/     Current generation prompt used for train/eval formatting
+data/        Source corpus, split definitions, and generated training artifacts
+docs/        Short build log and retained project notes
 ```
 
-Everything is documented as markdown. See
-[`docs/00_process_index.md`](docs/00_process_index.md) for the full map.
+## Local Ollama Export
 
-## Spec
+After training uploads v3, register the HF artifact locally only if you need a Mac
+or Ollama smoke test:
 
-Follows [`Train Your Own Small Learning Model.md`](Train%20Your%20Own%20Small%20Learning%20Model.md):
-the **dataset is the deliverable**; the **eval is built before training**; a
-**base-vs-tuned** comparison is mandatory; QLoRA/Unsloth on a small open base; no
-broad domains.
-
-## Data (legally sourced)
-
-No pre-existing question dataset. Training data is **distilled from a frontier
-teacher**, grounded on **public-domain primary sources** (published ≤1930, plus
-U.S. federal works and court opinions) and **CC-BY(-SA) open textbooks**. **No
-College Board questions enter the pipeline** (their terms forbid AI training).
-Legal analysis + provenance: [`docs/05_data_sourcing_and_legal.md`](docs/05_data_sourcing_and_legal.md).
-
-## Repository layout
-
-```
-docs/            Research, feasibility, data-sourcing, and the process index
-docs/planning/   Brainstormer plans + validator feedback + brainlift
-taxonomy/        Machine-readable APUSH archetype catalog (agent-iterable)
-prompts/         Litmus + bulk data-generation prompts
-data/            Seed stimuli, periods/themes grid, date-tagged developments,
-                 legal scraper (build_seed_corpus.py) + provenance manifest
+```bash
+python3 scripts/register_ollama_from_hf.py \
+  --repo rohanpalviela/qwen3-4b-apush-v3-clean-lora \
+  --local-dir models/qwen3-apush-v3-clean \
+  --model-name qwen3-apush-v3-clean:latest
 ```

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Manually calibrate the LLM judge against a human ground truth (the G-cal gate,
-docs/plan_v2 M2.5) — WITHOUT any model calls. Works on items the harness already
-generated + judged (results/litmus_items.jsonl).
+Manually calibrate the LLM judge against a human ground truth WITHOUT any model
+calls. Works on items the harness already generated + judged
+(`results/litmus_items.jsonl`).
 
 The litmus verdict hinges on subjective judge dimensions — chiefly
 `distractors_period_plausible` (which drags `spec_adherence` to 1 and produces the

@@ -1,5 +1,5 @@
 """
-Key-verifier for the generation pipeline (SC-KEY, docs/plan_v2 §7).
+Key-verifier for the generation pipeline.
 
 The judge grades item QUALITY; it does not independently re-derive the answer, so
 it can bless a confidently-wrong or ambiguous key. Distilling wrong answers is the

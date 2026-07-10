@@ -133,8 +133,7 @@ reliability-first, distillation-based fine-tuning project should reason from.
 
 ### Long-tail recall & grounding (Deliverable 3 — supplementary web research)
 
-These three were added while writing [`03_feasibility_assessment.md`](03_feasibility_assessment.md)
-to ground the two load-bearing APUSH-specific claims: that a fact-dense domain
+These three ground the two load-bearing APUSH-specific claims: that a fact-dense domain
 stresses small-model factual recall (the SC-KEY crux) and that **grounding the
 answer to the date-tagged developments table** is the decisive mitigation.
 
@@ -163,5 +162,4 @@ answer to the date-tagged developments table** is the decisive mitigation.
   path to factual reliability. *Caveat:* QA/knowledge tasks, not MCQ authoring.
 
 > **Citation key convention:** bracketed keys (e.g. `[CED-sample]`, `[missed-mcq]`,
-> `[loraland]`) are used inline throughout `docs/01*`, `docs/03`, and the planning
-> docs.
+> `[loraland]`) are retained here as project references.

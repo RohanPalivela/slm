@@ -74,14 +74,11 @@ College Board's terms explicitly prohibit reproduction, scraping, data-mining, a
 **and** a contractual violation; AI-training fair-use law is contested. Therefore:
 
 - **Training pipeline:** **zero** College Board content. Ever.
-- **Taxonomy (Deliverable 1):** derived by hand from the **public course
-  framework** (skills, reasoning processes, periods, themes). The CED **sample MCQ
-  stems** referenced in `docs/01` / the taxonomy JSON are used for **commentary
-  and analysis only** (a textbook fair-use purpose — transformative, no market
+- **Taxonomy/design:** derived by hand from the **public course framework**
+  (skills, reasoning processes, periods, themes). The CED **sample MCQ stems** were
+  used for commentary and analysis only (a textbook fair-use purpose — transformative, no market
   substitution), are clearly labeled "(analysis only, not training data)," and are
-  **never ingested** into the dataset. If even that is later deemed too close, the
-  `good_example` fields can be swapped for the project's own PD-grounded exemplars
-  with no loss to the schema.
+  **never ingested** into the dataset.
 - **Eval:** if an APUSH-flavored external check is wanted, use MMLU
   `high_school_us_history` (MIT) as a held-out set — **not** College Board items.
 

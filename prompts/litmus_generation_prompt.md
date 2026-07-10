@@ -1,17 +1,8 @@
-# Litmus Generation Prompt (v1)
+# APUSH Item Generation Prompt
 
-> **Purpose.** The strongest reasonable prompt for "notes/source → expert APUSH
-> stimulus-based MCQs." Per the project spec, fine-tuning is only justified if **a
-> well-prompted base model cannot already do this reliably.** So this prompt is
-> deliberately maximal: the full behavior spec, the closed stem menu, the closed
-> distractor-trap menu, the quality bar, and two gold few-shot exemplars. If a
-> *small* base model nails this every time, do **not** build the SLM. If a
-> *frontier* model nails it but the small model does not, that gap is what
-> distillation buys.
->
-> Run protocol, scoring, decision thresholds:
-> [`docs/02_litmus_test_prompt.md`](../docs/02_litmus_test_prompt.md).
-> Copy the two blocks below verbatim (`SYSTEM` then `USER`), filling `{{...}}`.
+Current prompt used by the training formatter and eval notebook. It asks for
+source-grounded APUSH stimulus MCQs over the two v3 causation archetypes:
+`CAUSE_OF_SOURCE` and `EFFECT_OF_SOURCE`.
 
 ---
 

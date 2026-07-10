@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Dataset factory (M3) — turn the calibrated litmus pipeline into a hands-off
-generator. For each (stimulus, archetype) it generates with the teacher, repairs
+Dataset factory for generating APUSH training candidates. For each
+(stimulus, archetype), it generates with the teacher, repairs
 the distractors, then runs the 3-stage filter and KEEPS only survivors, looping
 until it hits the per-slot target (or an attempt cap):
 
@@ -13,8 +13,8 @@ until it hits the per-slot target (or an attempt cap):
       -> keep
 
 No per-item human grading. The per-stage yields it prints double as the G-yield
-calibration (docs/plan_v2 M2.5): run it on a small target first, read the funnel,
-then scale volume/budget from the measured keep rate.
+calibration: run it on a small target first, read the funnel, then scale
+volume/budget from the measured keep rate.
 
 Quick start:
     python eval/generate.py --split TRAIN --target 6 --repair            # real

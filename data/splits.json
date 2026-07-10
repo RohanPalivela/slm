@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Frozen train/eval/litmus partitions (contamination firewall)",
-  "note": "Sources are DISJOINT across splits: no stimulus is used both to litmus/eval and to generate training data. v1 scope = the causation pair (CAUSE_OF_SOURCE + EFFECT_OF_SOURCE) on TEXT PRIMARY sources only. Secondary-source stimuli are F5 (out of v1 scope) and listed separately. TRAIN is intentionally empty until the A3 corpus expansion (14 -> ~150 primary) runs; the current 14 primaries are reserved for the litmus build-gate + a small held-out eval. Freeze this file before any generation (plan_v2 M0).",
+  "note": "Sources are DISJOINT across splits: no stimulus is used both to litmus/eval and to generate training data. Current v3 scope is the causation pair (CAUSE_OF_SOURCE + EFFECT_OF_SOURCE) on text primary sources.",
   "scope": {
     "archetypes": [
       "CAUSE_OF_SOURCE",
@@ -21,7 +21,7 @@
   },
   "splits": {
     "LITMUS": {
-      "role": "docs/02 build-gate (P1/P2 + teacher key_valid_rate). NEVER used as a training seed.",
+      "role": "legacy build-gate split. NEVER used as a training seed.",
       "source_ids": [
         "decl_independence_1776",
         "washington_farewell_1796",
@@ -36,7 +36,7 @@
       ]
     },
     "EVAL_HELDOUT": {
-      "role": "product base-vs-tuned eval (plan_v2 5B). Disjoint from LITMUS + TRAIN. Expand to >=25-30 primary via A3 before the real product eval.",
+      "role": "product base-vs-tuned eval. Disjoint from LITMUS + TRAIN.",
       "source_ids": [
         "federalist_10_1787",
         "carnegie_gospel_wealth_1889",
@@ -69,7 +69,7 @@
       ]
     },
     "TRAIN": {
-      "role": "generation seeds (disjoint from LITMUS/EVAL). Seeded from the A3 fetch (public-domain primaries); extend as the corpus grows toward ~150.",
+      "role": "generation seeds for v3 training. Disjoint from LITMUS/EVAL.",
       "source_ids": [
         "mayflower_compact_1620",
         "northwest_ordinance_1787",
@@ -142,7 +142,7 @@
       ]
     }
   },
-  "out_of_v1_scope_secondary": [
+  "secondary_sources_not_used_for_v3": [
     "secondary_newdeal_exclusion",
     "secondary_reconstruction_failure",
     "secondary_populism_progressivism",
@@ -152,8 +152,10 @@
     "secondary_progressivism_control",
     "secondary_cold_war_origins"
   ],
-  "pending": {
-    "A3_corpus_expansion": "106 primary sources (public-domain / federal / court-opinion sources). TRAIN has 68 generation seeds; EVAL_HELDOUT has 28 disjoint sources for the product base-vs-tuned eval. Extend the CORPUS_CATALOG + re-run --build-corpus to grow further.",
-    "A6_developments_table": "already expanded 84 -> 167 (data/apush_key_developments.json)."
+  "status": {
+    "train_sources": 68,
+    "eval_heldout_sources": 28,
+    "litmus_sources": 10,
+    "developments_table": "data/apush_key_developments.json"
   }
 }

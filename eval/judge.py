@@ -1,7 +1,7 @@
 """
-LLM-as-judge for the litmus harness. Scores one generated item against the
-taxonomy quality bar (docs/02 §4b). MUST be a different model family than the
-model under test. Returns a normalized dict; `expert_grade` and `key_valid` are
+LLM-as-judge for the eval harness. Scores one generated item against the APUSH
+quality bar. Use a different model family than the model under test when possible.
+Returns a normalized dict; `expert_grade` and `key_valid` are
 computed in code from the judge's booleans for consistency.
 """
 from __future__ import annotations
@@ -156,6 +156,6 @@ def near_grade(prog_ok: bool, j: dict) -> bool:
 
 
 def expert_grade(prog_ok: bool, j: dict) -> bool:
-    """docs/02 §4b: all disqualifying checks pass (programmatic + judge) AND every
+    """All disqualifying checks pass (programmatic + judge) AND every
     graded dim >=1 AND spec_adherence==2 AND a valid key."""
     return bool(near_grade(prog_ok, j) and j["spec_adherence"] == 2)

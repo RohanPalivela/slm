@@ -1,14 +1,13 @@
 """
-Programmatic quality gates for a generated APUSH MCQ item (litmus + train filter).
+Programmatic quality gates for a generated APUSH MCQ item.
 
-Mirrors the disqualifying `quality_checks` in taxonomy/apush_question_archetypes.json
-that can be checked WITHOUT a model. The LLM-judge (judge.py) covers the rest
+These are the disqualifying checks that can be evaluated without a model. The
+LLM judge (`judge.py`) covers the rest
 (requires-outside-knowledge, distractor-trap validity, single-best, key validity).
 
 Key design point (feasibility crux): the anachronism date-check is the cheap,
 deterministic verifier — a CAUSE must predate the source, an EFFECT must postdate
-it. Here it is best-effort (the litmus prompt emits free-text `answer_dating`, not
-a development_id); the bulk data-gen pipeline does the strict id-based version.
+it. This is best-effort because the prompt emits free-text `answer_dating`.
 """
 from __future__ import annotations
 import re
