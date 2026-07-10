@@ -87,6 +87,17 @@ def _valid_shape(it: dict, original: dict) -> bool:
         return False
     if str(it.get("answer", "")).strip().upper()[:1] != str(original.get("answer", "")).strip().upper()[:1]:
         return False
+    # The repair prompt promises to hold all of these fixed. Enforce that
+    # promise in code; otherwise a "distractor repair" can silently rewrite the
+    # question or keyed fact and invalidate the earlier provenance.
+    if str(it.get("archetype", "")).strip() != str(original.get("archetype", "")).strip():
+        return False
+    if str(it.get("stem", "")).strip() != str(original.get("stem", "")).strip():
+        return False
+    key_idx = "ABCD".index(str(original.get("answer", "")).strip().upper()[:1])
+    original_opts = original.get("options") or []
+    if len(original_opts) != 4 or str(opts[key_idx]).strip() != str(original_opts[key_idx]).strip():
+        return False
     return True
 
 

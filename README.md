@@ -17,10 +17,10 @@ rohanpalviela/qwen3-4b-apush-v3-clean-lora
    python3 scripts/validate_retrain_ready.py
    ```
 
-   Expected result:
+   The current v3 artifact passes mechanical gates but now reports known semantic warnings:
 
    ```text
-   RETRAIN_READY: yes
+   RETRAIN_READY: yes_with_warnings
    ```
 
 2. Train in Colab with:
@@ -38,21 +38,16 @@ rohanpalviela/qwen3-4b-apush-v3-clean-lora
    notebooks/eval_hf_gpu.ipynb
    ```
 
-   Start with a smoke run:
+   Start with the one-prompt smoke cell. The committed full-run configuration is:
 
    ```python
-   RUNS = 2
-   LIMIT = 5
-   N = 2
-   ```
-
-   Then run the full eval:
-
-   ```python
-   RUNS = 3
+   RUNS = 1
    LIMIT = 0
    N = 2
    ```
+
+   This evaluates all 28 held-out sources × 2 archetypes = 56 paired prompts per
+   model. The notebook downloads `apush_eval_results.zip` when it finishes.
 
 4. Inspect failures:
 
@@ -62,6 +57,17 @@ rohanpalviela/qwen3-4b-apush-v3-clean-lora
      --attempts <generation_attempts.json> \
      --out <summary.json>
    ```
+
+5. Before another bulk training run, semantically rejudge a stratified sample:
+
+   ```bash
+   python3 scripts/rejudge_training_sample.py --n 100
+   ```
+
+   The existing v3 set is heavily speech-weighted and used the same model for its
+   judge and verifier. Expand it with independently sourced laws, court opinions,
+   treaties, and executive actions before treating a new adapter as a production
+   candidate.
 
 ## Canonical Data
 
@@ -80,9 +86,12 @@ The stale pre-clean SFT artifact is intentionally not kept. If you need to rebui
 the SFT file, run:
 
 ```bash
-python3 train/audit_dataset.py --in data/generated/train.jsonl --write-clean
+python3 train/audit_dataset.py --in data/generated/train.jsonl --write-clean --backfill-outside-knowledge
 python3 train/format_dataset.py
 ```
+
+The backfill flag is legacy-only for the existing v3 raw artifact. New generation
+runs preserve the model's original outside-knowledge explanation and should omit it.
 
 ## Repo Layout
 

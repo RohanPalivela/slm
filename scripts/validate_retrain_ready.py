@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "eval"))
 
 import checks  # noqa: E402
 from prompt_loader import extract_items  # noqa: E402
+from source_utils import source_genre  # noqa: E402
 
 OPTION_LABEL = re.compile(r"^\s*[A-D][).:]\s+")
 REQUIRED_ITEM_FIELDS = {
@@ -46,6 +47,7 @@ def main() -> int:
     splits = json.loads(Path(args.splits).read_text(encoding="utf-8"))["splits"]
     prompt_text = Path(args.prompt).read_text(encoding="utf-8")
     failures: list[str] = []
+    warnings: list[str] = []
 
     if len(clean) != len(sft):
         fail(failures, f"clean/SFT count mismatch: {len(clean)} vs {len(sft)}")
@@ -65,6 +67,13 @@ def main() -> int:
     train_ids = set(splits["TRAIN"]["source_ids"])
     heldout_ids = set(splits["LITMUS"]["source_ids"]) | set(splits["EVAL_HELDOUT"]["source_ids"])
     clean_source_ids = {row.get("source_id") for row in clean}
+    genre_counts = Counter(source_genre(sources.get(sid), sid or "") for sid in clean_source_ids)
+    speech_share = genre_counts.get("speech_or_argument", 0) / max(len(clean_source_ids), 1)
+    if speech_share > 0.60:
+        warnings.append(
+            f"source genre skew: {genre_counts.get('speech_or_argument', 0)}/{len(clean_source_ids)} "
+            "training sources are speeches/arguments; add laws, court opinions, treaties, and executive actions"
+        )
     overlap = clean_source_ids & heldout_ids
     if overlap:
         fail(failures, f"training clean set overlaps heldout/litmus sources: {sorted(overlap)[:10]}")
@@ -77,6 +86,8 @@ def main() -> int:
     verify_mismatch = []
     option_labels = []
     check_fails = Counter()
+    synthesized_outside = 0
+    correlated_verifier = 0
     for idx, row in enumerate(clean, 1):
         missing = REQUIRED_CLEAN_FIELDS - set(row)
         if missing:
@@ -93,6 +104,15 @@ def main() -> int:
         verify = row.get("verify") or {}
         if verify.get("key") and verify.get("key") != row.get("answer"):
             verify_mismatch.append((idx, row["source_id"], row.get("answer"), verify.get("key")))
+        provenance = row.get("provenance") or {}
+        if provenance.get("judge") and provenance.get("judge") == provenance.get("verifier"):
+            correlated_verifier += 1
+        answer = str(row.get("answer", "")).strip().upper()[:1]
+        opts = row.get("options") or []
+        if answer in "ABCD" and len(opts) == 4:
+            legacy = f"{opts['ABCD'.index(answer)]} — {row.get('answer_dating', '')}".strip(" —")
+            if str(row.get("requires_outside_knowledge", "")).strip() == legacy:
+                synthesized_outside += 1
         for option in row.get("options") or []:
             if OPTION_LABEL.search(str(option)):
                 option_labels.append((idx, option))
@@ -107,6 +127,15 @@ def main() -> int:
         fail(failures, f"embedded option labels: {option_labels[:5]}")
     if check_fails:
         fail(failures, f"programmatic check failures: {dict(check_fails)}")
+    if synthesized_outside:
+        warnings.append(
+            f"{synthesized_outside}/{len(clean)} outside-knowledge explanations were mechanically "
+            "backfilled from key+dating rather than preserved from generation"
+        )
+    if correlated_verifier:
+        warnings.append(
+            f"{correlated_verifier}/{len(clean)} records used the same model for judge and verifier"
+        )
 
     if '"options": ["A ...", "B ...", "C ...", "D ..."]' in prompt_text:
         fail(failures, "prompt still asks for labeled option strings")
@@ -135,13 +164,15 @@ def main() -> int:
         "answer_distribution": dict(answers),
         "archetype_distribution": dict(arch),
         "source_count": len(clean_source_ids),
+        "source_genres": dict(genre_counts),
+        "warnings": warnings,
         "failures": failures,
     }
     print(json.dumps(report, indent=2, ensure_ascii=False))
     if failures:
         print("RETRAIN_READY: no")
         return 1
-    print("RETRAIN_READY: yes")
+    print("RETRAIN_READY: yes_with_warnings" if warnings else "RETRAIN_READY: yes")
     return 0
 
 

@@ -33,6 +33,7 @@ import providers          # noqa: E402
 import checks             # noqa: E402
 import judge              # noqa: E402
 import repair             # noqa: E402
+from source_utils import source_genre  # noqa: E402
 from prompt_loader import LitmusPrompt, extract_items, canonicalize_item_archetype  # noqa: E402
 
 DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"
@@ -252,7 +253,7 @@ def judge_all(gen_records, judge_cfg, sources_by_id, *, no_judge, concurrency):
     def work(rec):
         src = sources_by_id[rec["source_id"]]
         scored = score_item(rec["item"], src, judge_cfg, rec["role"], no_judge)
-        return {**rec, **scored}
+        return {**rec, "source_genre": source_genre(src), **scored}
 
     workers = 1 if no_judge else concurrency
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:
@@ -283,8 +284,10 @@ def aggregate(scored):
     dims = ["spec_adherence", "distractor_craft", "outside_knowledge_skill_fit"]
     judged = [x["judge"] for x in scored if x["judge"] is not None]
     by_arch = {}
+    by_genre = {}
     for x in scored:
         by_arch.setdefault(x["item"].get("archetype", "?"), []).append(x)
+        by_genre.setdefault(x.get("source_genre", "unknown"), []).append(x)
     return {
         "n_items": n,
         "pass_rate": _rate(scored, "expert_grade"),
@@ -300,6 +303,14 @@ def aggregate(scored):
         "option_date_tell_rate": (sum(1 for x in scored if not x["prog"].get("no_parenthetical_option_dates", True)) / n) if n else 0.0,
         "mean_dims": {d: (round(statistics.mean(j[d] for j in judged), 2) if judged else None) for d in dims},
         "by_archetype": {a: _rate(v, "near_miss") for a, v in by_arch.items()},
+        "by_genre": {
+            genre: {
+                "n": len(records),
+                "near_miss": _rate(records, "near_miss"),
+                "key_valid": _rate(records, "key_valid"),
+            }
+            for genre, records in sorted(by_genre.items())
+        },
     }
 
 
@@ -361,6 +372,13 @@ def write_report(results, meta, out_dir):
                  f"{a['invalid_trap_rate']:.0%} | "
                  f"{a['option_date_tell_rate']:.0%} | "
                  f"{a['date_fail_rate']:.0%} | {a['source_leak_rate']:.0%} |")
+    L.append("")
+    L.append("### Per-source-genre quality")
+    L.append("| Model | Genre | Items | Near-miss | key_valid |")
+    L.append("| :--- | :--- | ---: | ---: | ---: |")
+    for name, v in results.items():
+        for genre, stats in v["agg"].get("by_genre", {}).items():
+            L.append(f"| {name} | {genre} | {stats['n']} | {pct(stats['near_miss'])} | {pct(stats['key_valid'])} |")
     L.append("")
     L.append("### Per-archetype near-miss (expert-quality) pass rate")
     L.append("| Model | " + " | ".join(sorted({a for v in results.values() for a in v["agg"]["by_archetype"]})) + " |")

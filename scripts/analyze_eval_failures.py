@@ -16,6 +16,11 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+import sys
+sys.path.insert(0, str(ROOT / "eval"))
+from source_utils import source_genre  # noqa: E402
+
 
 def load_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.open(encoding="utf-8") if line.strip()]
@@ -79,6 +84,10 @@ def bucket_record(rec: dict) -> list[str]:
 
 
 def summarize(items: list[dict], attempts: list[dict]) -> dict:
+    source_path = ROOT / "data" / "seed_stimuli.jsonl"
+    sources = {
+        row["id"]: row for row in load_jsonl(source_path)
+    } if source_path.exists() else {}
     by_model: dict[str, list[dict]] = defaultdict(list)
     by_attempt_model: dict[str, list[dict]] = defaultdict(list)
     for rec in items:
@@ -97,13 +106,18 @@ def summarize(items: list[dict], attempts: list[dict]) -> dict:
         n = len(recs)
         bucket_counts = Counter()
         arch_counts = defaultdict(Counter)
+        genre_counts = defaultdict(Counter)
         examples = defaultdict(list)
         for rec in recs:
             buckets = bucket_record(rec)
             arch = rec.get("archetype") or (rec.get("item") or {}).get("archetype") or "?"
+            genre = rec.get("source_genre") or source_genre(
+                sources.get(rec.get("source_id")), rec.get("source_id", "")
+            )
             for bucket in buckets:
                 bucket_counts[bucket] += 1
                 arch_counts[arch][bucket] += 1
+                genre_counts[genre][bucket] += 1
                 if bucket != "passed_or_unjudged" and len(examples[bucket]) < 5:
                     item = rec.get("item") or {}
                     examples[bucket].append({
@@ -125,6 +139,7 @@ def summarize(items: list[dict], attempts: list[dict]) -> dict:
             "key_valid": None if n == 0 else sum(1 for r in recs if r.get("key_valid")) / n,
             "bucket_counts": dict(bucket_counts),
             "by_archetype": {arch: dict(counts) for arch, counts in arch_counts.items()},
+            "by_genre": {genre: dict(counts) for genre, counts in genre_counts.items()},
             "examples": examples,
         }
     return summary

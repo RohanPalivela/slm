@@ -293,6 +293,10 @@ def main() -> int:
     ap.add_argument("--quarantine-out", default=str(ROOT / "data/generated/train_quarantine.jsonl"))
     ap.add_argument("--report-out", default=str(ROOT / "data/generated/train_audit_report.json"))
     ap.add_argument("--sources", default=str(ROOT / "data/seed_stimuli.jsonl"))
+    ap.add_argument(
+        "--backfill-outside-knowledge", action="store_true",
+        help="legacy-only: synthesize a missing field from key+dating; normally quarantine it",
+    )
     ap.add_argument("--write-clean", action="store_true")
     args = ap.parse_args()
 
@@ -310,7 +314,7 @@ def main() -> int:
         if labeled:
             repair_counts["stripped_option_labels"] += 1
 
-        if not rec.get("requires_outside_knowledge"):
+        if args.backfill_outside_knowledge and not rec.get("requires_outside_knowledge"):
             add_requires_outside_knowledge(rec)
             if rec.get("requires_outside_knowledge"):
                 repair_counts["added_requires_outside_knowledge"] += 1

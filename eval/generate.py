@@ -119,10 +119,11 @@ def run_slot(source, archetype, *, gen_cfg, judge_cfg, ver_cfg, prompt, cfg, fun
                 "stem": it.get("stem"), "options": it.get("options"),
                 "answer": it.get("answer"), "answer_dating": it.get("answer_dating"),
                 "rationale": it.get("rationale"), "trap_types": it.get("trap_types"),
+                "requires_outside_knowledge": it.get("requires_outside_knowledge"),
                 "period": source.get("period"), "themes": source.get("themes"),
-                "judge": {k: j.get(k) for k in ("spec_adherence", "distractor_craft",
-                                                "outside_knowledge_skill_fit",
-                                                "distractors_period_plausible")},
+                # Preserve the full decision, not just display dimensions. This
+                # makes later rubric audits and failure analysis reproducible.
+                "judge": dict(j),
                 "verify": v, "repaired": bool(it.get("_repaired")),
                 "provenance": {"generator": gen_cfg["name"], "judge": judge_cfg.get("name"),
                                "verifier": ver_cfg.get("name"), "attempts": attempts},
@@ -171,6 +172,9 @@ def main():
         if not models.get("verifier"):
             print("note: no 'verifier' configured — using the judge model as key-verifier "
                   "(prefer a 3rd family; add a 'verifier' entry to models.json).")
+        elif (ver_cfg.get("provider"), ver_cfg.get("model")) == (judge_cfg.get("provider"), judge_cfg.get("model")):
+            print("WARNING: judge and verifier resolve to the same model. Repeated solves are "
+                  "correlated evidence; use a separate model family before bulk generation.")
 
     sources = load_sources(args.split)
     if args.limit:
