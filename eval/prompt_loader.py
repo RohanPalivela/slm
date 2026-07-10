@@ -41,7 +41,8 @@ class LitmusPrompt:
 
     @classmethod
     def from_file(cls, path: str) -> "LitmusPrompt":
-        md = open(path, encoding="utf-8").read()
+        with open(path, encoding="utf-8") as handle:
+            md = handle.read()
         system = _fenced_block_after(md, "## system")
         user = _fenced_block_after(md, "## user")
         fewshot = _fenced_block_after(md, "few-shot")
@@ -118,7 +119,7 @@ def _normalize_items(obj) -> list[dict]:
 
     Handles the shapes models actually emit: a bare array, a single item object,
     or a wrapper object nesting the array under a key. Any non-dict elements
-    (e.g. a stray array of bare strings) are discarded rather than propagated —
+    (e.g. a stray array of bare strings) are discarded rather than propagated -
     they have no schema the downstream checks/judge can use, and letting them
     through crashes the harness."""
     if isinstance(obj, dict):
@@ -176,3 +177,98 @@ def extract_items(text: str) -> list[dict]:
                     except json.JSONDecodeError:
                         break
     return []
+
+
+def _delimiter_balance(text: str) -> tuple[int, int]:
+    """Return square- and curly-bracket balance while ignoring JSON strings."""
+    square = curly = 0
+    in_string = escaped = False
+    for char in text:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "[":
+            square += 1
+        elif char == "]":
+            square -= 1
+        elif char == "{":
+            curly += 1
+        elif char == "}":
+            curly -= 1
+    return square, curly
+
+
+def generation_format_diagnostics(text: str) -> dict:
+    """Classify strict product-format reliability without repairing the output.
+
+    Tolerant parsing remains useful for semantic diagnostics, but the primary
+    product contract is one top-level JSON array. This function keeps those two
+    questions separate and names the malformed object-plus-trailing-bracket shape
+    observed in the v3 tuned run.
+    """
+    raw = text or ""
+    stripped = raw.strip()
+    fenced = bool(re.match(r"^```", stripped))
+    no_fence = re.sub(r"^```[a-zA-Z]*\s*", "", stripped)
+    no_fence = re.sub(r"\s*```$", "", no_fence).strip()
+    strict_value = None
+    strict_json = False
+    try:
+        strict_value = json.loads(no_fence)
+        strict_json = True
+    except (json.JSONDecodeError, TypeError):
+        pass
+    square_balance, curly_balance = _delimiter_balance(no_fence)
+    starts_array = no_fence.startswith("[")
+    starts_object = no_fence.startswith("{")
+    ends_array = no_fence.endswith("]")
+    ends_object = no_fence.endswith("}")
+    trailing_array_bracket = bool(
+        starts_object
+        and ends_array
+        and square_balance == -1
+        and curly_balance == 0
+    )
+    tolerant_items = extract_items(raw)
+    if not stripped:
+        bucket = "empty"
+    elif fenced and strict_json and isinstance(strict_value, list):
+        bucket = "markdown_fenced_array"
+    elif strict_json and isinstance(strict_value, list):
+        bucket = "strict_array"
+    elif strict_json and isinstance(strict_value, dict):
+        bucket = "strict_object"
+    elif trailing_array_bracket:
+        bucket = "object_with_trailing_array_bracket"
+    elif tolerant_items and (square_balance > 0 or curly_balance > 0):
+        bucket = "complete_item_then_unclosed_trailing_output"
+    elif square_balance > 0 or curly_balance > 0:
+        bucket = "truncated_or_unclosed"
+    elif tolerant_items:
+        bucket = "tolerant_only"
+    else:
+        bucket = "invalid_json"
+    return {
+        "bucket": bucket,
+        "strict_json": strict_json,
+        "strict_array_contract": bool(
+            strict_json and isinstance(strict_value, list) and not fenced
+        ),
+        "top_level_type": type(strict_value).__name__ if strict_json else None,
+        "tolerant_item_count": len(tolerant_items),
+        "starts_array": starts_array,
+        "starts_object": starts_object,
+        "ends_array": ends_array,
+        "ends_object": ends_object,
+        "square_balance": square_balance,
+        "curly_balance": curly_balance,
+        "contains_markdown_fence": fenced,
+        "contains_think_tag": "<think" in raw.lower() or "</think" in raw.lower(),
+    }

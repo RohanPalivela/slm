@@ -1,7 +1,7 @@
 # APUSH Item Generation Prompt
 
 Current prompt used by the training formatter and eval notebook. It asks for
-source-grounded APUSH stimulus MCQs over the two v3 causation archetypes:
+source-grounded APUSH stimulus MCQs over the two canonical causation archetypes:
 `CAUSE_OF_SOURCE` and `EFFECT_OF_SOURCE`.
 
 ---
@@ -25,47 +25,53 @@ draft fails any gate, silently discard it and write another.
 2. REQUIRES OUTSIDE KNOWLEDGE (the cardinal rule). The correct answer must require
    connecting the source to a historical development NOT stated in the source.
    Never ask the source back to itself. If the source is a canal-boom passage, do
-   NOT ask "what does the passage say the canal did?" — instead ask which broader
-   development it illustrates, what most directly caused it, or which later
-   development had a similar effect. Understanding the QUESTION comes from the
-   stem; getting the ANSWER requires outside knowledge.
+   NOT ask "what does the passage say the canal did?" - instead ask which specific
+   prior development most directly caused it or which specific later development
+   it most directly produced. Understanding the QUESTION comes from the stem;
+   getting the ANSWER requires outside knowledge.
 
-3. THE COMMAND PHRASE SIGNALS THE SKILL, AND THE ANSWER MUST MATCH IT. Use one of
-   the closed stem templates below. A causation stem ("contributed most directly
-   to") must be answered by a CAUSE; a support stem ("evidence to support the
-   argument") by a STRENGTHENER; a comparison stem ("most similar to") by a shared
-   MECHANISM. Reject any answer that is merely "related and historically true."
+3. THE COMMAND PHRASE SIGNALS THE SKILL, AND THE ANSWER MUST MATCH IT. A
+   `CAUSE_OF_SOURCE` stem must be answered by a specific prior CAUSE. An
+   `EFFECT_OF_SOURCE` stem must be answered by a specific later CONSEQUENCE.
+   Reject any answer that is merely "related and historically true."
 
-4. EVERY DISTRACTOR ENCODES A NAMED TRAP — AND MUST BE TEMPTING, NOT A GIVEAWAY.
+   DIRECT-CAUSALITY TEST. For a cause item, be able to state a concrete chain
+   from the keyed prior development to the source's specific position, policy,
+   or action. For an effect item, be able to state a concrete chain from the
+   source's specific position, policy, or action to the keyed later development.
+   Shared topic, chronological proximity, or broad ideological similarity is
+   insufficient. If the source itself had no defensible direct consequence,
+   discard the draft instead of crediting a merely related later development.
+
+4. EVERY DISTRACTOR ENCODES A NAMED TRAP AND MUST BE TEMPTING, NOT A GIVEAWAY.
    Each of the 3 wrong options must be a real, era-plausible development that a
    knowledgeable-but-imperfect student would SERIOUSLY consider, and must be wrong
    for exactly ONE nameable reason from this closed menu:
      - WRONG_ERA: a real development from a NEIGHBORING / plausibly-confusable era
-       — NOT a giveaway that is obviously a century off. The wrong-era distractor
+       - NOT a giveaway that is obviously a century off. The wrong-era distractor
        must be close enough in time (ideally the adjacent period, and same theme)
        that a student who is shaky on chronology could pick it. Example of a BAD
        (giveaway) wrong-era distractor: offering "Social Darwinism" (late 1800s)
-       for a question about influences on the 1776 Declaration — any student rules
+       for a question about influences on the 1776 Declaration - any student rules
        it out instantly. A GOOD wrong-era distractor for that item stays in the
        Revolutionary/early-Republic orbit (e.g., a slightly-off Enlightenment or
        constitutional idea).
      - TRUE_BUT_IRRELEVANT: accurate for the SAME era but answers a different
-       question (wrong theme/mechanism) — so era knowledge alone won't eliminate it.
+       question (wrong theme/mechanism) - so era knowledge alone won't eliminate it.
      - SCOPE_MISMATCH: too broad (general background when the stem says "most
        directly") or too narrow (one example when it asks for a trend).
      - PARTIALLY_TRUE: one clause accurate and one fabricated/overstated, or the
        right topic with the wrong direction/magnitude.
    HARD SUBTLETY TEST (apply to every distractor): "Could a well-prepared student
    eliminate this in under one second purely because it is from an obviously
-   different century or an obviously different topic?" If YES, it is a giveaway —
+   different century or an obviously different topic?" If YES, it is a giveaway -
    discard it and write a closer, more tempting one. NO filler. NO options wrong
    for no reason. Prefer distractors a student who ALMOST knows the answer would
    choose. The 3 distractors must span at least TWO distinct trap types; at most
    ONE may be a WRONG_ERA trap (so the item does not lean on chronology giveaways).
 
 5. ANACHRONISM-CONSISTENT KEY. The keyed answer's date must obey the stem's time
-   direction: a CAUSE predates the source; an EFFECT postdates it; a
-   contemporaneous "reflects/illustrates" answer shares the era. Exactly ONE
+   direction: a CAUSE predates the source and an EFFECT postdates it. Exactly ONE
    distractor may be the WRONG_ERA trap (from a NEIGHBORING era per rule 4) that
    violates this direction; the other two distractors should be same-era traps
    (TRUE_BUT_IRRELEVANT / SCOPE_MISMATCH / PARTIALLY_TRUE) so the item cannot be
@@ -74,6 +80,12 @@ draft fails any gate, silently discard it and write another.
 6. SINGLE BEST ANSWER. Exactly one option fully answers the stem; the others are
    clearly inferior. Use "most directly / best / most likely" framing when more
    than one option is partially defensible.
+
+   ADVERSARIAL KEY CHECK. Before choosing the key, try to disprove it and compare
+   it directly with every distractor. If another option is also historically
+   correct under a reasonable reading, rewrite the options. The rationale must
+   name the causal link that makes the key more direct, not merely repeat that it
+   is associated with the source.
 
 7. HOMOGENEOUS OPTIONS, NO TELLS. All four options are the same category (all
    developments, or all purposes, or all responses), similar length and grammar;
@@ -123,7 +135,7 @@ SOURCE (the stimulus the questions must hang on; treat as authentic):
 """
 {{SOURCE}}
 """
-ATTRIBUTION: {{ATTRIBUTION}}   (author, type, date — the date anchors the era)
+ATTRIBUTION: {{ATTRIBUTION}}   (author, type, date - the date anchors the era)
 STUDY NOTE (the concept the item should test, if provided):
 """
 {{NOTE}}
@@ -144,14 +156,14 @@ only the JSON array.
 
 ---
 
-## Few-shot exemplars (optional block — insert after SYSTEM, before USER)
+## Few-shot exemplars (optional block - insert after SYSTEM, before USER)
 
 > Ablate these in the protocol (run with and without) to separate "the model can
 > do it" from "the model can imitate two examples." Both hang on public-domain /
 > synthetic stimuli (no College Board text reused).
 
 ```text
-EXAMPLE — archetype CAUSE_OF_SOURCE
+EXAMPLE - archetype CAUSE_OF_SOURCE
 SOURCE: "...the money changers have fled from their high seats in the temple of
 our civilization. We may now restore that temple to the ancient truths. The
 measure of the restoration lies in the extent to which we apply social values
@@ -170,7 +182,7 @@ ATTRIBUTION: Franklin D. Roosevelt, First Inaugural Address, March 4, 1933 (publ
   "answer": "A",
   "answer_dating": "The 1929 crash and 1930-33 bank failures predate the March 1933 address, obeying the cause-before-source direction.",
   "rationale": {
-    "correct": "The Depression Roosevelt invokes was most directly caused by the 1929 market crash and cascading bank failures — a cause that precedes the address and matches the 'most directly' causation demand.",
+    "correct": "The Depression Roosevelt invokes was most directly caused by the 1929 market crash and cascading bank failures - a cause that precedes the address and matches the 'most directly' causation demand.",
     "A": "correct",
     "B": "WRONG_ERA: U.S. WWII mobilization began ~1940-41, after this 1933 address, so it cannot be a cause.",
     "C": "PARTIALLY_TRUE: leaving the gold standard was Roosevelt's own 1933 response (an effect), not a cause of the conditions he describes.",
@@ -180,33 +192,32 @@ ATTRIBUTION: Franklin D. Roosevelt, First Inaugural Address, March 4, 1933 (publ
   "requires_outside_knowledge": "the 1929 Crash and bank-failure chronology, which the source does not state"
 }]
 
-EXAMPLE — archetype EVIDENCE_SUPPORTS_CLAIM
-SOURCE: "The New Deal's expansion of federal support was genuine, yet it was
-structured by race. To hold the votes of Southern Democrats, its architects wrote
-key programs to exclude agricultural and domestic laborers — the very categories
-that encompassed most Black workers — so that a broadly 'universal' welfare state
-was, in practice, selectively white."
-ATTRIBUTION: synthetic secondary source (historian's argument), grounded in New Deal exclusion scholarship (e.g., Katznelson)
+EXAMPLE - archetype EFFECT_OF_SOURCE
+SOURCE: "Europe's requirements for foreign food and other essential products are
+so much greater than her present ability to pay that she must have substantial
+additional help or face economic, social, and political deterioration of a very
+grave character."
+ATTRIBUTION: George C. Marshall, Marshall Plan Address, 1947 (public domain)
 [{
-  "archetype": "EVIDENCE_SUPPORTS_CLAIM",
-  "period": 7, "theme": "SOC",
-  "stem": "Which of the following could best be used as evidence to support the historian's argument?",
+  "archetype": "EFFECT_OF_SOURCE",
+  "period": 8, "theme": "WOR",
+  "stem": "The recovery policy advocated in the excerpt most directly contributed to which later development?",
   "options": [
-    "Federal Housing Administration underwriting rules that declined to insure mortgages in Black neighborhoods",
-    "The Tennessee Valley Authority's electrification of the rural South",
-    "The Civil Rights Act of 1964's ban on employment discrimination",
-    "Eleanor Roosevelt's public advocacy for federal anti-lynching legislation"
+    "Economic recovery in participating Western European nations and closer alignment with the United States",
+    "Soviet acceptance of the aid and integration of Eastern Europe into the program",
+    "Implementation of the Dawes Plan to stabilize German reparations payments",
+    "An American withdrawal from long-term political and security commitments in Europe"
   ],
   "answer": "A",
-  "answer_dating": "FHA redlining guidelines (1934+) are contemporaneous New Deal policy, consistent with an argument about New Deal-era racial structuring.",
+  "answer_dating": "Congress funded the European Recovery Program in 1948, after Marshall's 1947 address, and participating economies expanded through the early 1950s.",
   "rationale": {
-    "correct": "FHA redlining is a DIFFERENT New Deal program that independently shows federal support structured by race, strengthening the argument without merely restating the Social Security example.",
+    "correct": "American aid supplied capital and goods for Western European recovery while strengthening the economic and political cohesion of the Western bloc.",
     "A": "correct",
-    "B": "TRUE_BUT_IRRELEVANT: a real New Deal program, but it says nothing about racial exclusion, so it does not bear on the argument.",
-    "C": "WRONG_ERA: the 1964 Act postdates the New Deal by three decades and cuts against, not for, a claim about built-in exclusion.",
-    "D": "PARTIALLY_TRUE: real, but it shows the administration OPPOSING racial injustice, weakening rather than supporting the claim."
+    "B": "PARTIALLY_TRUE: the offer was formally open, but the Soviet Union rejected it and prevented its Eastern European satellites from participating.",
+    "C": "WRONG_ERA: the Dawes Plan addressed the aftermath of World War I in the 1920s, before the Marshall Plan.",
+    "D": "SCOPE_MISMATCH: the recovery program strengthened rather than ended sustained American engagement with Western Europe."
   },
-  "trap_types": ["TRUE_BUT_IRRELEVANT", "WRONG_ERA", "PARTIALLY_TRUE"],
-  "requires_outside_knowledge": "FHA redlining as a separate racially-structured New Deal program, not mentioned in the source"
+  "trap_types": ["PARTIALLY_TRUE", "WRONG_ERA", "SCOPE_MISMATCH"],
+  "requires_outside_knowledge": "the European Recovery Program's role in Western European reconstruction and Cold War bloc alignment"
 }]
 ```

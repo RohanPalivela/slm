@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "selection_basis": [
+    "The keyed development occurs after the source and follows through a defensible causal mechanism.",
+    "The answer requires historical knowledge beyond paraphrasing the excerpt.",
+    "The source is a law, policy announcement, resignation, or argument with a traceable downstream consequence.",
+    "Near-duplicate keyed developments are limited when a source offers stronger alternatives."
+  ],
+  "items": [
+    {"source_id": "chinese_exclusion_act_1882", "stem": "The restriction in the excerpt most immediately encouraged employers in the West to respond by doing which of the following?"},
+    {"source_id": "chinese_exclusion_act_1882", "stem": "The policy established in the excerpt most directly contributed to which later characteristic of federal immigration policy?"},
+    {"source_id": "chinese_exclusion_act_1882", "stem": "The legislation in the excerpt most immediately led to legal disputes that were resolved in part through which development?"},
+    {"source_id": "fdr_arsenal_democracy_1940", "stem": "The mobilization foreshadowed in Roosevelt's excerpt most immediately contributed to which of the following demographic developments?"},
+    {"source_id": "fdr_arsenal_democracy_1940", "stem": "The commitment Roosevelt describes in the excerpt most immediately contributed to which of the following developments in the American economy?"},
+    {"source_id": "fdr_arsenal_democracy_1940", "stem": "The policy priorities expressed by Roosevelt in the excerpt most immediately led to which of the following?"},
+    {"source_id": "fdr_four_freedoms_1941", "stem": "The mobilization for defense signaled in Roosevelt's excerpt most immediately contributed to which of the following economic changes?"},
+    {"source_id": "fdr_four_freedoms_1941", "stem": "The vision of confronting external threats in Roosevelt's excerpt most directly contributed to which of the following developments in American foreign policy after 1945?"},
+    {"source_id": "fdr_second_bill_of_rights_1944", "stem": "FDR's assertion that Americans should gain 'something better than mere survival' most immediately led to which postwar economic policy?"},
+    {"source_id": "homestead_act_1862", "stem": "The policy established in the excerpt most immediately contributed to which of the following economic outcomes in the late nineteenth century?"},
+    {"source_id": "homestead_act_1862", "stem": "The opportunities created by the excerpt most immediately contributed to which of the following demographic developments in the late nineteenth century?"},
+    {"source_id": "homestead_act_1862", "stem": "The settlement encouraged by the excerpt most immediately intensified which of the following conflicts in the American West?"},
+    {"source_id": "homestead_act_1862", "stem": "The distribution of land described in the excerpt most immediately led to which of the following environmental developments on the Great Plains?"},
+    {"source_id": "homestead_act_1862", "stem": "The legislation described in the excerpt most immediately led to which of the following developments in the decades following its passage?"},
+    {"source_id": "nixon_resignation_1974", "stem": "The circumstances that led to the resignation announced in the excerpt most immediately led to which of the following developments in the 1970s?"},
+    {"source_id": "nixon_resignation_1974", "stem": "The resignation announced in the excerpt most immediately resulted in which of the following?"},
+    {"source_id": "nixon_resignation_1974", "stem": "The scandal that led to the resignation in the excerpt most immediately contributed to which outcome in the 1976 presidential election?"},
+    {"source_id": "nixon_silent_majority_1969", "stem": "By appealing directly to the 'silent majority' in the excerpt, Nixon most immediately sought a political effect that later contributed to which development?"},
+    {"source_id": "nixon_silent_majority_1969", "stem": "The policy Nixon defended in this address most immediately led to which of the following developments?"},
+    {"source_id": "northwest_ordinance_1787", "stem": "The system for organizing territory established in the excerpt most immediately led to which of the following?"},
+    {"source_id": "northwest_ordinance_1787", "stem": "The mechanism for admitting territories as states, as reflected in the excerpt, most directly contributed to which later political characteristic of the nation?"},
+    {"source_id": "northwest_ordinance_1787", "stem": "The precedent for governing new territory set in the excerpt most directly contributed to which later development?"},
+    {"source_id": "va_religious_freedom_1786", "stem": "The argument advanced in the excerpt most directly contributed to which later feature of American religious life?"},
+    {"source_id": "va_religious_freedom_1786", "stem": "The reasoning in the excerpt most immediately contributed to which broader trend in the early republic?"},
+    {"source_id": "va_religious_freedom_1786", "stem": "The ideas expressed in the excerpt most directly contributed to which later feature of American governance?"},
+    {"source_id": "wilson_fourteen_points_speech_1918", "stem": "The diplomatic principles expressed in the excerpt most immediately contributed to which development at the war's conclusion?"},
+    {"source_id": "wilson_fourteen_points_speech_1918", "stem": "The peace program outlined by Wilson in the excerpt most immediately led to which of the following?"},
+    {"source_id": "wilson_fourteen_points_speech_1918", "stem": "The internationalist vision reflected in the excerpt most immediately led to which reaction in American foreign policy during the 1920s?"}
+  ]
+}

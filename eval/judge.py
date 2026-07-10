@@ -10,6 +10,18 @@ import json
 import providers
 from prompt_loader import extract_items
 
+
+BOOL_FIELDS = (
+    "requires_outside_knowledge",
+    "every_distractor_named_trap",
+    "distractors_period_plausible",
+    "skill_matches_command_phrase",
+    "key_historically_correct",
+    "key_uniquely_best",
+    "single_best_answer",
+)
+SCORE_FIELDS = ("spec_adherence", "distractor_craft", "outside_knowledge_skill_fit")
+
 JUDGE_SYSTEM = """You are a senior AP U.S. History assessment expert grading a \
 single machine-generated stimulus-based multiple-choice question. You know U.S. \
 history well and you are NOT the model that wrote the item.
@@ -23,11 +35,11 @@ items to a standard of perfection the operational test itself does not meet.
 You will receive the SOURCE (stimulus) and the ITEM (stem, 4 options, keyed \
 answer, rationale). Judge ONLY against the source + standard APUSH knowledge.
 
-CALIBRATION — apply these two most-misjudged fields exactly as written:
+CALIBRATION - apply these two most-misjudged fields exactly as written:
 - distractors_period_plausible is TRUE unless a distractor is genuinely absurd,
   fabricated (not real history), or off-topic FILLER with no real connection to the
   question's theme. A distractor is STILL plausible if it is a real development that
-  is merely from a NEIGHBORING era, somewhat weaker, or slightly off — those are
+  is merely from a NEIGHBORING era, somewhat weaker, or slightly off - those are
   legitimate traps that test chronology/theme discrimination. Mark FALSE only when a
   distractor is (a) not real history, or (b) so obviously wrong-century AND off-theme
   that essentially every student eliminates it instantly. ONE soft-but-real
@@ -129,25 +141,82 @@ def _normalize(j: dict) -> dict:
         "notes": str(j.get("notes", ""))[:300],
     }
     out["key_valid"] = out["key_historically_correct"] and out["key_uniquely_best"]
+    out["_status"] = "ok"
+    return out
+
+
+def _schema_valid(judgment: dict) -> bool:
+    if not isinstance(judgment, dict):
+        return False
+    if any(field not in judgment for field in (*BOOL_FIELDS, *SCORE_FIELDS)):
+        return False
+    if any(not isinstance(judgment[field], bool) for field in BOOL_FIELDS):
+        return False
+    try:
+        scores = [int(judgment[field]) for field in SCORE_FIELDS]
+    except (TypeError, ValueError):
+        return False
+    return all(score in (0, 1, 2) for score in scores)
+
+
+def _unavailable(status: str, raw_responses: list[str], errors: list[str]) -> dict:
+    out = {field: None for field in (*BOOL_FIELDS, *SCORE_FIELDS)}
+    out.update({
+        "key_valid": None,
+        "notes": errors[-1][:300] if errors else "judge result unavailable",
+        "_status": status,
+        "_attempts": max(len(raw_responses), len(errors)),
+        "_raw_responses": raw_responses,
+        "_errors": errors,
+    })
     return out
 
 
 def judge_item(judge_cfg: dict, source: dict, item: dict, *, role: str = "") -> dict:
     if judge_cfg.get("provider") == "mock":
-        return _normalize(_mock_judgment(role))
+        out = _normalize(_mock_judgment(role))
+        out.update({"_attempts": 1, "_raw_responses": [], "_errors": []})
+        return out
     system, user = build_judge_prompt(source, item)
-    raw = providers.generate(judge_cfg, system, user, temperature=0.0, role="judge")
-    parsed = extract_items(raw)
-    if not parsed:
-        return _normalize({"notes": "judge returned unparseable output"})
-    return _normalize(parsed[0])
+    max_attempts = max(1, int(judge_cfg.get("parse_attempts", 3)))
+    raw_responses: list[str] = []
+    errors: list[str] = []
+    for attempt in range(1, max_attempts + 1):
+        retry_user = user
+        if attempt > 1:
+            retry_user += (
+                "\n\nYour previous response was missing fields or was not valid JSON. "
+                "Return exactly one complete JSON object with every requested field and no prose."
+            )
+            if raw_responses:
+                retry_user += f"\n\nPREVIOUS RESPONSE TO REFORMAT:\n{raw_responses[-1][-4000:]}"
+        try:
+            raw = providers.generate(judge_cfg, system, retry_user, temperature=0.0, role="judge")
+        except providers.ProviderError as exc:
+            errors.append(f"provider error on attempt {attempt}: {exc}")
+            continue
+        raw_responses.append(raw)
+        parsed = extract_items(raw)
+        if parsed and _schema_valid(parsed[0]):
+            out = _normalize(parsed[0])
+            out.update({
+                "_attempts": attempt,
+                "_raw_responses": raw_responses,
+                "_errors": errors,
+            })
+            return out
+        errors.append(f"unparseable or incomplete judge response on attempt {attempt}")
+    status = "provider_error" if not raw_responses else "unparseable"
+    return _unavailable(status, raw_responses, errors)
 
 
-def near_grade(prog_ok: bool, j: dict) -> bool:
+def near_grade(prog_ok: bool, j: dict) -> bool | None:
     """Near-miss tier: passes every expert-grade gate EXCEPT the strict
     spec_adherence==2 (i.e. all disqualifiers clean + every graded dim >=1 + a
     valid key). Separates 'one distractor is soft' (spec_adherence==1) from
     'fundamentally broken', so the report doesn't collapse both into 0."""
+    if not j or j.get("_status", "ok") != "ok" or j.get("key_valid") is None:
+        return None
     judge_disq = (j["requires_outside_knowledge"] and j["every_distractor_named_trap"]
                   and j["distractors_period_plausible"] and j["skill_matches_command_phrase"]
                   and j["single_best_answer"] and j["key_valid"])
@@ -155,7 +224,8 @@ def near_grade(prog_ok: bool, j: dict) -> bool:
     return bool(prog_ok and judge_disq and dims_ok)
 
 
-def expert_grade(prog_ok: bool, j: dict) -> bool:
+def expert_grade(prog_ok: bool, j: dict) -> bool | None:
     """All disqualifying checks pass (programmatic + judge) AND every
     graded dim >=1 AND spec_adherence==2 AND a valid key."""
-    return bool(near_grade(prog_ok, j) and j["spec_adherence"] == 2)
+    near = near_grade(prog_ok, j)
+    return None if near is None else bool(near and j["spec_adherence"] == 2)

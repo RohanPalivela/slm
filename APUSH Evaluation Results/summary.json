@@ -1,0 +1,267 @@
+{
+  "meta": {
+    "timestamp": "2026-07-10T20:51:36.981146+00:00",
+    "split": "EVAL_HELDOUT",
+    "runs": 1,
+    "limit": 0,
+    "n": 2,
+    "source_ids": [
+      "federalist_10_1787",
+      "carnegie_gospel_wealth_1889",
+      "chief_joseph_1877",
+      "addams_hull_house_1910",
+      "us_constitution_1787",
+      "bill_of_rights_1791",
+      "articles_confederation_1777",
+      "treaty_paris_1783",
+      "marbury_madison_1803",
+      "mcculloch_maryland_1819",
+      "missouri_compromise_1820",
+      "indian_removal_act_1830",
+      "worcester_georgia_1832",
+      "treaty_guadalupe_hidalgo_1848",
+      "dred_scott_1857",
+      "emancipation_proclamation_1863",
+      "fourteenth_amendment_1868",
+      "dawes_act_1887",
+      "plessy_ferguson_1896",
+      "clayton_antitrust_act_1914",
+      "schenck_us_1919",
+      "immigration_act_1924",
+      "social_security_act_1935",
+      "executive_order_9066_1942",
+      "executive_order_9981_1948",
+      "civil_rights_act_1964",
+      "voting_rights_act_1965",
+      "war_powers_resolution_1973"
+    ],
+    "base_model_id": "unsloth/Qwen3-4B",
+    "base_model_revision": "64033659d5caf1b8ed7f929b29de705e93a4d468",
+    "adapter_id": "rohanpalviela/qwen3-4b-apush-v3-clean-lora",
+    "temperature": 0.0,
+    "max_new_tokens": 768,
+    "keep_no_think_prefill": true,
+    "use_no_think_soft_switch": false,
+    "teacher_model": "claude-group/claude-opus-4-8",
+    "judge_model": "openai-group/gpt-5.5",
+    "failure_buckets": {
+      "qwen3-4b-base": {
+        "programmatic_craft_fail": 25,
+        "key_not_unique": 22,
+        "not_single_best": 20,
+        "key_factually_wrong": 16,
+        "schema_invalid": 16,
+        "distractor_trap_invalid": 14,
+        "skill_mismatch": 8,
+        "distractor_period_implausible": 7,
+        "no_outside_knowledge": 4
+      },
+      "qwen3-apush-tuned": {
+        "key_not_unique": 25,
+        "not_single_best": 24,
+        "distractor_trap_invalid": 23,
+        "key_factually_wrong": 22,
+        "distractor_period_implausible": 20,
+        "skill_mismatch": 20,
+        "no_outside_knowledge": 13,
+        "programmatic_craft_fail": 5,
+        "schema_invalid": 3
+      },
+      "teacher": {
+        "programmatic_craft_fail": 13,
+        "distractor_period_implausible": 1
+      }
+    }
+  },
+  "results": {
+    "qwen3-4b-base": {
+      "n_items": 56,
+      "expert_grade": 0.25,
+      "near_miss": 0.30357142857142855,
+      "key_valid": 0.5892857142857143,
+      "distillable_item_valid": 0.32142857142857145,
+      "craft_fail": 0.44642857142857145,
+      "schema_fail": 0.2857142857142857,
+      "date_fail": 0.0,
+      "leak": 0.0,
+      "archetype_label_fail": 0.0,
+      "by_arch": {
+        "CAUSE_OF_SOURCE": 0.32142857142857145,
+        "EFFECT_OF_SOURCE": 0.2857142857142857
+      },
+      "by_genre": {
+        "court_opinion": {
+          "n": 12,
+          "near_miss": 0.3333333333333333,
+          "key_valid": 0.5833333333333334
+        },
+        "executive_action": {
+          "n": 6,
+          "near_miss": 0.5,
+          "key_valid": 0.8333333333333334
+        },
+        "law_or_constitution": {
+          "n": 26,
+          "near_miss": 0.23076923076923078,
+          "key_valid": 0.5384615384615384
+        },
+        "other_primary_text": {
+          "n": 6,
+          "near_miss": 0.5,
+          "key_valid": 0.6666666666666666
+        },
+        "speech_or_argument": {
+          "n": 2,
+          "near_miss": 0.5,
+          "key_valid": 0.5
+        },
+        "treaty_or_compact": {
+          "n": 4,
+          "near_miss": 0.0,
+          "key_valid": 0.5
+        }
+      },
+      "generation": {
+        "calls": 56,
+        "zero_item_calls": 0,
+        "parse_empty_rate": 0.0,
+        "parsed_items_per_call": 1.0
+      }
+    },
+    "qwen3-apush-tuned": {
+      "n_items": 50,
+      "expert_grade": 0.3,
+      "near_miss": 0.32,
+      "key_valid": 0.48,
+      "distillable_item_valid": 0.42,
+      "craft_fail": 0.1,
+      "schema_fail": 0.06,
+      "date_fail": 0.04,
+      "leak": 0.0,
+      "archetype_label_fail": 0.0,
+      "by_arch": {
+        "CAUSE_OF_SOURCE": 0.38461538461538464,
+        "EFFECT_OF_SOURCE": 0.25
+      },
+      "by_genre": {
+        "court_opinion": {
+          "n": 10,
+          "near_miss": 0.1,
+          "key_valid": 0.3
+        },
+        "executive_action": {
+          "n": 5,
+          "near_miss": 0.4,
+          "key_valid": 0.4
+        },
+        "law_or_constitution": {
+          "n": 23,
+          "near_miss": 0.34782608695652173,
+          "key_valid": 0.6086956521739131
+        },
+        "other_primary_text": {
+          "n": 6,
+          "near_miss": 0.3333333333333333,
+          "key_valid": 0.3333333333333333
+        },
+        "speech_or_argument": {
+          "n": 2,
+          "near_miss": 0.5,
+          "key_valid": 0.5
+        },
+        "treaty_or_compact": {
+          "n": 4,
+          "near_miss": 0.5,
+          "key_valid": 0.5
+        }
+      },
+      "generation": {
+        "calls": 56,
+        "zero_item_calls": 6,
+        "parse_empty_rate": 0.10714285714285714,
+        "parsed_items_per_call": 0.8928571428571429
+      }
+    },
+    "teacher": {
+      "n_items": 56,
+      "expert_grade": 0.7321428571428571,
+      "near_miss": 0.75,
+      "key_valid": 1.0,
+      "distillable_item_valid": 0.7678571428571429,
+      "craft_fail": 0.23214285714285715,
+      "schema_fail": 0.0,
+      "date_fail": 0.0,
+      "leak": 0.0,
+      "archetype_label_fail": 0.0,
+      "by_arch": {
+        "CAUSE_OF_SOURCE": 0.8571428571428571,
+        "EFFECT_OF_SOURCE": 0.6428571428571429
+      },
+      "by_genre": {
+        "court_opinion": {
+          "n": 12,
+          "near_miss": 0.8333333333333334,
+          "key_valid": 1.0
+        },
+        "executive_action": {
+          "n": 6,
+          "near_miss": 0.5,
+          "key_valid": 1.0
+        },
+        "law_or_constitution": {
+          "n": 26,
+          "near_miss": 0.6923076923076923,
+          "key_valid": 1.0
+        },
+        "other_primary_text": {
+          "n": 6,
+          "near_miss": 1.0,
+          "key_valid": 1.0
+        },
+        "speech_or_argument": {
+          "n": 2,
+          "near_miss": 1.0,
+          "key_valid": 1.0
+        },
+        "treaty_or_compact": {
+          "n": 4,
+          "near_miss": 0.75,
+          "key_valid": 1.0
+        }
+      },
+      "generation": {
+        "calls": 56,
+        "zero_item_calls": 0,
+        "parse_empty_rate": 0.0,
+        "parsed_items_per_call": 1.0
+      }
+    },
+    "_comparison": {
+      "base_model": "qwen3-4b-base",
+      "tuned_model": "qwen3-apush-tuned",
+      "near_miss_delta_tuned_minus_base": 0.01642857142857146,
+      "key_valid_delta_tuned_minus_base": -0.10928571428571432,
+      "distillable_item_valid_delta_tuned_minus_base": 0.09857142857142853,
+      "paired_tests": {
+        "near_miss": {
+          "paired_prompts": 50,
+          "base_fail_tuned_pass": 11,
+          "base_pass_tuned_fail": 11,
+          "exact_mcnemar_p": 1.0
+        },
+        "key_valid": {
+          "paired_prompts": 50,
+          "base_fail_tuned_pass": 9,
+          "base_pass_tuned_fail": 16,
+          "exact_mcnemar_p": 0.2295229434967041
+        },
+        "distillable_item_valid": {
+          "paired_prompts": 50,
+          "base_fail_tuned_pass": 14,
+          "base_pass_tuned_fail": 10,
+          "exact_mcnemar_p": 0.5412561893463135
+        }
+      }
+    }
+  }
+}

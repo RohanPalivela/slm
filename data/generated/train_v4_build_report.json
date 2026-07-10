@@ -1,0 +1,54 @@
+{
+  "dataset_version": "v4",
+  "legacy_input_records": 728,
+  "legacy_strict_evidence_records": 691,
+  "legacy_selected_records": 57,
+  "legacy_policy_rejected_records": 275,
+  "legacy_effect_review_rejected_records": 38,
+  "legacy_cause_review_rejected_records": 320,
+  "curated_anchor_records": 65,
+  "output_records": 122,
+  "source_count": 64,
+  "archetype_distribution": {
+    "CAUSE_OF_SOURCE": 62,
+    "EFFECT_OF_SOURCE": 60
+  },
+  "effective_sft_archetype_distribution": {
+    "CAUSE_OF_SOURCE": 62,
+    "EFFECT_OF_SOURCE": 62
+  },
+  "answer_distribution": {
+    "A": 31,
+    "B": 31,
+    "C": 30,
+    "D": 30
+  },
+  "effective_sft_answer_distribution": {
+    "A": 31,
+    "B": 31,
+    "C": 31,
+    "D": 31
+  },
+  "quality_tiers": {
+    "legacy_v3_strict_survivor": 57,
+    "curated_causal_anchor": 65
+  },
+  "source_genres": {
+    "other_primary_text": 6,
+    "court_opinion": 10,
+    "speech_or_argument": 23,
+    "law_or_constitution": 18,
+    "treaty_or_compact": 5,
+    "executive_action": 2
+  },
+  "date_direction_distribution": {
+    "unknown": 4,
+    "pass": 118
+  },
+  "known_limitations": [
+    "The archived v3 records contain only the older partial judge dimensions.",
+    "The archived v3 judge and verifier used the same model family.",
+    "Legacy outside-knowledge fields were normalized mechanically from the keyed development.",
+    "The curated v4 anchors have not yet received an independent model-family semantic audit."
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "purpose": "Prevent weak causal supervision when a generic speech has no defensible direct downstream effect.",
+  "defaults": {
+    "speech_or_argument": [
+      "CAUSE_OF_SOURCE"
+    ],
+    "court_opinion": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "law_or_constitution": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "treaty_or_compact": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "executive_action": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "other_primary_text": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ]
+  },
+  "source_overrides": {
+    "marshall_plan_1947": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "wilson_fourteen_points_speech_1918": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "fdr_arsenal_democracy_1940": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "nixon_resignation_1974": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "fdr_four_freedoms_1941": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "fdr_second_bill_of_rights_1944": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "fdr_quarantine_1937": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "truman_inaugural_1949": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "nixon_silent_majority_1969": [
+      "CAUSE_OF_SOURCE",
+      "EFFECT_OF_SOURCE"
+    ],
+    "calhoun_positive_good_1837": [
+      "CAUSE_OF_SOURCE"
+    ],
+    "osullivan_futurity_1839": [
+      "CAUSE_OF_SOURCE"
+    ],
+    "truth_aint_i_a_woman_1851": [
+      "CAUSE_OF_SOURCE"
+    ],
+    "tr_muckrake_1906": [
+      "CAUSE_OF_SOURCE"
+    ]
+  },
+  "notes": [
+    "The source-specific overrides are limited to speeches that announced a concrete policy or official action with a defensible downstream consequence.",
+    "Evaluation still requests both archetypes for every held-out source. This policy applies only to training-data generation and selection."
+  ]
+}

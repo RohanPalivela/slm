@@ -14,6 +14,8 @@ _DECADE = re.compile(
     r"\b(?:(early|mid|late)[ -]+)?((?:1[4-9]|20)\d0)s\b",
     re.I,
 )
+_BEFORE_CUE = re.compile(r"\b(?:before|prior to|preced(?:e|ed|ing)|pre-dates?|predates?)\b", re.I)
+_AFTER_CUE = re.compile(r"\b(?:after|following|later|subsequent(?:ly)?|postdates?)\b", re.I)
 
 
 def source_year(source: dict | None) -> int | None:
@@ -82,6 +84,12 @@ def direction_against_source(archetype: str, answer_dating: str, src_year: int |
         return "unknown"
     spans = [(start, end) for start, end in date_spans(answer_dating) if not (start == end == src_year)]
     if not spans:
+        before = bool(_BEFORE_CUE.search(answer_dating or ""))
+        after = bool(_AFTER_CUE.search(answer_dating or ""))
+        if before != after:
+            if archetype in cause_archetypes:
+                return "pass" if before else "fail"
+            return "pass" if after else "fail"
         return "unknown"
     if archetype in cause_archetypes:
         # A cause fails only if all evidence starts after the source.

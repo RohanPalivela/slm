@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Frozen train/eval/litmus partitions (contamination firewall)",
-  "note": "Sources are DISJOINT across splits: no stimulus is used both to litmus/eval and to generate training data. Current v3 scope is the causation pair (CAUSE_OF_SOURCE + EFFECT_OF_SOURCE) on text primary sources.",
+  "note": "Sources are DISJOINT across splits: no stimulus is used both to litmus/eval and to generate training data. Current v4 scope is the causation pair (CAUSE_OF_SOURCE + EFFECT_OF_SOURCE) on text primary sources.",
   "scope": {
     "archetypes": [
       "CAUSE_OF_SOURCE",
@@ -69,7 +69,7 @@
       ]
     },
     "TRAIN": {
-      "role": "generation seeds for v3 training. Disjoint from LITMUS/EVAL.",
+      "role": "generation and curated-anchor seeds for v4 training. Disjoint from LITMUS/EVAL.",
       "source_ids": [
         "mayflower_compact_1620",
         "northwest_ordinance_1787",
@@ -138,7 +138,37 @@
         "carter_crisis_confidence_1979",
         "fdr_arsenal_democracy_1940",
         "fdr_new_deal_nomination_1932",
-        "nixon_resignation_1974"
+        "nixon_resignation_1974",
+        "stamp_act_1765",
+        "alien_act_1798",
+        "embargo_act_1807",
+        "kansas_nebraska_act_1854",
+        "morrill_land_grant_act_1862",
+        "pacific_railway_act_1862",
+        "civil_rights_act_1866",
+        "pendleton_act_1883",
+        "sherman_antitrust_act_1890",
+        "pure_food_drug_act_1906",
+        "federal_reserve_act_1913",
+        "wagner_act_1935",
+        "gi_bill_1944",
+        "immigration_nationality_act_1965",
+        "gibbons_ogden_1824",
+        "charles_river_bridge_1837",
+        "commonwealth_hunt_1842",
+        "slaughterhouse_cases_1873",
+        "civil_rights_cases_1883",
+        "ec_knight_1895",
+        "muller_oregon_1908",
+        "gitlow_new_york_1925",
+        "schechter_poultry_1935",
+        "youngstown_sawyer_1952",
+        "jay_treaty_1794",
+        "treaty_ghent_1814",
+        "adams_onis_treaty_1819",
+        "fort_laramie_treaty_1868",
+        "executive_order_9835_1947",
+        "executive_order_10730_1957"
       ]
     }
   },
@@ -153,7 +183,7 @@
     "secondary_cold_war_origins"
   ],
   "status": {
-    "train_sources": 68,
+    "train_sources": 98,
     "eval_heldout_sources": 28,
     "litmus_sources": 10,
     "developments_table": "data/apush_key_developments.json"

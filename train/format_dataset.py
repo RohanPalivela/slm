@@ -9,12 +9,12 @@ Each example is a chat triple:
   assistant = the item, as the JSON array the prompt asks for
 
 Training masks everything but the assistant turn (loss on the JSON only), so the
-model learns to emit exactly the schema given a source + archetype — the same
+model learns to emit exactly the schema given a source + archetype - the same
 prompt shape the harness/inference uses.
 
 Usage:
     python train/format_dataset.py
-    python train/format_dataset.py --in data/generated/train_clean.jsonl --out data/generated/train_sft_clean.jsonl
+    python train/format_dataset.py --in data/generated/train_v4_clean.jsonl --out data/generated/train_sft_v4.jsonl
 """
 from __future__ import annotations
 import argparse
@@ -28,6 +28,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "eval"))
 
 from prompt_loader import LitmusPrompt  # noqa: E402
+from source_utils import source_genre  # noqa: E402
 
 DIFFICULTY = "operational / test-day"
 # The exact fields the generation prompt's OUTPUT FORMAT asks for (docs/prompt).
@@ -66,7 +67,7 @@ def _completion_item(rec: dict) -> dict:
         if answer and answer[0] in "ABCD" and len(options) >= "ABCD".index(answer[0]) + 1:
             keyed = options["ABCD".index(answer[0])]
             item["requires_outside_knowledge"] = (
-                f"{keyed} — {item.get('answer_dating', '')}".strip(" —")
+                f"{keyed} - {item.get('answer_dating', '')}".strip(" -")
             )
 
     if not isinstance(item.get("trap_types"), list) or len(item["trap_types"]) != 3:
@@ -101,8 +102,8 @@ def _infer_trap_types(item: dict) -> list[str] | None:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--in", dest="inp", default=os.path.join(ROOT, "data", "generated", "train_clean.jsonl"))
-    ap.add_argument("--out", default=os.path.join(ROOT, "data", "generated", "train_sft_clean.jsonl"))
+    ap.add_argument("--in", dest="inp", default=os.path.join(ROOT, "data", "generated", "train_v4_clean.jsonl"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "data", "generated", "train_sft_v4.jsonl"))
     ap.add_argument("--sources", default=os.path.join(ROOT, "data", "seed_stimuli.jsonl"))
     ap.add_argument("--fewshot", action="store_true", help="include the few-shot block in the system prompt")
     args = ap.parse_args()
@@ -124,15 +125,23 @@ def main():
                 n=1, archetypes=rec.get("archetype", ""), difficulty=DIFFICULTY,
                 include_fewshot=args.fewshot)
             completion = json.dumps([_completion_item(rec)], ensure_ascii=False)
-            f.write(json.dumps({
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                    {"role": "assistant", "content": completion},
-                ],
-                "source_id": rec["source_id"], "archetype": rec.get("archetype"),
-            }, ensure_ascii=False) + "\n")
-            n_written += 1
+            repeats = max(1, int(rec.get("sft_repeats", 1)))
+            for repeat_index in range(repeats):
+                f.write(json.dumps({
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                        {"role": "assistant", "content": completion},
+                    ],
+                    "source_id": rec["source_id"], "archetype": rec.get("archetype"),
+                    "dataset_version": rec.get("dataset_version", "legacy"),
+                    "quality_tier": rec.get("quality_tier", "unspecified"),
+                    "source_genre": source_genre(src),
+                    "format_contract": "json_array_v1",
+                    "repeat_index": repeat_index,
+                    "repeat_count": repeats,
+                }, ensure_ascii=False) + "\n")
+                n_written += 1
 
     print(f"wrote {n_written} SFT examples -> {os.path.relpath(args.out, ROOT)}"
           + (f"  ({n_skipped} skipped: source not found)" if n_skipped else ""))

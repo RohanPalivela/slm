@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "selection_basis": [
+    "The excerpt or its immediate historical occasion provides a substantive stimulus for the question.",
+    "The keyed development clearly predates and directly shapes the source's position, policy, or occasion.",
+    "Biographical trivia, generic inaugural ceremony, weak thematic association, and historically disputed causal claims are excluded."
+  ],
+  "items": [
+    {"source_id": "adams_inaugural_1825", "stem": "The bitterness that surrounded Adams as he delivered this address stemmed most directly from which of the following?"},
+    {"source_id": "bryan_cross_of_gold_1896", "stem": "The economic distress that Bryan invokes in defense of his 'cause of humanity' was contributed to most directly by which event?"},
+    {"source_id": "calhoun_positive_good_1837", "stem": "The petitions that Calhoun refuses to receive in the excerpt were most directly a product of which of the following developments?"},
+    {"source_id": "carter_crisis_confidence_1979", "stem": "The public disillusionment that led the president to deliver the address in the excerpt was most directly caused by which of the following foreign and energy-related developments of the 1970s?"},
+    {"source_id": "carter_inaugural_1977", "stem": "The tone of humility and moral appeal in Carter's inaugural excerpt contributed most directly as a response to which of the following developments?"},
+    {"source_id": "chinese_exclusion_act_1882", "stem": "The presence of Chinese laborers referenced in the excerpt was most directly a result of which earlier development?"},
+    {"source_id": "coolidge_inaugural_1925", "stem": "The optimistic 'readjustment to the results of the great conflict' Coolidge describes was made possible in part by which of the following political developments?"},
+    {"source_id": "fdr_arsenal_democracy_1940", "stem": "Which of the following contributed most directly to the concerns about 'national security' expressed by Roosevelt in this 1940 address?"},
+    {"source_id": "fdr_four_freedoms_1941", "stem": "Which of the following contributed most directly to the sense of threat 'from without' that Roosevelt describes in the excerpt?"},
+    {"source_id": "harding_inaugural_1921", "stem": "Which of the following contributed most directly to the mood of 'regret' and 'new hope' the author expresses upon surveying the world 'after the great storm'?"},
+    {"source_id": "hayes_inaugural_1877", "stem": "The circumstances surrounding Hayes's assumption of the presidency, referenced in the excerpt as a transition of office, were most directly the result of which of the following?"},
+    {"source_id": "homestead_act_1862", "stem": "The extension of the land benefit in the excerpt to immigrants who 'filed a declaration of intention to become' citizens was most directly encouraged by which prior development?"},
+    {"source_id": "jackson_second_inaugural_1833", "stem": "Jackson's pledge to 'preserve their liberty' by administering the Government responsibly was shaped most directly by which crisis unfolding as he took his second oath?"},
+    {"source_id": "jefferson_first_inaugural_1801", "stem": "Which of the following contributed most directly to the peaceful transfer of power that occasioned the address in the excerpt?"},
+    {"source_id": "madison_second_inaugural_1813", "stem": "The reference in the excerpt to 'the war with a powerful nation' was most directly a result of which of the following?"},
+    {"source_id": "mckinley_first_inaugural_1897", "stem": "The central campaign debate that most directly propelled McKinley to the presidency referenced in the excerpt concerned which of the following issues?"},
+    {"source_id": "nixon_resignation_1974", "stem": "The constitutional crisis that preceded the address in the excerpt was most directly precipitated by which of the following?"},
+    {"source_id": "nixon_silent_majority_1969", "stem": "Which of the following most directly contributed to the escalated American involvement in Vietnam that Nixon inherited by 1969?"},
+    {"source_id": "northwest_ordinance_1787", "stem": "The framework for governing and eventually admitting new territory reflected in the excerpt was most directly shaped by which prior concern of the founding generation?"},
+    {"source_id": "roosevelt_fourth_inaugural_1945", "stem": "The 'period of supreme test' that Roosevelt describes in the excerpt was most directly caused by which of the following?"},
+    {"source_id": "roosevelt_second_inaugural_1937", "stem": "Which of the following contributed most directly to the conditions of 'stagnation and despair' that the author references in the excerpt?"},
+    {"source_id": "roosevelt_third_inaugural_1941", "stem": "The concern about 'the real peril of inaction' expressed in the excerpt was most directly a response to which of the following developments?"},
+    {"source_id": "taylor_inaugural_1849", "stem": "The sectional tensions confronting the administration inaugurated in the excerpt were contributed to most directly by which of the following?"},
+    {"source_id": "tr_muckrake_1906", "stem": "Which of the following contributed most directly to the enlarged 'business of the government' that the author describes as necessitating new buildings?"},
+    {"source_id": "truth_aint_i_a_woman_1851", "stem": "Sojourner Truth's own ability to speak publicly against slavery was made possible most directly by which of the following?"},
+    {"source_id": "va_religious_freedom_1786", "stem": "Which of the following contributed most directly to the ideas about religion and government expressed in the excerpt?"},
+    {"source_id": "washington_atlanta_1895", "stem": "Which of the following contributed most directly to the accommodationist strategy that Booker T. Washington articulates in the excerpt?"},
+    {"source_id": "washington_first_inaugural_1789", "stem": "The urgency to organize a national government, reflected in Washington's assuming office in the excerpt, was intensified most directly by which crisis of the 1780s?"},
+    {"source_id": "wilson_first_inaugural_1913", "stem": "Which of the following contributed most directly to the Democratic capture of the presidency that Wilson describes in the excerpt?"}
+  ]
+}

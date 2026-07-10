@@ -23,6 +23,7 @@ import statistics
 import sys
 import threading
 import time
+from collections import Counter
 from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -34,7 +35,12 @@ import checks             # noqa: E402
 import judge              # noqa: E402
 import repair             # noqa: E402
 from source_utils import source_genre  # noqa: E402
-from prompt_loader import LitmusPrompt, extract_items, canonicalize_item_archetype  # noqa: E402
+from prompt_loader import (  # noqa: E402
+    LitmusPrompt,
+    canonicalize_item_archetype,
+    extract_items,
+    generation_format_diagnostics,
+)
 
 DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"
 DIFFICULTY = "operational / test-day"
@@ -50,8 +56,13 @@ def load_jsonl(path):
     return out
 
 
+def load_json(path):
+    with open(path, encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def load_sources(split_name):
-    splits = json.load(open(os.path.join(ROOT, "data", "splits.json"), encoding="utf-8"))
+    splits = load_json(os.path.join(ROOT, "data", "splits.json"))
     ids = splits["splits"][split_name]["source_ids"]
     by_id = {s["id"]: s for s in load_jsonl(os.path.join(ROOT, "data", "seed_stimuli.jsonl"))}
     missing = [i for i in ids if i not in by_id]
@@ -72,7 +83,7 @@ def score_item(item, source, judge_cfg, role, no_judge):
     prog = checks.run_checks(item, source)
     if no_judge:
         j = None
-        eg = None  # unmeasured — cannot certify expert-grade without the judge
+        eg = None  # unmeasured - cannot certify expert-grade without the judge
         nm = None
         kv = None
     else:
@@ -83,7 +94,7 @@ def score_item(item, source, judge_cfg, role, no_judge):
         craft_ok = prog["disqualifying_ok"] and prog.get("craft_ok", prog["wrong_era_le1"])
         eg = judge.expert_grade(craft_ok, j)
         nm = judge.near_grade(craft_ok, j)
-        kv = j["key_valid"] and prog["disqualifying_ok"]
+        kv = None if j.get("key_valid") is None else bool(j["key_valid"] and prog["disqualifying_ok"])
     return {"prog": prog, "judge": j, "expert_grade": eg, "near_miss": nm, "key_valid": kv}
 
 
@@ -128,7 +139,7 @@ class Progress:
 
 
 def _concurrency_for(cfg, gateway_default):
-    """Local inference is served serially — parallelism there hurts. Gateway/API
+    """Local inference is served serially - parallelism there hurts. Gateway/API
     models can run concurrent requests."""
     if cfg.get("provider") in ("ollama", "hf_local", "mock"):
         return 1
@@ -152,7 +163,7 @@ def _item_complete(it):
 
 def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
                  include_fewshot, limit, concurrency):
-    """Parallel generation for one model. One call per (run, source, ARCHETYPE) —
+    """Parallel generation for one model. One call per (run, source, ARCHETYPE) -
     so every archetype is measured even for a model that emits a single item per
     call (e.g. a 4B under format:json, which otherwise only ever produces the first
     requested archetype). Returns raw (unjudged) item records plus per-call
@@ -188,6 +199,7 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
                     "source_id": sid, "archetype": arch,
                     "requested_n": n_per, "n_items": len(items),
                     "complete_items": complete, "error": err,
+                    "format": generation_format_diagnostics(raw),
                     "raw": raw,
                 })
                 for it in items:
@@ -210,7 +222,7 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
     if empty or trunc:
         sys.stdout.write(
             f"    WARNING [{cfg['name']}]: {trunc} call(s) truncated mid-item, "
-            f"{empty} returned nothing — raise max_tokens/num_ctx or check the endpoint.\n")
+            f"{empty} returned nothing - raise max_tokens/num_ctx or check the endpoint.\n")
     if short:
         sys.stdout.write(
             f"    note [{cfg['name']}]: {short}/{len(tasks)} call(s) returned complete but "
@@ -222,7 +234,7 @@ def generate_all(cfg, role, sources, prompt, *, n, runs, temperature,
 
 def repair_all(cfg, role, records, sources_by_id, *, temperature, concurrency):
     """Optional generate->repair pass for ONE model: rewrite each item's weak
-    distractors (same model that wrote it). Mutates records in place — replaces
+    distractors (same model that wrote it). Mutates records in place - replaces
     each `item` with its repaired version (or the original on any failure)."""
     if not records:
         return records
@@ -245,7 +257,7 @@ def repair_all(cfg, role, records, sources_by_id, *, temperature, concurrency):
 
 
 def judge_all(gen_records, judge_cfg, sources_by_id, *, no_judge, concurrency):
-    """Parallel judging over ALL generated items (both models at once) — this is
+    """Parallel judging over ALL generated items (both models at once) - this is
     the biggest speedup since each judge call is an independent gateway request."""
     prog = Progress(len(gen_records), "judge" if not no_judge else "score(no-judge)")
     out, lock = [], threading.Lock()
@@ -282,7 +294,15 @@ def aggregate(scored):
     run_pass = [p for p in (_rate([x for x in scored if x["run"] == r], "near_miss")
                             for r in runs) if p is not None]
     dims = ["spec_adherence", "distractor_craft", "outside_knowledge_skill_fit"]
-    judged = [x["judge"] for x in scored if x["judge"] is not None]
+    judged = [
+        x["judge"]
+        for x in scored
+        if x["judge"] is not None and x["judge"].get("_status", "ok") == "ok"
+    ]
+    judge_unavailable = sum(
+        1 for x in scored
+        if x.get("judge") is not None and x["judge"].get("_status", "ok") != "ok"
+    )
     by_arch = {}
     by_genre = {}
     for x in scored:
@@ -290,6 +310,9 @@ def aggregate(scored):
         by_genre.setdefault(x.get("source_genre", "unknown"), []).append(x)
     return {
         "n_items": n,
+        "n_judged": len(judged),
+        "judge_unavailable": judge_unavailable,
+        "judge_unavailable_rate": judge_unavailable / n if n else 0.0,
         "pass_rate": _rate(scored, "expert_grade"),
         "near_miss_rate": _rate(scored, "near_miss"),
         "key_valid_rate": _rate(scored, "key_valid"),
@@ -316,12 +339,12 @@ def aggregate(scored):
 
 def decide(best_small, s_frontier, teacher_kv, no_judge):
     """Legacy build-gate decision matrix. The pass metric is the NEAR-MISS
-    (expert-quality) rate — every expert-grade gate except the strict, poorly-
+    (expert-quality) rate - every expert-grade gate except the strict, poorly-
     calibrated `spec_adherence==2` (see G-cal: judge–human agreement on spec was
     ~40%/negative-kappa, so it is unfit as a hard gate). key_valid still gates
     label cleanliness."""
     if no_judge:
-        return "INCONCLUSIVE (judge off)", "Programmatic checks only — expert-quality and key_valid are unmeasured. Re-run with a judge configured for a real verdict."
+        return "INCONCLUSIVE (judge off)", "Programmatic checks only - expert-quality and key_valid are unmeasured. Re-run with a judge configured for a real verdict."
     if best_small is not None and best_small >= 0.80:
         return "DON'T BUILD", "A prompted small model already clears >=80% expert-quality (near-miss); ship a prompt, not a fine-tune."
     if teacher_kv is not None and teacher_kv < 0.70:
@@ -357,21 +380,33 @@ def write_report(results, meta, out_dir):
     L.append(f"> Generated by `eval/harness.py` on {meta['timestamp']}. "
              f"Scope: {meta['archetypes']} on split `{meta['split']}` "
              f"({meta['n_sources']} sources x {meta['n']} items x {meta['runs']} runs)."
-             + (" **DRY-RUN (mock models — numbers are not real).**" if meta["dry_run"] else "")
+             + (" **DRY-RUN (mock models - numbers are not real).**" if meta["dry_run"] else "")
              + (" **PROGRAMMATIC-ONLY (no judge).**" if meta["no_judge"] else "")
              + (" **+REPAIR pass (distractors rewritten by the same model).**" if meta.get("repair") else "") + "\n")
     L.append(f"## Decision: **{door}**\n\n{why}\n")
-    L.append("| Model | Role | Items | Expert-grade | Near-miss | key_valid | Consistency (std) | craft-fail | schema-fail | invalid-trap | option-date | date-fail | leak |")
-    L.append("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    L.append("| Model | Role | Items | Judged | Judge unavailable | Expert-grade | Near-miss | key_valid | Consistency (std) | craft-fail | schema-fail | invalid-trap | option-date | date-fail | leak |")
+    L.append("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for name, v in results.items():
         a = v["agg"]
-        L.append(f"| {name} | {v['role']} | {a['n_items']} | {pct(a['pass_rate'])} | "
+        L.append(f"| {name} | {v['role']} | {a['n_items']} | {a['n_judged']} | {a['judge_unavailable']} | {pct(a['pass_rate'])} | "
                  f"{pct(a.get('near_miss_rate'))} | "
                  f"{pct(a['key_valid_rate'])} | {a['consistency_std']:.03f} | "
                  f"{a['craft_fail_rate']:.0%} | {a['schema_fail_rate']:.0%} | "
                  f"{a['invalid_trap_rate']:.0%} | "
                  f"{a['option_date_tell_rate']:.0%} | "
                  f"{a['date_fail_rate']:.0%} | {a['source_leak_rate']:.0%} |")
+    L.append("")
+    L.append("### End-to-end prompt reliability")
+    L.append("| Model | Attempted prompts | Near-miss successes / attempt | Strict JSON arrays | Format buckets |")
+    L.append("| :--- | ---: | ---: | ---: | :--- |")
+    for name, value in results.items():
+        aggregate_value = value["agg"]
+        L.append(
+            f"| {name} | {aggregate_value.get('attempted_prompts', 0)} | "
+            f"{pct(aggregate_value.get('attempted_prompt_near_miss_rate'))} | "
+            f"{pct(aggregate_value.get('strict_array_rate'))} | "
+            f"`{json.dumps(aggregate_value.get('format_buckets', {}), sort_keys=True)}` |"
+        )
     L.append("")
     L.append("### Per-source-genre quality")
     L.append("| Model | Genre | Items | Near-miss | key_valid |")
@@ -429,7 +464,7 @@ def main():
     args = ap.parse_args()
 
     if args.check:
-        models = json.load(open(args.models)) if os.path.exists(args.models) else dry_run_models()
+        models = load_json(args.models) if os.path.exists(args.models) else dry_run_models()
         roster = [("candidate", m) for m in models.get("candidates", [])]
         for r in ("teacher", "judge"):
             if models.get(r):
@@ -452,7 +487,7 @@ def main():
     else:
         if not os.path.exists(args.models):
             raise SystemExit(f"model config not found: {args.models} (copy eval/models.example.json)")
-        models = json.load(open(args.models))
+        models = load_json(args.models)
 
     prompt = LitmusPrompt.from_file(os.path.join(ROOT, "prompts", "litmus_generation_prompt.md"))
     sources = load_sources(args.split)
@@ -468,7 +503,7 @@ def main():
 
     sources_by_id = {s["id"]: s for s in sources}
 
-    # Phase 1 — GENERATION (per model; gateway models run concurrent requests,
+    # Phase 1 - GENERATION (per model; gateway models run concurrent requests,
     # local Ollama/HF stays serial). Two phases keep the progress UI unambiguous.
     print("Phase 1/2: generation" + (" + repair" if args.repair else ""))
     gen_records = []
@@ -485,7 +520,7 @@ def main():
                               concurrency=_concurrency_for(cfg, args.gen_concurrency))
         gen_records += recs
 
-    # Phase 2 — JUDGING (all items from all models judged in parallel: the big win).
+    # Phase 2 - JUDGING (all items from all models judged in parallel: the big win).
     print("Phase 2/2: judging")
     scored = judge_all(gen_records, judge_cfg, sources_by_id,
                        no_judge=args.no_judge, concurrency=args.judge_concurrency)
@@ -493,7 +528,28 @@ def main():
     results = {}
     for role, cfg in roster:
         model_scored = [x for x in scored if x["model"] == cfg["name"]]
-        results[cfg["name"]] = {"role": role, "agg": aggregate(model_scored)}
+        model_attempts = [x for x in generation_attempts if x["model"] == cfg["name"]]
+        agg = aggregate(model_scored)
+        passed_prompts = {
+            (x["run"], x["source_id"], x["item"].get("_requested_archetype"))
+            for x in model_scored
+            if x.get("near_miss") is True
+        }
+        format_buckets = Counter(
+            (attempt.get("format") or {}).get("bucket", "unknown")
+            for attempt in model_attempts
+        )
+        agg["attempted_prompts"] = len(model_attempts)
+        agg["attempted_prompt_near_miss_rate"] = (
+            len(passed_prompts) / len(model_attempts) if model_attempts else None
+        )
+        agg["strict_array_rate"] = (
+            sum(bool((attempt.get("format") or {}).get("strict_array_contract")) for attempt in model_attempts)
+            / len(model_attempts)
+            if model_attempts else None
+        )
+        agg["format_buckets"] = dict(format_buckets)
+        results[cfg["name"]] = {"role": role, "agg": agg}
 
     item_records = []
     for x in scored:

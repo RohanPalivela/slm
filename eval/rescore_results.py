@@ -64,7 +64,11 @@ def _rescore_record(rec: dict, source: dict) -> dict:
         prog_ok = prog["disqualifying_ok"] and prog["craft_ok"]
         expert_grade = judge.expert_grade(prog_ok, j)
         near_miss = judge.near_grade(prog_ok, j)
-        key_valid = bool(j.get("key_valid") and prog["disqualifying_ok"])
+        key_valid = (
+            None
+            if j.get("_status", "ok") != "ok" or j.get("key_valid") is None
+            else bool(j.get("key_valid") and prog["disqualifying_ok"])
+        )
     return {**rec, "archetype": item.get("archetype"),
             "model_archetype": rec.get("model_archetype") or item.get("_model_archetype"),
             "requested_archetype": rec.get("requested_archetype") or item.get("_requested_archetype"),

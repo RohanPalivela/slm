@@ -14,7 +14,7 @@
       "format": "json",
       "max_tokens": 1536,
       "num_ctx": 4096,
-      "_note": "native Ollama provider: think:false (Qwen3 thinking off), format:'json' (clean JSON, no rambling). NOTE: under format:'json' this 4B reliably emits ONE complete item per call regardless of N — that's a model choice, not truncation (the harness now verifies completeness and says so). The harness issues one call PER ARCHETYPE so both CAUSE and EFFECT get measured anyway. max_tokens=1536/num_ctx=4096 comfortably fit the ~2.1k-token prompt + a complete item (~375 tok) with headroom, and keep each call fast (~ num_predict/(~20 tok/s)). For a faster full run point at a hosted Qwen3-4B (provider 'openai_compatible', base_url '.../v1')."
+      "_note": "native Ollama provider: think:false (Qwen3 thinking off), format:'json' (clean JSON, no rambling). NOTE: under format:'json' this 4B reliably emits ONE complete item per call regardless of N - that's a model choice, not truncation (the harness now verifies completeness and says so). The harness issues one call PER ARCHETYPE so both CAUSE and EFFECT get measured anyway. max_tokens=1536/num_ctx=4096 comfortably fit the ~2.1k-token prompt + a complete item (~375 tok) with headroom, and keep each call fast (~ num_predict/(~20 tok/s)). For a faster full run point at a hosted Qwen3-4B (provider 'openai_compatible', base_url='.../v1')."
     }
   ],
 
@@ -36,5 +36,26 @@
     "api_key_env": "PROMPTLENS_API_KEY",
     "max_tokens": 2048,
     "_note": "different family than the teacher, so it doesn't grade its own outputs. If the router rejects temperature/max_tokens for GPT-5.x, add \"include_temperature\": false and \"token_param\": \"max_completion_tokens\"."
+  },
+
+  "verifier": {
+    "name": "third-family-key-verifier",
+    "provider": "openai_compatible",
+    "model": "REPLACE_WITH_A_THIRD_MODEL_FAMILY",
+    "base_url": "https://tfy.promptlens.trilogy.com/v1",
+    "api_key_env": "PROMPTLENS_API_KEY",
+    "max_tokens": 512,
+    "_note": "Required for bulk training-data generation. This solver must be a different model family from both the teacher and judge so repeated key votes are independent evidence."
+  },
+
+  "training_auditor": {
+    "name": "strong-third-family-training-auditor",
+    "provider": "openai_compatible",
+    "model": "REPLACE_WITH_A_STRONG_THIRD_MODEL_FAMILY",
+    "base_url": "https://tfy.promptlens.trilogy.com/v1",
+    "api_key_env": "PROMPTLENS_API_KEY",
+    "max_tokens": 2048,
+    "parse_attempts": 3,
+    "_note": "Recommended for the full v4 semantic audit. It must differ from the archived Claude generator and GPT judge/verifier provenance and should be strong enough to judge historical correctness and option uniqueness."
   }
 }

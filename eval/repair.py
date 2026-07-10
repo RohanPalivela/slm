@@ -2,7 +2,7 @@
 Generate -> repair pass for the litmus harness.
 
 The dominant expert-grade failure mode (see results/litmus_results.md) is NOT the
-key — teacher keys are ~99% historically correct — it is DISTRACTOR CRAFT: too
+key - teacher keys are ~99% historically correct - it is DISTRACTOR CRAFT: too
 many options a good student eliminates in one second because they are obviously
 from another era (>=2 WRONG_ERA traps) or otherwise not period-plausible.
 
@@ -20,7 +20,7 @@ from prompt_loader import extract_items
 
 REPAIR_SYSTEM = """You are a senior AP U.S. History item writer revising the \
 DISTRACTORS of a stimulus-based multiple-choice question. The stem is good and the \
-keyed answer is correct — DO NOT change the stem, the keyed answer's option text, \
+keyed answer is correct - DO NOT change the stem, the keyed answer's option text, \
 the archetype, or which letter is correct. Only rewrite the THREE wrong options so \
 the item becomes expert-grade.
 
@@ -29,7 +29,7 @@ Fix these specific, common defects:
    development a knowledgeable-but-imperfect student would SERIOUSLY consider. Apply
    the one-second test: if a well-prepared student can eliminate an option instantly
    purely because it is obviously from a different century or an obviously different
-   topic, it is a giveaway — replace it with a closer, more tempting development
+   topic, it is a giveaway - replace it with a closer, more tempting development
    (ideally the adjacent period AND same theme).
 2. TOO MANY CHRONOLOGY TRAPS. At MOST ONE distractor may be a WRONG_ERA trap. The
    other two must be same-era traps: TRUE_BUT_IRRELEVANT (right era, wrong
@@ -101,22 +101,58 @@ def _valid_shape(it: dict, original: dict) -> bool:
     return True
 
 
-def repair_item(cfg: dict, source: dict, item: dict, temperature: float, role: str = "") -> dict:
-    """Return a repaired copy of `item`. On any failure (provider error, unparseable
-    output, or a response that breaks the shape/key contract) return the original
-    item unchanged, so the repair pass can only help, never corrupt the set."""
+def repair_item_with_trace(
+    cfg: dict,
+    source: dict,
+    item: dict,
+    temperature: float,
+    role: str = "",
+) -> tuple[dict, dict]:
+    """Return the repaired item plus the raw repair decision trace."""
     system, user = build_repair_prompt(source, item)
     try:
         raw = providers.generate(cfg, system, user, temperature, role=role)
-    except providers.ProviderError:
-        return item
+    except providers.ProviderError as exc:
+        return item, {
+            "accepted": False,
+            "reason": "provider_error",
+            "error": str(exc),
+            "raw": "",
+            "parsed_item_count": 0,
+        }
     parsed = extract_items(raw)
-    if not parsed or not _valid_shape(parsed[0], item):
-        return item
+    if not parsed:
+        return item, {
+            "accepted": False,
+            "reason": "unparseable_response",
+            "error": None,
+            "raw": raw,
+            "parsed_item_count": 0,
+        }
+    if not _valid_shape(parsed[0], item):
+        return item, {
+            "accepted": False,
+            "reason": "shape_or_fixed_field_contract_failed",
+            "error": None,
+            "raw": raw,
+            "parsed_item_count": len(parsed),
+        }
     repaired = parsed[0]
     # Preserve harness-internal bookkeeping and mark the item as repaired.
     for k, v in item.items():
         if k.startswith("_"):
             repaired[k] = v
     repaired["_repaired"] = True
+    return repaired, {
+        "accepted": True,
+        "reason": "accepted",
+        "error": None,
+        "raw": raw,
+        "parsed_item_count": len(parsed),
+    }
+
+
+def repair_item(cfg: dict, source: dict, item: dict, temperature: float, role: str = "") -> dict:
+    """Return a repaired copy, falling back to the original on any failure."""
+    repaired, _trace = repair_item_with_trace(cfg, source, item, temperature, role)
     return repaired

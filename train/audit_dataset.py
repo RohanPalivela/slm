@@ -28,6 +28,7 @@ from date_utils import date_spans, source_year  # noqa: E402
 
 VALID_TRAPS = {"WRONG_ERA", "TRUE_BUT_IRRELEVANT", "SCOPE_MISMATCH", "PARTIALLY_TRUE"}
 OPTION_LABEL = re.compile(r"^\s*[A-D][).:]\s+")
+LOOSE_OPTION_LABEL = re.compile(r"^\s*([A-D])(?:[).:]\s+|\s+(?=[A-Z]))")
 TRAP_RE = re.compile(
     r"^\s*(WRONG_ERA|TRUE_BUT_IRRELEVANT|SCOPE_MISMATCH|PARTIALLY_TRUE)\b",
     re.I,
@@ -93,7 +94,8 @@ EFFECT_CONTEMPORANEOUS = re.compile(
 
 
 def load_jsonl(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.open(encoding="utf-8") if line.strip()]
+    with path.open(encoding="utf-8") as handle:
+        return [json.loads(line) for line in handle if line.strip()]
 
 
 def dump_jsonl(path: Path, rows: list[dict]) -> None:
@@ -139,7 +141,7 @@ def add_requires_outside_knowledge(rec: dict) -> None:
     keyed = OPTION_LABEL.sub("", keyed_option(rec)).strip()
     dating = str(rec.get("answer_dating") or "").strip()
     if keyed and dating:
-        rec["requires_outside_knowledge"] = f"{keyed} — {dating}"
+        rec["requires_outside_knowledge"] = f"{keyed} - {dating}"
     elif keyed:
         rec["requires_outside_knowledge"] = keyed
 
@@ -148,15 +150,27 @@ def normalize_options(rec: dict) -> int:
     options = rec.get("options")
     if not isinstance(options, list):
         return 0
+    original_keyed = keyed_option(rec)
     changed = 0
+    loose_matches = [LOOSE_OPTION_LABEL.match(str(option)) for option in options]
+    has_complete_loose_label_set = bool(
+        len(options) == 4
+        and all(loose_matches)
+        and {match.group(1) for match in loose_matches if match} == set("ABCD")
+    )
     clean = []
     for option in options:
         text = str(option)
-        stripped = OPTION_LABEL.sub("", text).strip()
+        pattern = LOOSE_OPTION_LABEL if has_complete_loose_label_set else OPTION_LABEL
+        stripped = pattern.sub("", text).strip()
         if stripped != text:
             changed += 1
         clean.append(stripped)
     rec["options"] = clean
+    outside = str(rec.get("requires_outside_knowledge") or "")
+    if has_complete_loose_label_set and original_keyed and outside.startswith(original_keyed):
+        cleaned_keyed = LOOSE_OPTION_LABEL.sub("", original_keyed).strip()
+        rec["requires_outside_knowledge"] = cleaned_keyed + outside[len(original_keyed):]
     return changed
 
 

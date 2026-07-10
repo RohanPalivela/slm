@@ -1,0 +1,912 @@
+[
+  {
+    "source_id": "stamp_act_1765",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to Parliament's revenue policy in the excerpt?",
+    "key": "The debt and imperial defense costs Britain incurred during the Seven Years' War",
+    "answer_dating": "The Seven Years' War ended in 1763, before Parliament enacted the Stamp Act in 1765, and its costs directly motivated new colonial revenue measures.",
+    "correct_rationale": "Britain sought colonial revenue after the Seven Years' War to help pay imperial debt and the cost of defending North America.",
+    "distractors": [
+      {"text": "The colonial boycott campaign against the Townshend duties", "trap": "WRONG_ERA", "reason": "The Townshend duties and the boycott against them began after the Stamp Act and therefore could not have caused it."},
+      {"text": "The long-standing British practice of salutary neglect in colonial administration", "trap": "SCOPE_MISMATCH", "reason": "Salutary neglect explains colonial expectations of autonomy but is less direct than the postwar fiscal crisis behind this tax."},
+      {"text": "The emergence of an organized colonial movement for immediate independence", "trap": "PARTIALLY_TRUE", "reason": "Colonial resistance grew after 1765, but an organized independence movement did not precede and cause the Stamp Act."}
+    ],
+    "requires_outside_knowledge": "Britain's post-1763 debt and defense costs as the immediate fiscal context for the Stamp Act"
+  },
+  {
+    "source_id": "stamp_act_1765",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The revenue measure described in the excerpt most directly contributed to which later development?",
+    "key": "The Stamp Act Congress and coordinated colonial arguments against taxation without representation",
+    "answer_dating": "The Stamp Act Congress met in October 1765 in direct response to the statute enacted earlier that year.",
+    "correct_rationale": "The tax prompted colonies to coordinate petitions and articulate a shared constitutional objection to parliamentary taxation.",
+    "distractors": [
+      {"text": "The Albany Congress proposal for intercolonial cooperation", "trap": "WRONG_ERA", "reason": "The Albany Congress met in 1754, before Parliament enacted the Stamp Act, so it cannot be a later effect."},
+      {"text": "The expansion of British settlement beyond the Appalachian boundary", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Western settlement was an imperial issue, but it was not a response to a tax on printed materials."},
+      {"text": "The immediate replacement of colonial assemblies with a continental government", "trap": "PARTIALLY_TRUE", "reason": "The colonies coordinated resistance, but they did not replace their assemblies or create a continental government in 1765."}
+    ],
+    "requires_outside_knowledge": "the Stamp Act Congress and the constitutional protest it organized in 1765"
+  },
+  {
+    "source_id": "alien_act_1798",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the national-security policy expressed in the excerpt?",
+    "key": "Federalist fears of French subversion during the XYZ Affair and the undeclared Quasi-War",
+    "answer_dating": "The XYZ Affair became public and the Quasi-War began in 1798 before and during enactment of the Alien Friends Act.",
+    "correct_rationale": "The crisis with France enabled Federalists to portray immigrants and opposition activity as threats to national security.",
+    "distractors": [
+      {"text": "The British attack on the Chesapeake and renewed impressment of American sailors", "trap": "WRONG_ERA", "reason": "The Chesapeake affair occurred in 1807 and helped cause the Embargo, not the 1798 Alien Act."},
+      {"text": "The continuing settlement of lands obtained through the Northwest Ordinance", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Western settlement was contemporary but did not directly generate Federalist fears about foreign subversion."},
+      {"text": "A broad consensus among both political parties that immigration should be restricted", "trap": "PARTIALLY_TRUE", "reason": "Federalists favored the law, but Democratic-Republicans fiercely opposed it, so no bipartisan consensus existed."}
+    ],
+    "requires_outside_knowledge": "the XYZ Affair, Quasi-War, and Federalist fear of French influence"
+  },
+  {
+    "source_id": "alien_act_1798",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal power asserted in the excerpt most directly contributed to which later development?",
+    "key": "The Kentucky and Virginia Resolutions' claim that states could judge the constitutionality of federal laws",
+    "answer_dating": "The Kentucky and Virginia Resolutions were adopted in 1798 and 1799 in direct opposition to the Alien and Sedition Acts.",
+    "correct_rationale": "Jeffersonian opponents answered the acts by advancing compact-theory arguments against unconstitutional federal power.",
+    "distractors": [
+      {"text": "Anti-Federalist opposition during the Constitution's ratification", "trap": "WRONG_ERA", "reason": "The ratification struggle preceded the Alien Act and therefore cannot be its effect."},
+      {"text": "The establishment of judicial review in Marbury v. Madison", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Marbury concerned judicial power and a disputed commission, not a direct challenge to the Alien Act."},
+      {"text": "The permanent acceptance of broad federal authority over immigration by Democratic-Republicans", "trap": "PARTIALLY_TRUE", "reason": "Democratic-Republicans condemned the acts rather than accepting their theory of federal power."}
+    ],
+    "requires_outside_knowledge": "the Kentucky and Virginia Resolutions as the organized constitutional response to the 1798 acts"
+  },
+  {
+    "source_id": "embargo_act_1807",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the trade restriction enacted in the excerpt?",
+    "key": "British impressment and the Chesapeake-Leopard affair amid violations of American neutral shipping",
+    "answer_dating": "The Chesapeake-Leopard affair occurred in June 1807 and intensified the neutral-rights crisis before the Embargo Act passed in December.",
+    "correct_rationale": "Jefferson used commercial coercion after British attacks on American shipping and sailors made continued neutral trade politically untenable.",
+    "distractors": [
+      {"text": "The British burning of Washington during the War of 1812", "trap": "WRONG_ERA", "reason": "The burning occurred in 1814, seven years after the embargo was enacted."},
+      {"text": "The expansion of cotton cultivation following the Louisiana Purchase", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Agricultural expansion affected exports but did not directly trigger Jefferson's coercive trade policy."},
+      {"text": "A congressional decision to prepare immediately for a declared war with Britain", "trap": "PARTIALLY_TRUE", "reason": "The embargo was intended as an alternative to war, not an immediate mobilization for a declared conflict."}
+    ],
+    "requires_outside_knowledge": "British impressment, neutral-rights violations, and the Chesapeake-Leopard affair"
+  },
+  {
+    "source_id": "embargo_act_1807",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The trade restriction imposed in the excerpt most directly contributed to which later development?",
+    "key": "Severe commercial losses and renewed Federalist opposition in New England",
+    "answer_dating": "New England shipping and export interests suffered during the embargo in 1808, producing political resistance after enactment.",
+    "correct_rationale": "The embargo cut merchants off from foreign trade and revived Federalist strength in the region most dependent on commerce.",
+    "distractors": [
+      {"text": "The federal response to the Whiskey Rebellion", "trap": "WRONG_ERA", "reason": "The Whiskey Rebellion occurred in the 1790s, before the embargo, so it cannot be a later effect."},
+      {"text": "The acquisition of Florida through negotiations with Spain", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Florida's acquisition was a diplomatic development, not a direct result of the embargo's restrictions on shipping."},
+      {"text": "The complete end of American dependence on imported manufactured goods", "trap": "PARTIALLY_TRUE", "reason": "The embargo encouraged some domestic manufacturing but did not eliminate dependence on imports."}
+    ],
+    "requires_outside_knowledge": "the embargo's economic damage to New England commerce and its partisan consequences"
+  },
+  {
+    "source_id": "kansas_nebraska_act_1854",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to Congress's decision to leave slavery to territorial voters as described in the excerpt?",
+    "key": "Douglas's effort to organize western territories by repealing the Missouri Compromise restriction",
+    "answer_dating": "Douglas introduced the territorial bill in early 1854 and added repeal of the 1820 restriction to gain southern votes before enactment.",
+    "correct_rationale": "Douglas paired territorial organization with popular sovereignty, requiring the Missouri Compromise line to be displaced to attract southern support.",
+    "distractors": [
+      {"text": "Congressional enforcement of the Wilmot Proviso across land acquired from Mexico", "trap": "PARTIALLY_TRUE", "reason": "The proviso proposed restricting slavery but never became federal law, and Kansas-Nebraska addressed different territory."},
+      {"text": "The Supreme Court's ruling in Dred Scott v. Sandford", "trap": "WRONG_ERA", "reason": "Dred Scott was decided in 1857, after the Kansas-Nebraska Act."},
+      {"text": "The general growth of western migration during the antebellum era", "trap": "SCOPE_MISMATCH", "reason": "Migration explains pressure to organize territory but not the specific repeal and popular-sovereignty bargain."}
+    ],
+    "requires_outside_knowledge": "Douglas's territorial organization plan and the political bargain that repealed the Missouri Compromise line"
+  },
+  {
+    "source_id": "kansas_nebraska_act_1854",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The territorial policy described in the excerpt most directly contributed to which later development?",
+    "key": "The rapid organization of the Republican Party around opposition to the expansion of slavery",
+    "answer_dating": "Anti-Nebraska coalitions formed the Republican Party during 1854 and 1855 immediately after passage of the act.",
+    "correct_rationale": "Repeal of the Missouri Compromise united former Whigs, Free Soilers, and antislavery Democrats in a new sectional party.",
+    "distractors": [
+      {"text": "The final collapse of the Republican Party after the election of 1856", "trap": "PARTIALLY_TRUE", "reason": "The party contested the 1856 election but grew rather than collapsed."},
+      {"text": "The adoption of the Compromise of 1850 to settle the Mexican Cession", "trap": "WRONG_ERA", "reason": "The Compromise of 1850 preceded the Kansas-Nebraska Act and could not be its effect."},
+      {"text": "The continuation of the existing two-party competition without a major realignment", "trap": "SCOPE_MISMATCH", "reason": "The act accelerated a major party-system collapse and sectional realignment rather than preserving the status quo."}
+    ],
+    "requires_outside_knowledge": "the Anti-Nebraska coalition and formation of the Republican Party in 1854-1855"
+  },
+  {
+    "source_id": "morrill_land_grant_act_1862",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to congressional support for the educational policy described in the excerpt?",
+    "key": "The Republican free-labor program and the absence of seceded southern legislators during the Civil War",
+    "answer_dating": "Republicans controlled the wartime Congress after southern secession in 1861 and enacted the Morrill Act in 1862.",
+    "correct_rationale": "Wartime Republican control enabled a free-labor agenda that used federal land to expand practical higher education.",
+    "distractors": [
+      {"text": "The Populist demand for federal ownership of the railroads", "trap": "WRONG_ERA", "reason": "The Populist program emerged three decades after the Morrill Act."},
+      {"text": "The antebellum spread of private classical colleges in eastern cities", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Existing private colleges did not directly explain a federal program centered on agriculture and mechanics."},
+      {"text": "A bipartisan wartime agreement to preserve the plantation labor system", "trap": "PARTIALLY_TRUE", "reason": "The Republican program challenged slave labor and did not rest on such an agreement."}
+    ],
+    "requires_outside_knowledge": "the Civil War political realignment and Republican commitment to free labor and practical education"
+  },
+  {
+    "source_id": "morrill_land_grant_act_1862",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal educational policy described in the excerpt most directly contributed to which later development?",
+    "key": "The nationwide growth of public colleges emphasizing agriculture, engineering, and applied science",
+    "answer_dating": "States established and expanded land-grant colleges after receiving federal land under the 1862 act, especially during the late nineteenth century.",
+    "correct_rationale": "The land grants financed a durable network of state institutions devoted to practical and scientific instruction.",
+    "distractors": [
+      {"text": "The replacement of public universities by privately endowed research institutions", "trap": "PARTIALLY_TRUE", "reason": "Private universities expanded, but the act strengthened rather than replaced public institutions."},
+      {"text": "The creation of segregated common schools under Reconstruction governments", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Common-school policy involved primary education and was not the direct institutional result of the college land grants."},
+      {"text": "The founding of private denominational colleges during the antebellum era", "trap": "WRONG_ERA", "reason": "Those colleges predated the Morrill Act and therefore cannot be an effect of the 1862 land grants."}
+    ],
+    "requires_outside_knowledge": "the land-grant university system and its emphasis on agriculture and mechanical arts"
+  },
+  {
+    "source_id": "pacific_railway_act_1862",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to federal support for the railroad project described in the excerpt?",
+    "key": "Republican wartime control of Congress and the strategic goal of linking the Pacific Coast",
+    "answer_dating": "Southern secession removed major route opposition in 1861, and wartime strategic concerns preceded passage of the act in 1862.",
+    "correct_rationale": "Republican wartime control resolved the route dispute and made a transcontinental connection a strategic and free-labor priority.",
+    "distractors": [
+      {"text": "The completion of the Erie Canal and its effect on Atlantic commerce", "trap": "SCOPE_MISMATCH", "reason": "The canal showed transportation's value but did not directly resolve the sectional route dispute or wartime need."},
+      {"text": "The Populist campaign against railroad freight rates", "trap": "WRONG_ERA", "reason": "Populist railroad protests emerged decades after the 1862 act."},
+      {"text": "A southern congressional majority's preference for a northern railroad route", "trap": "PARTIALLY_TRUE", "reason": "Southern legislators had seceded, and before secession they generally favored a southern route."}
+    ],
+    "requires_outside_knowledge": "the Civil War political opening and strategic goal behind the Pacific Railway Act"
+  },
+  {
+    "source_id": "pacific_railway_act_1862",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal support authorized in the excerpt most directly contributed to which later development?",
+    "key": "Completion of the first transcontinental railroad and accelerated settlement of the West",
+    "answer_dating": "The Union Pacific and Central Pacific lines met at Promontory Summit in 1869, seven years after the act authorized support.",
+    "correct_rationale": "Federal land and financing enabled the railroad whose completion integrated western markets and sped migration and settlement.",
+    "distractors": [
+      {"text": "The immediate end of armed conflict between settlers and Native nations", "trap": "PARTIALLY_TRUE", "reason": "Rail access accelerated settlement and intensified rather than ended conflict over western land."},
+      {"text": "The federal construction of the National Road through the Ohio Valley", "trap": "WRONG_ERA", "reason": "The National Road was an earlier transportation project and predated the Pacific Railway Act."},
+      {"text": "The expansion of plantation cotton production into the Deep South", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Cotton expansion was a separate regional process and not a direct result of the transcontinental project."}
+    ],
+    "requires_outside_knowledge": "the 1869 completion and the railroad's role in western market integration and settlement"
+  },
+  {
+    "source_id": "civil_rights_act_1866",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the citizenship protections enacted in the excerpt?",
+    "key": "Southern Black Codes that restricted the freedom and legal rights of formerly enslaved people",
+    "answer_dating": "Former Confederate states enacted Black Codes in 1865 and 1866 before Congress passed the Civil Rights Act in April 1866.",
+    "correct_rationale": "Congress designed the act to counter state laws that denied freedpeople basic civil and contractual rights.",
+    "distractors": [
+      {"text": "The Supreme Court's separate-but-equal ruling in Plessy v. Ferguson", "trap": "WRONG_ERA", "reason": "Plessy was decided in 1896, three decades after the act."},
+      {"text": "The wartime confiscation of Confederate property by Union armies", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Confiscation policy did not directly produce the act's citizenship and contract guarantees."},
+      {"text": "A southern commitment to provide equal civil rights through state law", "trap": "PARTIALLY_TRUE", "reason": "The Black Codes demonstrated the opposite and prompted federal intervention."}
+    ],
+    "requires_outside_knowledge": "the Black Codes and congressional determination to protect freedpeople during Reconstruction"
+  },
+  {
+    "source_id": "civil_rights_act_1866",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal citizenship policy expressed in the excerpt most directly contributed to which later development?",
+    "key": "Congressional adoption and ratification of the Fourteenth Amendment's citizenship and equal-protection guarantees",
+    "answer_dating": "Congress proposed the Fourteenth Amendment in June 1866, shortly after the act, and the states ratified it in 1868.",
+    "correct_rationale": "Congress constitutionalized national citizenship and equal protection to secure the act's principles against repeal and judicial doubt.",
+    "distractors": [
+      {"text": "The immediate restoration of unrestricted home rule in every former Confederate state", "trap": "PARTIALLY_TRUE", "reason": "Congress instead imposed further Reconstruction requirements before restoring representation."},
+      {"text": "The Supreme Court's denial of Black citizenship in Dred Scott v. Sandford", "trap": "WRONG_ERA", "reason": "Dred Scott was decided in 1857, before the 1866 act, so it cannot be a later effect."},
+      {"text": "The redistribution of former plantations to freedpeople throughout the South", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The act protected civil rights but did not create a broad land-redistribution program."}
+    ],
+    "requires_outside_knowledge": "the link between the Civil Rights Act and Congress's decision to constitutionalize citizenship in the Fourteenth Amendment"
+  },
+  {
+    "source_id": "pendleton_act_1883",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the civil-service reform described in the excerpt?",
+    "key": "Public backlash against the spoils system after President Garfield's assassination",
+    "answer_dating": "Garfield was assassinated in 1881, and public outrage over patronage preceded passage of the Pendleton Act in 1883.",
+    "correct_rationale": "The assassin's connection to office seeking made patronage reform an urgent national issue and helped Congress enact competitive hiring.",
+    "distractors": [
+      {"text": "The Credit Mobilier scandal involving railroad construction", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The scandal fueled concern about corruption but did not directly trigger competitive civil-service examinations."},
+      {"text": "The Populist Party's Omaha Platform", "trap": "WRONG_ERA", "reason": "The Omaha Platform appeared in 1892, after the Pendleton Act."},
+      {"text": "A presidential effort to expand the number of jobs distributed through party patronage", "trap": "PARTIALLY_TRUE", "reason": "The act restricted patronage rather than expanding it."}
+    ],
+    "requires_outside_knowledge": "Garfield's assassination and the public campaign against the spoils system"
+  },
+  {
+    "source_id": "pendleton_act_1883",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The hiring rules described in the excerpt most directly contributed to which later development?",
+    "key": "The gradual professionalization of the federal bureaucracy through merit-based appointments",
+    "answer_dating": "Successive presidents expanded the classified civil service after 1883, increasing the share of federal positions filled by merit rules.",
+    "correct_rationale": "Competitive examinations and protected classifications reduced patronage in covered positions and built a more professional bureaucracy.",
+    "distractors": [
+      {"text": "The complete disappearance of patronage from municipal and state politics", "trap": "PARTIALLY_TRUE", "reason": "Federal merit rules expanded gradually and did not eliminate patronage at every level."},
+      {"text": "The direct election of United States senators", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Senate elections were a separate Progressive reform unrelated to federal hiring examinations."},
+      {"text": "The expansion of rotation in office under Andrew Jackson", "trap": "WRONG_ERA", "reason": "Jacksonian rotation in office preceded the Pendleton Act and therefore cannot be its later effect."}
+    ],
+    "requires_outside_knowledge": "the expansion of the classified civil service and merit-based federal administration after 1883"
+  },
+  {
+    "source_id": "sherman_antitrust_act_1890",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the federal restriction on combinations expressed in the excerpt?",
+    "key": "The rapid consolidation of major industries into trusts that appeared to suppress competition",
+    "answer_dating": "Large trusts in oil, sugar, and other industries expanded during the 1870s and 1880s before Congress acted in 1890.",
+    "correct_rationale": "Public and political concern over concentrated corporate power led Congress to prohibit combinations in restraint of interstate trade.",
+    "distractors": [
+      {"text": "The growth of small proprietary farms under the Homestead Act", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Farm settlement was contemporary but did not directly produce a law aimed at industrial trusts."},
+      {"text": "The creation of the Federal Trade Commission", "trap": "WRONG_ERA", "reason": "The commission was established in 1914, after the Sherman Act."},
+      {"text": "A general decline in corporate mergers and market concentration", "trap": "PARTIALLY_TRUE", "reason": "Consolidation was increasing rather than declining when Congress passed the act."}
+    ],
+    "requires_outside_knowledge": "Gilded Age trust formation and the antimonopoly reaction it generated"
+  },
+  {
+    "source_id": "sherman_antitrust_act_1890",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal authority asserted in the excerpt most directly contributed to which later development?",
+    "key": "Progressive-era federal prosecutions seeking to dissolve or regulate major corporate combinations",
+    "answer_dating": "Presidents Theodore Roosevelt and William Howard Taft used the 1890 statute in prominent antitrust suits during the 1900s and 1910s.",
+    "correct_rationale": "Although early enforcement was limited, the statute became the legal basis for later federal trust-busting cases.",
+    "distractors": [
+      {"text": "The immediate breakup of every major trust during the 1890s", "trap": "PARTIALLY_TRUE", "reason": "Early enforcement was weak and courts narrowed the act, so no immediate comprehensive breakup occurred."},
+      {"text": "The federal guarantee of collective-bargaining rights for industrial workers", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Collective-bargaining rights came through New Deal labor law, not antitrust prosecutions."},
+      {"text": "The Supreme Court's protection of corporate charters in Dartmouth College v. Woodward", "trap": "WRONG_ERA", "reason": "Dartmouth College was decided in 1819, long before the Sherman Act, so it cannot be the statute's effect."}
+    ],
+    "requires_outside_knowledge": "the later use of the Sherman Act in Progressive trust-busting litigation"
+  },
+  {
+    "source_id": "pure_food_drug_act_1906",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the consumer-protection policy expressed in the excerpt?",
+    "key": "Muckraking investigations that exposed adulterated food, patent-medicine fraud, and unsafe meatpacking",
+    "answer_dating": "Investigative campaigns and Upton Sinclair's 1906 publication preceded enactment of the Pure Food and Drug Act that year.",
+    "correct_rationale": "Publicity about unsafe and deceptively labeled products generated support for federal standards in interstate commerce.",
+    "distractors": [
+      {"text": "The Social Gospel campaign for settlement houses in immigrant neighborhoods", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Settlement work addressed urban poverty but did not directly produce federal food-labeling standards."},
+      {"text": "The consumer activism associated with Ralph Nader in the 1960s", "trap": "WRONG_ERA", "reason": "Nader's movement came many decades after the 1906 statute."},
+      {"text": "A decline in public concern about the safety of mass-produced goods", "trap": "PARTIALLY_TRUE", "reason": "Concern increased sharply and helped produce the law."}
+    ],
+    "requires_outside_knowledge": "muckraking exposes, especially the meatpacking and patent-medicine investigations behind the 1906 law"
+  },
+  {
+    "source_id": "pure_food_drug_act_1906",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal prohibition described in the excerpt most directly contributed to which later development?",
+    "key": "The growth of a permanent federal system for inspecting and regulating the safety and labeling of food and drugs",
+    "answer_dating": "Federal enforcement expanded after 1906 and evolved into the modern Food and Drug Administration during the twentieth century.",
+    "correct_rationale": "The statute established an enduring federal role in setting and enforcing consumer-product standards across state lines.",
+    "distractors": [
+      {"text": "The transfer of all consumer-protection authority from the federal government to the states", "trap": "PARTIALLY_TRUE", "reason": "The act expanded federal authority rather than transferring it away."},
+      {"text": "The creation of the Interstate Commerce Commission to set railroad rates", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Railroad regulation was a separate federal initiative and did not follow from food and drug inspection."},
+      {"text": "State railroad commissions created during the Granger movement", "trap": "WRONG_ERA", "reason": "The Granger commissions predated the 1906 act and therefore cannot be its later effect."}
+    ],
+    "requires_outside_knowledge": "the institutional development from the 1906 enforcement regime to modern federal food and drug regulation"
+  },
+  {
+    "source_id": "federal_reserve_act_1913",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the banking reform described in the excerpt?",
+    "key": "The banking-system failures exposed by the Panic of 1907",
+    "answer_dating": "The Panic of 1907 exposed banking instability six years before Congress enacted the Federal Reserve Act in 1913.",
+    "correct_rationale": "The panic convinced reformers that the nation needed reserve institutions able to provide an elastic currency and act during financial crises.",
+    "distractors": [
+      {"text": "The collapse of thousands of banks during the Great Depression", "trap": "WRONG_ERA", "reason": "The Depression began in 1929, long after the Federal Reserve was created."},
+      {"text": "The Populist campaign for the free coinage of silver", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Currency politics shaped earlier debate, but the immediate reform problem was banking liquidity exposed in 1907."},
+      {"text": "A broad agreement that all banking decisions should remain decentralized among private clearinghouses", "trap": "PARTIALLY_TRUE", "reason": "The act created a coordinated federal reserve system because private arrangements had proved inadequate."}
+    ],
+    "requires_outside_knowledge": "the Panic of 1907 as the direct catalyst for a central reserve system"
+  },
+  {
+    "source_id": "federal_reserve_act_1913",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The banking framework established in the excerpt most directly contributed to which later development?",
+    "key": "Federal Reserve coordination of wartime credit and government-bond financing during World War I",
+    "answer_dating": "After the reserve banks opened in 1914, the system helped coordinate credit and Liberty Bond financing during U.S. mobilization in 1917 and 1918.",
+    "correct_rationale": "The new reserve system gave the federal government a national banking network through which to coordinate wartime credit and bond finance.",
+    "distractors": [
+      {"text": "The immediate federal insurance of every private bank deposit", "trap": "WRONG_ERA", "reason": "Federal deposit insurance was created in 1933, two decades after the 1913 act."},
+      {"text": "The direct regulation of railroad freight rates by regional commissions", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Railroad-rate regulation belonged to the Interstate Commerce Commission, not the reserve banks."},
+      {"text": "The abolition of a national role in responding to financial panics", "trap": "SCOPE_MISMATCH", "reason": "The act expanded and institutionalized the national role rather than abolishing it."}
+    ],
+    "requires_outside_knowledge": "the Federal Reserve's specific role in coordinating credit and federal bond finance during World War I"
+  },
+  {
+    "source_id": "wagner_act_1935",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the collective-bargaining protections expressed in the excerpt?",
+    "key": "Mass unemployment, labor conflict, and weak employer compliance under earlier New Deal labor protections",
+    "answer_dating": "Major strikes and disputes over section 7(a) of the National Industrial Recovery Act occurred in 1933 and 1934 before the Wagner Act passed in 1935.",
+    "correct_rationale": "Labor upheaval and ineffective earlier guarantees led Congress to create enforceable organizing rights and a national labor board.",
+    "distractors": [
+      {"text": "The postwar wave of strikes that prompted the Taft-Hartley Act", "trap": "WRONG_ERA", "reason": "The postwar strike wave and Taft-Hartley came after World War II, more than a decade later."},
+      {"text": "The farm foreclosure crisis addressed by agricultural relief programs", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Farm distress was important but did not directly produce industrial collective-bargaining rules."},
+      {"text": "A Supreme Court mandate requiring private employers to recognize unions", "trap": "PARTIALLY_TRUE", "reason": "Congress created the statutory duty; no prior Supreme Court mandate compelled it."}
+    ],
+    "requires_outside_knowledge": "the 1933-1934 strike wave and failure of earlier voluntary labor protections"
+  },
+  {
+    "source_id": "wagner_act_1935",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The labor rights guaranteed in the excerpt most directly contributed to which later development?",
+    "key": "Rapid growth of mass-production unionism through the Congress of Industrial Organizations",
+    "answer_dating": "The CIO organized steel, automobile, rubber, and other industries during the late 1930s after the Wagner Act protected organizing and bargaining.",
+    "correct_rationale": "Federal protection and NLRB enforcement gave industrial unions leverage to organize large firms and win recognition.",
+    "distractors": [
+      {"text": "The permanent elimination of employer resistance and labor strikes", "trap": "PARTIALLY_TRUE", "reason": "Employers continued to resist and strikes remained common despite legal protections."},
+      {"text": "The expansion of old-age pensions through Social Security", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Social insurance was a separate New Deal policy and did not result from collective-bargaining rights."},
+      {"text": "The formation of the Knights of Labor during the nineteenth century", "trap": "WRONG_ERA", "reason": "The Knights of Labor predated the Wagner Act and therefore cannot be its later effect."}
+    ],
+    "requires_outside_knowledge": "the CIO organizing surge and sit-down victories that followed federal recognition of labor rights"
+  },
+  {
+    "source_id": "gi_bill_1944",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the veterans' benefits policy described in the excerpt?",
+    "key": "Concern about unemployment and unrest during the coming mass demobilization",
+    "answer_dating": "Planning for the return of millions of service members occurred before Congress enacted the GI Bill in June 1944.",
+    "correct_rationale": "Policymakers used education, housing, and unemployment benefits to smooth demobilization and reward wartime service.",
+    "distractors": [
+      {"text": "The Bonus Army's demand for immediate payment during the early 1930s", "trap": "SCOPE_MISMATCH", "reason": "The Bonus Army shaped awareness of veteran discontent but the direct 1944 concern was the coming mass World War II demobilization."},
+      {"text": "The launch of the Great Society's War on Poverty", "trap": "WRONG_ERA", "reason": "The Great Society began two decades after the GI Bill."},
+      {"text": "A wartime shortage of military recruits caused by universal college enrollment", "trap": "PARTIALLY_TRUE", "reason": "College enrollment fell during mobilization, and the law addressed veterans returning after service."}
+    ],
+    "requires_outside_knowledge": "the anticipated economic and social problems of postwar demobilization"
+  },
+  {
+    "source_id": "gi_bill_1944",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The benefits policy described in the excerpt most directly contributed to which later development?",
+    "key": "A major expansion of college attendance and suburban homeownership among returning veterans",
+    "answer_dating": "Veterans used tuition assistance and federally backed mortgages in large numbers after demobilization in 1945 and 1946.",
+    "correct_rationale": "Education and mortgage benefits broadened access to credentials and home purchases, helping build the postwar middle class and suburbs.",
+    "distractors": [
+      {"text": "Equal access for Black veterans to every college and mortgage market", "trap": "PARTIALLY_TRUE", "reason": "Benefits were formally available, but segregation and discriminatory local administration denied equal access."},
+      {"text": "The wartime internment of Japanese Americans", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Internment was a separate wartime policy and did not result from veteran education benefits."},
+      {"text": "The first federal land grants for agricultural colleges", "trap": "WRONG_ERA", "reason": "The Morrill Act established land-grant colleges in 1862, long before the GI Bill."}
+    ],
+    "requires_outside_knowledge": "the postwar education and mortgage boom produced by GI Bill benefits, along with unequal local access"
+  },
+  {
+    "source_id": "immigration_nationality_act_1965",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the immigration reform expressed in the excerpt?",
+    "key": "Civil rights-era opposition to discriminatory national-origins quotas",
+    "answer_dating": "Civil rights legislation and Cold War criticism of discriminatory quotas intensified before Congress enacted the 1965 amendments.",
+    "correct_rationale": "Reformers linked abolition of national-origins discrimination to domestic equality and American credibility abroad.",
+    "distractors": [
+      {"text": "The nativist campaign that produced the national-origins system in the 1920s", "trap": "SCOPE_MISMATCH", "reason": "That campaign explains the old system, but the direct reform impetus was the later rejection of its discrimination."},
+      {"text": "The refugee crisis created by the fall of Saigon", "trap": "WRONG_ERA", "reason": "Saigon fell in 1975, a decade after the law."},
+      {"text": "A congressional goal of preserving the existing ethnic distribution without modification", "trap": "PARTIALLY_TRUE", "reason": "Supporters predicted limited change, but the statute deliberately abolished the discriminatory national-origins allocation."}
+    ],
+    "requires_outside_knowledge": "the civil rights and Cold War context behind repeal of the national-origins quota system"
+  },
+  {
+    "source_id": "immigration_nationality_act_1965",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The visa policy described in the excerpt most directly contributed to which later development?",
+    "key": "Increased immigration from Asia, Latin America, Africa, and the Caribbean",
+    "answer_dating": "The regional composition of immigration shifted in the decades after the 1965 law replaced national-origins quotas with preference categories.",
+    "correct_rationale": "Ending the old quotas and prioritizing family ties opened durable migration chains from regions previously restricted.",
+    "distractors": [
+      {"text": "The immediate end of all numerical limits and preference categories", "trap": "PARTIALLY_TRUE", "reason": "The law retained numerical ceilings and established preference categories even while abolishing national-origins discrimination."},
+      {"text": "The forced removal of Mexican Americans during the Great Depression", "trap": "WRONG_ERA", "reason": "Depression-era repatriation preceded the 1965 act by decades."},
+      {"text": "The growth of European immigration under the earlier quota system", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The major later shift was away from the old Europe-weighted allocation toward new regional flows."}
+    ],
+    "requires_outside_knowledge": "the post-1965 transformation of migration origins and the role of family reunification"
+  },
+  {
+    "source_id": "gibbons_ogden_1824",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the constitutional dispute addressed in the excerpt?",
+    "key": "A conflict between New York's steamboat monopoly and a federal coastal license used in interstate navigation",
+    "answer_dating": "The competing state monopoly and federal license produced litigation before the Supreme Court decided Gibbons in 1824.",
+    "correct_rationale": "The case arose because a state-granted exclusive franchise obstructed federally licensed commerce between New York and New Jersey.",
+    "distractors": [
+      {"text": "Maryland's tax on the Second Bank of the United States", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That dispute produced McCulloch and concerned taxation and implied powers, not a navigation monopoly."},
+      {"text": "Congress's regulation of railroads through the Interstate Commerce Act", "trap": "WRONG_ERA", "reason": "Federal railroad regulation began in 1887, decades after Gibbons."},
+      {"text": "A state effort to prohibit every form of trade within its own borders", "trap": "PARTIALLY_TRUE", "reason": "New York granted an exclusive navigation franchise, not a total ban on intrastate trade."}
+    ],
+    "requires_outside_knowledge": "the Ogden monopoly, Gibbons's federal license, and their interstate steamboat competition"
+  },
+  {
+    "source_id": "gibbons_ogden_1824",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The constitutional reasoning in the excerpt most directly contributed to which later development?",
+    "key": "A durable precedent for broad federal regulation of economic activity crossing state lines",
+    "answer_dating": "Later nineteenth- and twentieth-century federal commerce regulation relied on the broad understanding of interstate commerce articulated in 1824.",
+    "correct_rationale": "Gibbons established that navigation was commerce and that valid federal regulation prevailed over conflicting state monopolies.",
+    "distractors": [
+      {"text": "The abolition of every state power to regulate local economic activity", "trap": "PARTIALLY_TRUE", "reason": "The decision protected federal supremacy in interstate commerce but did not erase state authority over purely local matters."},
+      {"text": "The recognition of a state right to tax federal institutions", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That issue belonged to McCulloch, and the Court rejected rather than recognized such taxation."},
+      {"text": "The creation of the Articles of Confederation's commerce system", "trap": "WRONG_ERA", "reason": "The Articles predated the Constitution and the 1824 decision."}
+    ],
+    "requires_outside_knowledge": "Gibbons as an enduring foundation for federal Commerce Clause authority"
+  },
+  {
+    "source_id": "charles_river_bridge_1837",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the legal dispute resolved by the Court in the excerpt?",
+    "key": "A dispute over whether an older bridge charter implied a monopoly that could block a newer competing bridge",
+    "answer_dating": "The Warren Bridge was chartered after the Charles River Bridge, and the resulting monopoly claim reached the Court before its 1837 ruling.",
+    "correct_rationale": "The Court refused to infer an exclusive privilege that would impede a cheaper public crossing and economic improvement.",
+    "distractors": [
+      {"text": "A federal attempt to dissolve a manufacturing trust under the Sherman Act", "trap": "WRONG_ERA", "reason": "Federal antitrust law came more than fifty years later."},
+      {"text": "The controversy over state taxation of a national bank", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That was the issue in McCulloch, not the competing bridge-charter dispute."},
+      {"text": "A contract that expressly guaranteed the older company a permanent monopoly", "trap": "PARTIALLY_TRUE", "reason": "The controversy existed because the charter contained no express exclusive grant."}
+    ],
+    "requires_outside_knowledge": "the competing bridge charters and the older company's claim of an implied monopoly"
+  },
+  {
+    "source_id": "charles_river_bridge_1837",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The rule of construction expressed in the excerpt most directly contributed to which later development?",
+    "key": "More state charters for competing bridges and transportation projects",
+    "answer_dating": "After the 1837 ruling, public grants were construed narrowly, reducing the ability of older corporations to block new infrastructure.",
+    "correct_rationale": "By rejecting implied exclusivity, the Court favored competition and public improvements during the Market Revolution.",
+    "distractors": [
+      {"text": "A constitutional ban on all state incorporation of private businesses", "trap": "PARTIALLY_TRUE", "reason": "The Court limited implied monopolies but did not prohibit corporate charters."},
+      {"text": "Construction of the Erie Canal during the 1810s and 1820s", "trap": "WRONG_ERA", "reason": "The canal project began before the 1837 ruling and therefore cannot be its effect."},
+      {"text": "Expansion of federal admiralty jurisdiction over ocean shipping", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The case concerned state charters and monopoly claims, not federal admiralty jurisdiction."}
+    ],
+    "requires_outside_knowledge": "the decision's pro-competition effect on state infrastructure charters during the Market Revolution"
+  },
+  {
+    "source_id": "commonwealth_hunt_1842",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the legal issue addressed in the excerpt?",
+    "key": "Employers' use of the common-law conspiracy doctrine against workers who organized and enforced union rules",
+    "answer_dating": "Labor prosecutions under conspiracy theory occurred during early industrialization before the Massachusetts court ruled in 1842.",
+    "correct_rationale": "The case tested whether workers' collective organization and pressure were inherently criminal or depended on unlawful means.",
+    "distractors": [
+      {"text": "Federal protection of collective bargaining under the Wagner Act", "trap": "WRONG_ERA", "reason": "The Wagner Act was enacted in 1935, nearly a century later."},
+      {"text": "The spread of textile factories and wage labor in northeastern cities", "trap": "SCOPE_MISMATCH", "reason": "Industrialization created the setting, but the direct legal cause was prosecution of union organization as conspiracy."},
+      {"text": "A union campaign to obtain a federal minimum wage from Congress", "trap": "PARTIALLY_TRUE", "reason": "The journeymen enforced trade rules locally and did not bring a federal minimum-wage campaign."}
+    ],
+    "requires_outside_knowledge": "the common-law conspiracy prosecutions used against early labor unions"
+  },
+  {
+    "source_id": "commonwealth_hunt_1842",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The legal distinction expressed in the excerpt most directly contributed to which later development?",
+    "key": "Greater legal legitimacy for labor unions that pursued their goals through lawful means",
+    "answer_dating": "After the 1842 decision, union membership was not inherently criminal under Massachusetts law, strengthening the legal position of organized workers.",
+    "correct_rationale": "The court rejected the idea that a labor combination was automatically a criminal conspiracy and focused instead on its purposes and methods.",
+    "distractors": [
+      {"text": "Immediate nationwide recognition of a statutory right to collective bargaining", "trap": "PARTIALLY_TRUE", "reason": "The ruling was state-level and did not create the later federal right established in the New Deal."},
+      {"text": "The Lowell mill workers' strikes during the 1830s", "trap": "WRONG_ERA", "reason": "The Lowell strikes preceded the 1842 ruling and therefore cannot be its effect."},
+      {"text": "Judicial protection of corporate monopolies from all state regulation", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The opinion concerned labor combinations, not blanket protection for corporate monopolies."}
+    ],
+    "requires_outside_knowledge": "Commonwealth v. Hunt's role in ending automatic criminal treatment of lawful union activity"
+  },
+  {
+    "source_id": "slaughterhouse_cases_1873",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the Fourteenth Amendment dispute addressed in the excerpt?",
+    "key": "Louisiana's creation of a slaughterhouse monopoly and excluded butchers' claim that it violated their new federal privileges",
+    "answer_dating": "Louisiana enacted the monopoly in 1869, and the butchers challenged it before the Supreme Court ruled in 1873.",
+    "correct_rationale": "The monopoly dispute forced the Court to decide whether the Privileges or Immunities Clause protected ordinary occupational rights from state action.",
+    "distractors": [
+      {"text": "Congress's effort to outlaw racial discrimination in public accommodations", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That issue produced the Civil Rights Cases, not the slaughterhouse monopoly litigation."},
+      {"text": "A state law requiring segregated railway cars", "trap": "WRONG_ERA", "reason": "The Louisiana segregation law litigated in Plessy came later."},
+      {"text": "A federal charter granting butchers exclusive control over all interstate meatpacking", "trap": "PARTIALLY_TRUE", "reason": "The challenged monopoly came from Louisiana and involved local slaughtering, not a federal interstate charter."}
+    ],
+    "requires_outside_knowledge": "the Louisiana slaughterhouse monopoly and the butchers' Privileges or Immunities claim"
+  },
+  {
+    "source_id": "slaughterhouse_cases_1873",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The constitutional interpretation expressed in the excerpt most directly contributed to which later development?",
+    "key": "A narrow Privileges or Immunities Clause that limited its use against state violations of civil rights",
+    "answer_dating": "After the 1873 decision, litigants rarely succeeded under the Privileges or Immunities Clause and later turned to due process and equal protection.",
+    "correct_rationale": "The Court confined the clause largely to rights of national citizenship, sharply restricting a possible vehicle for federal rights protection.",
+    "distractors": [
+      {"text": "Immediate incorporation of the entire Bill of Rights against the states", "trap": "PARTIALLY_TRUE", "reason": "The decision did not incorporate the Bill of Rights and instead narrowed one possible route to doing so."},
+      {"text": "Congressional readmission of former Confederate states", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Readmission was a Reconstruction political process, not a result of this constitutional holding."},
+      {"text": "The Supreme Court's creation of judicial review in Marbury v. Madison", "trap": "WRONG_ERA", "reason": "Marbury was decided seventy years earlier."}
+    ],
+    "requires_outside_knowledge": "the long-term doctrinal weakening of the Privileges or Immunities Clause"
+  },
+  {
+    "source_id": "civil_rights_cases_1883",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the constitutional ruling expressed in the excerpt?",
+    "key": "Challenges to the Civil Rights Act of 1875 for prohibiting discrimination by privately operated public accommodations",
+    "answer_dating": "Congress enacted the public-accommodations ban in 1875, and prosecutions under it reached the Court before the 1883 ruling.",
+    "correct_rationale": "The cases required the Court to decide whether the Reconstruction Amendments authorized Congress to regulate private discrimination.",
+    "distractors": [
+      {"text": "A challenge to school segregation brought by the NAACP", "trap": "WRONG_ERA", "reason": "The NAACP school cases culminating in Brown arose in the mid-twentieth century."},
+      {"text": "State constitutional conventions that restored voting rights to former Confederates", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Political readmission and suffrage rules did not directly create the private-accommodations cases."},
+      {"text": "A federal law requiring segregation in privately owned hotels and theaters", "trap": "PARTIALLY_TRUE", "reason": "The 1875 act prohibited rather than required such discrimination."}
+    ],
+    "requires_outside_knowledge": "the Civil Rights Act of 1875 and its regulation of private public accommodations"
+  },
+  {
+    "source_id": "civil_rights_cases_1883",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The state-action doctrine expressed in the excerpt most directly contributed to which later development?",
+    "key": "Expansion of private racial segregation during the rise of Jim Crow",
+    "answer_dating": "After the Court invalidated the 1875 protections in 1883, private exclusion and segregation expanded during the 1890s.",
+    "correct_rationale": "By denying congressional power over private discrimination under the Fourteenth Amendment, the ruling removed a major federal remedy.",
+    "distractors": [
+      {"text": "Immediate federal enforcement of equal access in hotels and theaters", "trap": "PARTIALLY_TRUE", "reason": "The decision invalidated the federal enforcement mechanism rather than strengthening it."},
+      {"text": "The establishment of federal protection for collective bargaining", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Labor rights were unrelated to the state-action limit on civil-rights legislation."},
+      {"text": "Ratification of the Fourteenth Amendment", "trap": "WRONG_ERA", "reason": "The amendment was ratified in 1868, before the 1883 ruling."}
+    ],
+    "requires_outside_knowledge": "the decision's removal of the 1875 public-accommodations protection and its contribution to the Jim Crow order"
+  },
+  {
+    "source_id": "ec_knight_1895",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the federalism dispute addressed in the excerpt?",
+    "key": "A federal antitrust suit against the American Sugar Refining Company's acquisitions",
+    "answer_dating": "The company consolidated sugar refineries and the federal government sued under the 1890 Sherman Act before the 1895 decision.",
+    "correct_rationale": "The case required the Court to decide whether federal commerce power reached a manufacturing monopoly whose goods later entered interstate trade.",
+    "distractors": [
+      {"text": "A federal prosecution of a railroad rate-fixing agreement", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Railroad commerce presented a different and more direct interstate-commerce issue than local sugar manufacturing."},
+      {"text": "The Northern Securities antitrust prosecution under Theodore Roosevelt", "trap": "WRONG_ERA", "reason": "The Northern Securities case occurred in the early 1900s, after E. C. Knight."},
+      {"text": "A state effort to prevent sugar from being shipped across its borders", "trap": "PARTIALLY_TRUE", "reason": "The suit challenged corporate acquisitions in manufacturing, not a state embargo on shipments."}
+    ],
+    "requires_outside_knowledge": "the Sugar Trust acquisition and the federal Sherman Act case against its manufacturing monopoly"
+  },
+  {
+    "source_id": "ec_knight_1895",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The distinction between manufacturing and commerce expressed in the excerpt most directly contributed to which later development?",
+    "key": "Weak federal antitrust control over manufacturing combinations during the late nineteenth century",
+    "answer_dating": "The 1895 ruling constrained Sherman Act enforcement against manufacturing monopolies in the years immediately after the decision.",
+    "correct_rationale": "Treating manufacturing as local activity placed major industrial combinations beyond the federal commerce power used in that suit.",
+    "distractors": [
+      {"text": "Immediate dissolution of the Sugar Trust by federal court order", "trap": "PARTIALLY_TRUE", "reason": "The government lost the case, so the acquisition was not dissolved."},
+      {"text": "Federal regulation of railroad rates by the Interstate Commerce Commission", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Railroads were interstate carriers and were governed by a separate statute and doctrine."},
+      {"text": "Passage of the Sherman Antitrust Act", "trap": "WRONG_ERA", "reason": "Congress enacted the Sherman Act in 1890, five years before the decision interpreting it."}
+    ],
+    "requires_outside_knowledge": "E. C. Knight's role in limiting early Sherman Act enforcement against industrial monopolies"
+  },
+  {
+    "source_id": "muller_oregon_1908",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the Court's acceptance of sex-specific labor regulation expressed in the excerpt?",
+    "key": "Progressive reformers' use of social-science evidence to defend protective hour laws for women workers",
+    "answer_dating": "Oregon enacted its hour law in 1903, and Louis Brandeis submitted extensive social-science evidence before the Court ruled in 1908.",
+    "correct_rationale": "The Brandeis Brief framed women's working conditions and maternal roles as evidence supporting the state's police power.",
+    "distractors": [
+      {"text": "The Supreme Court's invalidation of maximum-hour laws for male bakers in Lochner", "trap": "SCOPE_MISMATCH", "reason": "Lochner shaped the doctrinal challenge, but the direct basis for this exception was evidence specific to women and maternalist reform."},
+      {"text": "The Equal Rights Amendment campaign of the 1970s", "trap": "WRONG_ERA", "reason": "The modern ERA campaign occurred many decades after Muller."},
+      {"text": "A federal statute requiring identical hours for every worker regardless of sex", "trap": "PARTIALLY_TRUE", "reason": "The challenged law was a state rule specifically limiting women's hours."}
+    ],
+    "requires_outside_knowledge": "the Progressive protective-labor movement and the social-science method of the Brandeis Brief"
+  },
+  {
+    "source_id": "muller_oregon_1908",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The constitutional reasoning expressed in the excerpt most directly contributed to which later development?",
+    "key": "Continued judicial approval of sex-specific protective labor laws",
+    "answer_dating": "States retained and expanded sex-specific protective laws after the 1908 ruling during the Progressive Era.",
+    "correct_rationale": "Muller validated protective regulation while constitutionalizing assumptions about women's dependency and maternal role.",
+    "distractors": [
+      {"text": "Immediate invalidation of every state maximum-hour law", "trap": "PARTIALLY_TRUE", "reason": "The Court upheld Oregon's law rather than invalidating all hour regulation."},
+      {"text": "Federal recognition of unions under the Wagner Act", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Collective bargaining law addressed union rights, not sex-specific protective legislation."},
+      {"text": "The women's rights convention at Seneca Falls", "trap": "WRONG_ERA", "reason": "The Seneca Falls convention occurred in 1848, before Muller, so it cannot be the ruling's effect."}
+    ],
+    "requires_outside_knowledge": "Muller's dual legacy of protective labor regulation and legal paternalism"
+  },
+  {
+    "source_id": "gitlow_new_york_1925",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the constitutional issue addressed in the excerpt?",
+    "key": "New York's prosecution of a socialist for publishing a revolutionary manifesto during the First Red Scare",
+    "answer_dating": "Benjamin Gitlow was arrested in 1919 under New York's criminal-anarchy law before the Supreme Court decided his appeal in 1925.",
+    "correct_rationale": "The prosecution forced the Court to consider both radical-speech restrictions and whether First Amendment liberties bound the states.",
+    "distractors": [
+      {"text": "Federal prosecution of antiwar leaflets under the Espionage Act", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That issue appeared in federal cases such as Schenck and Abrams, while Gitlow challenged a state criminal-anarchy law."},
+      {"text": "McCarthy-era investigations of alleged communists in the federal government", "trap": "WRONG_ERA", "reason": "McCarthyism arose after World War II, decades after Gitlow's prosecution."},
+      {"text": "A state law that expanded rather than punished advocacy of violent revolution", "trap": "PARTIALLY_TRUE", "reason": "The criminal-anarchy law prohibited such advocacy."}
+    ],
+    "requires_outside_knowledge": "Gitlow's 1919 prosecution under New York's criminal-anarchy law during the First Red Scare"
+  },
+  {
+    "source_id": "gitlow_new_york_1925",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The due-process assumption expressed in the excerpt most directly contributed to which later development?",
+    "key": "Selective incorporation of additional Bill of Rights protections against state governments",
+    "answer_dating": "After 1925, the Supreme Court increasingly applied speech, press, criminal-procedure, and other guarantees to the states through the Fourteenth Amendment.",
+    "correct_rationale": "Gitlow announced the premise that fundamental First Amendment liberties were protected from state impairment by due process.",
+    "distractors": [
+      {"text": "Immediate incorporation of every constitutional guarantee in a single ruling", "trap": "PARTIALLY_TRUE", "reason": "Incorporation proceeded selectively over decades rather than all at once in Gitlow."},
+      {"text": "Expansion of congressional power to regulate interstate manufacturing", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Commerce power was unrelated to incorporation of speech rights."},
+      {"text": "Ratification of the Fourteenth Amendment", "trap": "WRONG_ERA", "reason": "The amendment was ratified in 1868, long before Gitlow interpreted it."}
+    ],
+    "requires_outside_knowledge": "Gitlow's place at the start of the Supreme Court's selective-incorporation doctrine"
+  },
+  {
+    "source_id": "schechter_poultry_1935",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the limits on federal power expressed in the excerpt?",
+    "key": "Federal prosecution of a local poultry firm under an NIRA industry code",
+    "answer_dating": "The Roosevelt administration prosecuted the Schechter firm under the 1933 recovery code before the Court ruled in 1935.",
+    "correct_rationale": "Applying a presidentially approved national code to poultry transactions that had ended their interstate journey produced the delegation and commerce disputes.",
+    "distractors": [
+      {"text": "A challenge to federal old-age insurance taxes under Social Security", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Social Security litigation involved a different statute and constitutional issue."},
+      {"text": "Congressional regulation of wartime steel production during the Korean War", "trap": "WRONG_ERA", "reason": "The Korean War steel dispute occurred in the early 1950s."},
+      {"text": "A state prosecution based solely on a local health code", "trap": "PARTIALLY_TRUE", "reason": "The decisive challenge was to a federal NIRA code, even though the business activity was local."}
+    ],
+    "requires_outside_knowledge": "the NIRA poultry code, the Schechter prosecution, and the local character of the transactions"
+  },
+  {
+    "source_id": "schechter_poultry_1935",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The constitutional ruling expressed in the excerpt most directly contributed to which later development?",
+    "key": "Invalidation of the NIRA code system and deeper conflict between Roosevelt and the Court",
+    "answer_dating": "The 1935 decision ended NIRA code enforcement and became a central example in the constitutional confrontation preceding Roosevelt's 1937 court plan.",
+    "correct_rationale": "Schechter unanimously struck down a major First New Deal program, forcing policy redesign and deepening administration concern about the Court.",
+    "distractors": [
+      {"text": "Immediate judicial invalidation of every later New Deal program", "trap": "PARTIALLY_TRUE", "reason": "The ruling struck the NIRA system, not every New Deal statute."},
+      {"text": "Creation of old-age insurance under the Social Security Act", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Social Security was separate legislation and was not created by the Schechter ruling."},
+      {"text": "Passage of the National Industrial Recovery Act", "trap": "WRONG_ERA", "reason": "Congress passed the NIRA in 1933, two years before the Court invalidated it."}
+    ],
+    "requires_outside_knowledge": "Schechter's destruction of the NIRA code system and its role in the New Deal constitutional crisis"
+  },
+  {
+    "source_id": "youngstown_sawyer_1952",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the separation-of-powers dispute addressed in the excerpt?",
+    "key": "Truman's seizure of steel mills during a threatened Korean War strike",
+    "answer_dating": "Truman ordered the seizure in April 1952 during the Korean War, and the Court reviewed it before issuing the June decision.",
+    "correct_rationale": "The unauthorized seizure required the Court to determine whether wartime responsibility supplied domestic lawmaking power absent congressional approval.",
+    "distractors": [
+      {"text": "President Roosevelt's internment order during World War II", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Internment raised different wartime civil-liberties issues and did not cause the steel-seizure case."},
+      {"text": "President Nixon's refusal to release the Watergate tapes", "trap": "WRONG_ERA", "reason": "The Watergate executive-privilege case came more than twenty years later."},
+      {"text": "A congressional statute expressly directing the president to take the mills", "trap": "PARTIALLY_TRUE", "reason": "The Court emphasized that Congress had not authorized the seizure and had chosen other labor-dispute procedures."}
+    ],
+    "requires_outside_knowledge": "Truman's Korean War steel-mill seizure and Congress's lack of authorization"
+  },
+  {
+    "source_id": "youngstown_sawyer_1952",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The separation-of-powers rule expressed in the excerpt most directly contributed to which later development?",
+    "key": "A framework tying presidential power to congressional authorization or opposition",
+    "answer_dating": "Courts and constitutional scholars used Justice Jackson's Youngstown concurrence in later executive-power disputes after 1952.",
+    "correct_rationale": "Youngstown became the leading precedent for distinguishing maximum presidential authority from action taken against Congress's will.",
+    "distractors": [
+      {"text": "A complete prohibition on presidential action during national emergencies", "trap": "PARTIALLY_TRUE", "reason": "The decision rejected this unauthorized seizure but did not eliminate all emergency authority."},
+      {"text": "Congressional creation of the interstate highway system", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Highway legislation did not result from the steel-seizure doctrine."},
+      {"text": "Ratification of the constitutional separation of powers", "trap": "WRONG_ERA", "reason": "The constitutional structure was adopted in the eighteenth century, long before Youngstown."}
+    ],
+    "requires_outside_knowledge": "the Youngstown framework, especially Justice Jackson's categories of executive authority"
+  },
+  {
+    "source_id": "jay_treaty_1794",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the diplomatic agreement described in the excerpt?",
+    "key": "British retention of northwestern forts and interference with American neutral shipping after the Revolutionary War",
+    "answer_dating": "Both disputes persisted after the 1783 peace settlement and prompted Washington to send John Jay to negotiate in 1794.",
+    "correct_rationale": "The administration sought to avert war and resolve unfulfilled British obligations and maritime grievances.",
+    "distractors": [
+      {"text": "French seizure of American merchant ships during the Quasi-War", "trap": "WRONG_ERA", "reason": "The Quasi-War escalated after the Jay Treaty and involved France rather than Britain."},
+      {"text": "Spanish restrictions on American navigation of the Mississippi River", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That issue was addressed in Pinckney's Treaty with Spain, not Jay's negotiation with Britain."},
+      {"text": "Britain's full compliance with every term of the 1783 peace before negotiations began", "trap": "PARTIALLY_TRUE", "reason": "British failure to evacuate frontier posts was a principal reason for the treaty."}
+    ],
+    "requires_outside_knowledge": "unresolved British forts, neutral-shipping disputes, and Washington's effort to avoid renewed war"
+  },
+  {
+    "source_id": "jay_treaty_1794",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The agreement described in the excerpt most directly contributed to which later development?",
+    "key": "A sharper partisan divide over accommodation with Britain and sympathy for France",
+    "answer_dating": "The Senate debate and public controversy over the treaty intensified during 1795 and 1796 after its negotiation.",
+    "correct_rationale": "Critics portrayed the treaty as pro-British, while Federalists defended it as necessary for peace and commerce, hardening the first party system.",
+    "distractors": [
+      {"text": "An immediate military alliance joining the United States to Britain", "trap": "PARTIALLY_TRUE", "reason": "The treaty normalized relations and commerce but did not create a military alliance."},
+      {"text": "The purchase of Louisiana from France", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The Louisiana Purchase arose from different negotiations almost a decade later."},
+      {"text": "The constitutional ratification debate between Federalists and Anti-Federalists", "trap": "WRONG_ERA", "reason": "The ratification debate preceded the Jay Treaty and therefore cannot be its later effect."}
+    ],
+    "requires_outside_knowledge": "the Jay Treaty controversy's role in consolidating the Federalist and Democratic-Republican divide"
+  },
+  {
+    "source_id": "treaty_ghent_1814",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the restoration terms expressed in the excerpt?",
+    "key": "Military stalemate and war weariness on both sides",
+    "answer_dating": "By late 1814 both governments faced costs and limited gains, producing negotiations before the treaty was signed in December.",
+    "correct_rationale": "The inconclusive military balance encouraged peace on the basis of status quo ante rather than major territorial concessions.",
+    "distractors": [
+      {"text": "The decisive American victory at the Battle of New Orleans", "trap": "WRONG_ERA", "reason": "The battle occurred after the treaty had already been signed."},
+      {"text": "British support for Native resistance in the Old Northwest", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That support helped cause the war but does not explain why the final treaty restored territory without resolving many grievances."},
+      {"text": "A complete American conquest of Canada before peace talks", "trap": "PARTIALLY_TRUE", "reason": "American invasions failed to conquer Canada, contributing to the stalemate."}
+    ],
+    "requires_outside_knowledge": "the late-war stalemate and mutual incentives for a status quo peace"
+  },
+  {
+    "source_id": "treaty_ghent_1814",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The peace settlement described in the excerpt most directly contributed to which later development?",
+    "key": "Postwar nationalism and the Federalists' collapse after the Hartford Convention",
+    "answer_dating": "News of peace and New Orleans arrived in early 1815 as the Hartford Convention's complaints became public, discrediting the Federalists.",
+    "correct_rationale": "The apparently successful end of the war made Federalist wartime opposition look disloyal and fed the Era of Good Feelings.",
+    "distractors": [
+      {"text": "Permanent settlement of every maritime dispute that had caused the war", "trap": "PARTIALLY_TRUE", "reason": "The treaty ended fighting but did not explicitly resolve impressment or neutral rights."},
+      {"text": "Acquisition of Florida from Spain", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Florida came through the Adams-Onis Treaty and was not a term of Ghent."},
+      {"text": "The Federalist campaign for ratification of the Constitution", "trap": "WRONG_ERA", "reason": "The ratification campaign occurred before the War of 1812 and therefore cannot be an effect of the peace treaty."}
+    ],
+    "requires_outside_knowledge": "the peace news, Hartford Convention backlash, and ensuing nationalist Era of Good Feelings"
+  },
+  {
+    "source_id": "adams_onis_treaty_1819",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to Spain's territorial cession expressed in the excerpt?",
+    "key": "Spain's weak control of Florida after Jackson's First Seminole War campaign",
+    "answer_dating": "Jackson invaded Spanish Florida during the First Seminole War in 1818, immediately before the treaty was concluded in 1819.",
+    "correct_rationale": "Spain lacked the capacity to police Florida, and Jackson's campaign increased American leverage in negotiations.",
+    "distractors": [
+      {"text": "American victory over Mexico in the Mexican-American War", "trap": "WRONG_ERA", "reason": "That war occurred in the 1840s and involved Mexican, not Spanish, territory."},
+      {"text": "The Louisiana Purchase's earlier expansion of the United States", "trap": "SCOPE_MISMATCH", "reason": "The purchase shaped boundary questions, but Spain's weak control and the Seminole crisis were the direct pressure for cession."},
+      {"text": "Spain's successful military expulsion of American forces from Florida", "trap": "PARTIALLY_TRUE", "reason": "Spain could not effectively resist Jackson or maintain control, which strengthened the case for cession."}
+    ],
+    "requires_outside_knowledge": "the First Seminole War, Jackson's invasion, and Spain's inability to govern Florida"
+  },
+  {
+    "source_id": "adams_onis_treaty_1819",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The territorial settlement expressed in the excerpt most directly contributed to which later development?",
+    "key": "A U.S. territorial government in Florida and greater pressure on Seminole lands",
+    "answer_dating": "The treaty took effect in 1821, after which the United States organized Florida Territory in 1822 and intensified efforts to confine and remove Seminole communities.",
+    "correct_rationale": "Transfer of sovereignty enabled direct American territorial administration and expanded pressure on Seminole landholding and autonomy.",
+    "distractors": [
+      {"text": "Immediate American annexation of Texas under the treaty", "trap": "PARTIALLY_TRUE", "reason": "The United States renounced its claim to Texas in the agreement rather than annexing it."},
+      {"text": "Recognition of the independent Republic of Haiti", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Haitian recognition was unrelated to the boundary settlement with Spain."},
+      {"text": "Acquisition of Louisiana from France", "trap": "WRONG_ERA", "reason": "The Louisiana Purchase occurred in 1803, before the Adams-Onis Treaty, so it cannot be the treaty's effect."}
+    ],
+    "requires_outside_knowledge": "the organization of Florida Territory and the subsequent escalation of federal pressure on Seminole lands"
+  },
+  {
+    "source_id": "fort_laramie_treaty_1868",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the reservation guarantee expressed in the excerpt?",
+    "key": "Lakota victory in Red Cloud's War and federal abandonment of Bozeman Trail forts",
+    "answer_dating": "Red Cloud's War lasted from 1866 to 1868 and produced the treaty settlement that year.",
+    "correct_rationale": "Successful Indigenous military resistance compelled federal negotiators to close the trail and recognize a large protected territory.",
+    "distractors": [
+      {"text": "The federal allotment policy established by the Dawes Act", "trap": "WRONG_ERA", "reason": "The Dawes Act was enacted in 1887, after the treaty."},
+      {"text": "Earlier migration on the Oregon Trail across the central plains", "trap": "SCOPE_MISMATCH", "reason": "Migration created long-term pressure, but Red Cloud's War was the direct cause of this particular guarantee."},
+      {"text": "A complete federal victory that destroyed Lakota military resistance before negotiations", "trap": "PARTIALLY_TRUE", "reason": "The United States negotiated after failing to secure the Bozeman Trail against Lakota resistance."}
+    ],
+    "requires_outside_knowledge": "Red Cloud's War and the federal abandonment of the Bozeman Trail forts"
+  },
+  {
+    "source_id": "fort_laramie_treaty_1868",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "Federal failure to honor the territorial guarantee expressed in the excerpt most directly contributed to which later development?",
+    "key": "The Great Sioux War after federal violations of the Black Hills guarantee",
+    "answer_dating": "Gold was discovered in the Black Hills in 1874, and federal failure to exclude miners helped produce the Great Sioux War of 1876.",
+    "correct_rationale": "Federal officials failed to exclude miners and then demanded the Black Hills, violating the guarantee and helping trigger the Great Sioux War.",
+    "distractors": [
+      {"text": "Permanent exclusion of settlers and miners from the protected territory", "trap": "PARTIALLY_TRUE", "reason": "The treaty promised exclusion, but the federal government failed to enforce that promise after the gold rush."},
+      {"text": "The Nez Perce War over removal from lands in Oregon and Idaho", "trap": "TRUE_BUT_IRRELEVANT", "reason": "That conflict involved a different Indigenous nation, region, and set of treaty violations."},
+      {"text": "Passage of the Indian Removal Act for southeastern nations", "trap": "WRONG_ERA", "reason": "The Indian Removal Act was enacted in 1830 and concerned a different region and peoples."}
+    ],
+    "requires_outside_knowledge": "the Black Hills gold rush, federal treaty violation, and Great Sioux War"
+  },
+  {
+    "source_id": "executive_order_9835_1947",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the federal loyalty policy expressed in the excerpt?",
+    "key": "Early Cold War fear of Soviet espionage and domestic communist influence",
+    "answer_dating": "Tensions with the Soviet Union and Republican anticommunist attacks grew in 1946 and early 1947 before Truman issued the order in March.",
+    "correct_rationale": "The administration created a loyalty program to answer security fears and political accusations at the start of the Cold War.",
+    "distractors": [
+      {"text": "Senator Joseph McCarthy's Wheeling speech", "trap": "WRONG_ERA", "reason": "McCarthy delivered the speech in 1950, three years after the order."},
+      {"text": "The demobilization of wartime price controls", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Economic reconversion was contemporary but did not directly produce loyalty investigations."},
+      {"text": "A broad decline in concern about Soviet espionage after World War II", "trap": "PARTIALLY_TRUE", "reason": "Security concern was increasing, not declining."}
+    ],
+    "requires_outside_knowledge": "the early Cold War security climate and domestic political pressure behind Truman's loyalty program"
+  },
+  {
+    "source_id": "executive_order_9835_1947",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The loyalty investigation policy expressed in the excerpt most directly contributed to which later development?",
+    "key": "Wider loyalty investigations and employment blacklists during the Second Red Scare",
+    "answer_dating": "Federal loyalty reviews operated after 1947 and created procedures and a political climate that expanded during the late 1940s and early 1950s.",
+    "correct_rationale": "The order institutionalized suspicion-based screening and helped legitimate wider loyalty investigations and blacklisting before McCarthy's rise.",
+    "distractors": [
+      {"text": "The immediate exposure of every Soviet agent in the federal government", "trap": "PARTIALLY_TRUE", "reason": "The program investigated many employees but did not identify every spy and often relied on broad allegations."},
+      {"text": "Creation of the Marshall Plan for European recovery", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The Marshall Plan was a foreign-aid initiative, not a result of employee loyalty boards."},
+      {"text": "The Palmer Raids during the First Red Scare", "trap": "WRONG_ERA", "reason": "The Palmer Raids occurred in 1919 and 1920, long before the executive order."}
+    ],
+    "requires_outside_knowledge": "the federal loyalty-security apparatus and its role in the Second Red Scare"
+  },
+  {
+    "source_id": "executive_order_10730_1957",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the federal intervention ordered in the excerpt?",
+    "key": "Arkansas officials' defiance of court-ordered integration at Central High",
+    "answer_dating": "Governor Orval Faubus deployed the Guard and a hostile crowd obstructed integration in September 1957 before Eisenhower issued the order.",
+    "correct_rationale": "Defiance of a federal desegregation order created the immediate need to federalize the Guard and protect the students' entry.",
+    "distractors": [
+      {"text": "The Montgomery bus boycott against segregated public transit", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The boycott advanced civil rights but did not cause the school-enforcement crisis in Little Rock."},
+      {"text": "Governor George Wallace's stand at the University of Alabama", "trap": "WRONG_ERA", "reason": "Wallace's confrontation occurred in 1963, six years later."},
+      {"text": "Arkansas officials' voluntary and uncontested implementation of the court order", "trap": "PARTIALLY_TRUE", "reason": "State obstruction and mob resistance, not voluntary compliance, prompted federal intervention."}
+    ],
+    "requires_outside_knowledge": "the Little Rock Nine crisis, Faubus's obstruction, and mob resistance to court-ordered integration"
+  },
+  {
+    "source_id": "executive_order_10730_1957",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The federal intervention authorized in the excerpt most directly contributed to which later affirmation of federal desegregation authority?",
+    "key": "The Supreme Court's decision in Cooper v. Aaron rejecting Arkansas resistance to federal desegregation rulings",
+    "answer_dating": "The Supreme Court decided Cooper v. Aaron in 1958 after the Little Rock crisis and required Arkansas officials to comply with federal desegregation rulings.",
+    "correct_rationale": "Federal intervention in Little Rock reinforced the supremacy principle that Cooper v. Aaron applied against Arkansas efforts to delay desegregation.",
+    "distractors": [
+      {"text": "Immediate desegregation of every public school district in the South", "trap": "PARTIALLY_TRUE", "reason": "The intervention enforced integration in Little Rock but did not immediately desegregate every southern district."},
+      {"text": "Governor George Wallace's later attempt to block integration at the University of Alabama", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Wallace staged a similar confrontation, but it did not result from the legal dispute resolved in Cooper v. Aaron."},
+      {"text": "Congressional creation of the Commission on Civil Rights in the Civil Rights Act of 1957", "trap": "WRONG_ERA", "reason": "Congress enacted the law before Eisenhower issued the Little Rock enforcement order, so it cannot be a later effect."}
+    ],
+    "requires_outside_knowledge": "Cooper v. Aaron and its rejection of Arkansas efforts to resist or delay federal desegregation orders"
+  },
+  {
+    "source_id": "mayflower_compact_1620",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the colonists' decision to form the civil body politic described in the excerpt?",
+    "key": "The Pilgrims' landing outside the territory covered by their Virginia Company patent",
+    "answer_dating": "The Pilgrims' 1619 Virginia Company patent covered territory farther south; they reached Cape Cod in November 1620 and signed the compact before establishing Plymouth.",
+    "correct_rationale": "Landing beyond their patent left the settlers without a clearly authorized local government, prompting them to covenant into a political body before going ashore.",
+    "distractors": [
+      {"text": "The creation of the House of Burgesses in Virginia", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Virginia's assembly was an earlier example of colonial representation, but it did not create the Pilgrims' immediate jurisdictional problem."},
+      {"text": "The establishment of the Dominion of New England by the Crown", "trap": "WRONG_ERA", "reason": "The Dominion was created in 1686, more than six decades after the compact."},
+      {"text": "A royal charter granting the Pilgrims complete independence from English authority", "trap": "PARTIALLY_TRUE", "reason": "The settlers created a local government while continuing to profess loyalty to the English king and without receiving such a charter."}
+    ],
+    "requires_outside_knowledge": "the Pilgrims' landing outside their patent and the resulting need to establish legitimate local authority"
+  },
+  {
+    "source_id": "mayflower_compact_1620",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The governing agreement expressed in the excerpt most directly contributed to which later development in Plymouth Colony?",
+    "key": "A locally governed colony in which freemen selected officials and enacted laws through a General Court",
+    "answer_dating": "Plymouth settlers implemented the compact after 1620 through elected governors and a General Court representing the colony's towns.",
+    "correct_rationale": "The compact supplied a consent-based foundation for Plymouth's elected local government and lawmaking institutions.",
+    "distractors": [
+      {"text": "The establishment of Virginia's House of Burgesses", "trap": "WRONG_ERA", "reason": "The House of Burgesses first met in 1619, before the Mayflower Compact, and governed a different colony."},
+      {"text": "The Maryland assembly's adoption of a religious toleration law", "trap": "TRUE_BUT_IRRELEVANT", "reason": "Maryland's toleration policy arose in another colony and did not result from Plymouth's governing covenant."},
+      {"text": "Plymouth's conversion into a permanently independent royal colony", "trap": "PARTIALLY_TRUE", "reason": "Plymouth exercised local self-government but was absorbed into the Province of Massachusetts Bay in 1691."}
+    ],
+    "requires_outside_knowledge": "Plymouth's later elected governors and representative General Court as implementation of the compact"
+  },
+  {
+    "source_id": "marshall_plan_1947",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to the recovery policy advocated in the excerpt?",
+    "key": "Postwar economic devastation in Europe and fear that instability would strengthen communist movements",
+    "answer_dating": "European production and trade remained badly disrupted in 1946 and 1947 as Cold War concern about communist influence grew before Marshall's address.",
+    "correct_rationale": "Economic crisis and political instability in postwar Europe led the United States to treat large-scale recovery aid as both reconstruction and containment.",
+    "distractors": [
+      {"text": "The Soviet blockade of land access to West Berlin", "trap": "WRONG_ERA", "reason": "The Berlin Blockade began in 1948, after Marshall proposed the recovery program."},
+      {"text": "The rapid expansion of consumer purchasing power within the United States", "trap": "TRUE_BUT_IRRELEVANT", "reason": "The domestic postwar boom did not create Europe's immediate food, production, and payments crisis."},
+      {"text": "A broad American consensus that European economies could recover without outside assistance", "trap": "PARTIALLY_TRUE", "reason": "Marshall argued the opposite: Europe required substantial outside aid to avoid grave deterioration."}
+    ],
+    "requires_outside_knowledge": "postwar European economic devastation and the containment concern that instability could expand communist influence"
+  },
+  {
+    "source_id": "marshall_plan_1947",
+    "archetype": "EFFECT_OF_SOURCE",
+    "stem": "The recovery program advocated in the excerpt most directly contributed to which later development?",
+    "key": "Economic recovery among participating Western European nations and closer alignment with the United States",
+    "answer_dating": "Congress funded the European Recovery Program in 1948, and recipient economies expanded while Western political cooperation deepened through the early 1950s.",
+    "correct_rationale": "American aid supplied capital and goods for Western European recovery while strengthening the economic and political cohesion of the Western bloc.",
+    "distractors": [
+      {"text": "Soviet acceptance of the aid and integration of Eastern Europe into the program", "trap": "PARTIALLY_TRUE", "reason": "The offer was formally open, but the Soviet Union rejected it and prevented its Eastern European satellites from participating."},
+      {"text": "Implementation of the Dawes Plan to stabilize German reparations payments", "trap": "WRONG_ERA", "reason": "The Dawes Plan addressed the aftermath of World War I in the 1920s, before the Marshall Plan."},
+      {"text": "An American withdrawal from long-term political and security commitments in Europe", "trap": "SCOPE_MISMATCH", "reason": "The recovery program strengthened rather than ended sustained American engagement with Western Europe."}
+    ],
+    "requires_outside_knowledge": "the European Recovery Program's role in Western European reconstruction and Cold War bloc alignment"
+  },
+  {
+    "source_id": "fdr_quarantine_1937",
+    "archetype": "CAUSE_OF_SOURCE",
+    "stem": "Which of the following contributed most directly to Roosevelt's warning about spreading world lawlessness in the excerpt?",
+    "key": "Japanese invasion of China, Italian conquest of Ethiopia, and German rejection of postwar restrictions",
+    "answer_dating": "Italy conquered Ethiopia in 1935 and 1936, Germany remilitarized the Rhineland in 1936, and Japan invaded China in July 1937 before Roosevelt's October speech.",
+    "correct_rationale": "Repeated Japanese, Italian, and German aggression showed collective-security agreements failing and directly prompted Roosevelt's warning that war was spreading.",
+    "distractors": [
+      {"text": "The Japanese attack on Pearl Harbor and Germany's declaration of war on the United States", "trap": "WRONG_ERA", "reason": "Those events occurred in December 1941, more than four years after the quarantine speech."},
+      {"text": "Congressional passage of Neutrality Acts restricting American trade with belligerents", "trap": "SCOPE_MISMATCH", "reason": "The Neutrality Acts constrained the American response, but foreign aggression was the direct source of the world lawlessness Roosevelt described."},
+      {"text": "Successful League of Nations enforcement that reversed territorial aggression", "trap": "PARTIALLY_TRUE", "reason": "The League condemned some aggression but failed to reverse the conquests, which reinforced Roosevelt's alarm."}
+    ],
+    "requires_outside_knowledge": "Japanese, Italian, and German aggression in Asia, Africa, and Europe before the October 1937 speech"
+  }
+]

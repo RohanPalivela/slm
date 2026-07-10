@@ -20,10 +20,12 @@ ROOT = Path(__file__).resolve().parents[1]
 import sys
 sys.path.insert(0, str(ROOT / "eval"))
 from source_utils import source_genre  # noqa: E402
+from prompt_loader import generation_format_diagnostics  # noqa: E402
 
 
 def load_jsonl(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.open(encoding="utf-8") if line.strip()]
+    with path.open(encoding="utf-8") as handle:
+        return [json.loads(line) for line in handle if line.strip()]
 
 
 def pct(num: int, den: int) -> str:
@@ -34,13 +36,25 @@ def fmt_rate(value) -> str:
     return "n/a" if value is None else f"{value:.0%}"
 
 
+def judge_available(judgment: dict) -> bool:
+    if not judgment:
+        return False
+    if judgment.get("_status", "ok") != "ok":
+        return False
+    return "unparseable" not in str(judgment.get("notes", "")).lower()
+
+
 def bucket_record(rec: dict) -> list[str]:
     buckets: list[str] = []
     prog = rec.get("prog") or {}
     judge = rec.get("judge") or {}
     item = rec.get("item") or {}
 
-    if rec.get("key_valid") is False:
+    unavailable_judge = bool(judge and not judge_available(judge))
+    if unavailable_judge:
+        buckets.append("judge_unavailable")
+
+    if rec.get("key_valid") is False and not unavailable_judge:
         if judge.get("key_historically_correct") is False:
             buckets.append("key_factually_wrong")
         if judge.get("key_uniquely_best") is False:
@@ -48,7 +62,7 @@ def bucket_record(rec: dict) -> list[str]:
         if not buckets:
             buckets.append("key_invalid_unspecified")
 
-    if rec.get("near_miss") is False:
+    if rec.get("near_miss") is False and not unavailable_judge:
         if judge.get("requires_outside_knowledge") is False:
             buckets.append("source_paraphrase_or_no_outside_knowledge")
         if judge.get("skill_matches_command_phrase") is False:
@@ -129,14 +143,30 @@ def summarize(items: list[dict], attempts: list[dict]) -> dict:
                     })
 
         zero = sum(1 for a in atts if a.get("n_items") == 0)
+        diagnostics = [a.get("format") or generation_format_diagnostics(a.get("raw", "")) for a in atts]
+        format_buckets = Counter(d.get("bucket", "unknown") for d in diagnostics)
+        judged = [
+            rec for rec in recs
+            if judge_available(rec.get("judge") or {})
+        ]
+        n_judged = len(judged)
+        passed_prompts = {
+            (rec.get("run"), rec.get("source_id"), rec.get("archetype") or (rec.get("item") or {}).get("archetype"))
+            for rec in judged
+            if rec.get("near_miss") is True
+        }
         summary[model] = {
             "calls": len(atts),
             "zero_item_calls": zero,
             "parse_empty_rate": None if not atts else zero / len(atts),
             "parsed_items": n,
-            "expert_grade": None if n == 0 else sum(1 for r in recs if r.get("expert_grade")) / n,
-            "near_miss": None if n == 0 else sum(1 for r in recs if r.get("near_miss")) / n,
-            "key_valid": None if n == 0 else sum(1 for r in recs if r.get("key_valid")) / n,
+            "judged_items": n_judged,
+            "judge_unavailable": n - n_judged,
+            "expert_grade": None if n_judged == 0 else sum(1 for r in judged if r.get("expert_grade")) / n_judged,
+            "near_miss": None if n_judged == 0 else sum(1 for r in judged if r.get("near_miss")) / n_judged,
+            "key_valid": None if n_judged == 0 else sum(1 for r in judged if r.get("key_valid")) / n_judged,
+            "attempted_prompt_near_miss": None if not atts else len(passed_prompts) / len(atts),
+            "format_buckets": dict(format_buckets),
             "bucket_counts": dict(bucket_counts),
             "by_archetype": {arch: dict(counts) for arch, counts in arch_counts.items()},
             "by_genre": {genre: dict(counts) for genre, counts in genre_counts.items()},
@@ -146,8 +176,8 @@ def summarize(items: list[dict], attempts: list[dict]) -> dict:
 
 
 def print_report(summary: dict) -> None:
-    print("| Model | Calls | Zero calls | Parsed | Expert | Near | Key valid | Top failures |")
-    print("| :--- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |")
+    print("| Model | Calls | Zero calls | Parsed | Judged | Judge unavailable | Expert | Near | Near / attempt | Key valid | Top failures |")
+    print("| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |")
     for model, s in summary.items():
         n = s["parsed_items"]
         top = Counter(s["bucket_counts"])
@@ -155,8 +185,10 @@ def print_report(summary: dict) -> None:
         top_text = ", ".join(f"{k}={v}" for k, v in top.most_common(4)) or "none"
         print(
             f"| {model} | {s['calls']} | {s['zero_item_calls']} | {n} | "
+            f"{s['judged_items']} | {s['judge_unavailable']} | "
             f"{fmt_rate(s['expert_grade'])} | "
             f"{fmt_rate(s['near_miss'])} | "
+            f"{fmt_rate(s['attempted_prompt_near_miss'])} | "
             f"{fmt_rate(s['key_valid'])} | "
             f"{top_text} |"
         )
