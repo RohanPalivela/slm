@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -50,6 +51,32 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("FORCE_JSON_ARRAY_PREFIX = False", code)
         self.assertIn("re.fullmatch(r'[0-9a-f]{40}', GITHUB_REF)", code)
         self.assertIn("training_run_metadata.json", code)
+
+    def test_canonical_cell_hashes_match_function_definitions_only(self) -> None:
+        notebook = json.loads(
+            (ROOT / "notebooks/eval_hf_gpu.ipynb").read_text(encoding="utf-8")
+        )
+        cells = ["".join(cell.get("source", [])) for cell in notebook["cells"]]
+        for function_name in (
+            "generate_model_repetitions",
+            "run_generation_preflight",
+        ):
+            definition = re.compile(
+                rf"(?m)^def\s+{re.escape(function_name)}\s*\("
+            )
+            self.assertEqual(
+                sum(bool(definition.search(cell)) for cell in cells),
+                1,
+            )
+
+        provenance_cell = next(
+            cell for cell in cells if "def canonical_cell_sha256" in cell
+        )
+        self.assertIn("definition.search", provenance_cell)
+        self.assertNotIn(
+            "canonical_cell_sha256('def generate_model_repetitions')",
+            provenance_cell,
+        )
 
     def test_shared_hf_engine_pins_base_tokenizer_and_independent_row_seeds(self) -> None:
         source = (ROOT / "eval/hf_local.py").read_text(encoding="utf-8")
