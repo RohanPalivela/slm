@@ -55,6 +55,16 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("FORCE_JSON_ARRAY_PREFIX = False", code)
         self.assertIn("re.fullmatch(r'[0-9a-f]{40}', GITHUB_REF)", code)
         self.assertIn("training_run_metadata.json", code)
+        self.assertIn(
+            "APUSH_ADAPTER_ID = 'rohanpalviela/qwen3-4b-apush-v4-semantic-audited-lora'",
+            code,
+        )
+        self.assertIn(
+            "EXPECTED_ADAPTER_TRAINING_DATA_SHA256 = "
+            "'fb49a00b5edb413cfd004f398261cc409a193da6d1afd8a2187166b206a8e608'",
+            code,
+        )
+        self.assertIn("TRAINING_RUN_METADATA.get('use_audited_data') is not True", code)
 
     def test_canonical_cell_hashes_match_function_definitions_only(self) -> None:
         notebook = json.loads(
