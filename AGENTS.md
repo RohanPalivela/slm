@@ -115,6 +115,12 @@ Their outside-knowledge field is normalized from the keyed development, and the 
 The 65 curated anchors still need independent current-rubric review before any production decision.
 The semantic-audit command must use an auditor family absent from the legacy provenance and preserve its metadata sidecar with the reviewed JSONL.
 
+## Evaluator protocol correction
+
+The July 11 base-versus-tuned run is not a valid semantic comparison because the base generation path stripped Qwen's native no-thinking prefill, forced an opening array token, and failed to reject the resulting thinking output.
+Use the pinned base tokenizer for both adapter states, retain the native no-thinking prefill, leave the forced array prefix off, and require the full generation-only LITMUS preflight to pass before teacher or judge calls.
+Treat the tuned malformed-suffix cause as unresolved until the separate GPU inference ablation is complete.
+
 ## Memory maintenance rules
 
 - Preserve raw evaluation artifacts and distinguish observed facts from hypotheses.

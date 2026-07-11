@@ -12,10 +12,14 @@ sys.path.insert(0, str(ROOT / "eval"))
 
 import judge  # noqa: E402
 import generate as dataset_generate  # noqa: E402
+import checks  # noqa: E402
 import repair  # noqa: E402
 import verifier  # noqa: E402
 from date_utils import direction_against_source  # noqa: E402
-from prompt_loader import generation_format_diagnostics  # noqa: E402
+from prompt_loader import (  # noqa: E402
+    canonicalize_item_archetype,
+    generation_format_diagnostics,
+)
 
 
 VALID_JUDGMENT = {
@@ -44,6 +48,11 @@ class FormatDiagnosticsTests(unittest.TestCase):
         result = generation_format_diagnostics('[{"archetype":"CAUSE_OF_SOURCE"}]')
         self.assertEqual(result["bucket"], "strict_array")
         self.assertTrue(result["strict_array_contract"])
+        self.assertTrue(result["strict_top_level_array"])
+        self.assertEqual(result["exact_item_count"], 1)
+        self.assertTrue(result["exact_one_dictionary"])
+        self.assertTrue(result["no_think_tags"])
+        self.assertTrue(result["exact_contract_valid"])
 
     def test_markdown_fenced_array_violates_product_contract(self) -> None:
         result = generation_format_diagnostics(
@@ -51,12 +60,104 @@ class FormatDiagnosticsTests(unittest.TestCase):
         )
         self.assertEqual(result["bucket"], "markdown_fenced_array")
         self.assertFalse(result["strict_array_contract"])
+        self.assertFalse(result["exact_contract_valid"])
 
     def test_detects_complete_item_followed_by_truncated_repeat(self) -> None:
         raw = '[{"archetype":"CAUSE_OF_SOURCE"},{"archetype":"CAUSE'
         result = generation_format_diagnostics(raw)
         self.assertEqual(result["bucket"], "complete_item_then_unclosed_trailing_output")
         self.assertEqual(result["tolerant_item_count"], 1)
+
+    def test_exact_contract_rejects_non_dictionary_and_multiple_items(self) -> None:
+        scalar = generation_format_diagnostics("[1]")
+        multiple = generation_format_diagnostics('[{"a":1},{"b":2}]')
+        self.assertTrue(scalar["strict_top_level_array"])
+        self.assertFalse(scalar["exact_one_dictionary"])
+        self.assertFalse(scalar["exact_contract_valid"])
+        self.assertEqual(multiple["exact_item_count"], 2)
+        self.assertFalse(multiple["exact_contract_valid"])
+
+    def test_exact_contract_rejects_trailing_content_and_think_tags(self) -> None:
+        trailing = generation_format_diagnostics('[{"a":1}] trailing prose')
+        malformed_suffix = generation_format_diagnostics('"]}]"')
+        thinking = generation_format_diagnostics('<think>reasoning</think>[{"a":1}]')
+        self.assertFalse(trailing["exact_contract_valid"])
+        self.assertFalse(malformed_suffix["exact_contract_valid"])
+        self.assertFalse(thinking["no_think_tags"])
+        self.assertFalse(thinking["exact_contract_valid"])
+
+
+class ItemSchemaTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.source = {"period": 5, "text": "source", "year": 1863}
+        self.item = {
+            "archetype": "CAUSE_OF_SOURCE",
+            "period": 5,
+            "theme": "PCE",
+            "stem": "Which development most directly caused the source's position?",
+            "options": ["one", "two", "three", "four"],
+            "answer": "A",
+            "answer_dating": "The development occurred before the 1863 source.",
+            "rationale": {
+                "correct": "The development directly caused the source position.",
+                "A": "correct",
+                "B": "SCOPE_MISMATCH: too broad",
+                "C": "PARTIALLY_TRUE: wrong mechanism",
+                "D": "TRUE_BUT_IRRELEVANT: wrong theme",
+            },
+            "trap_types": [
+                "SCOPE_MISMATCH",
+                "PARTIALLY_TRUE",
+                "TRUE_BUT_IRRELEVANT",
+            ],
+            "requires_outside_knowledge": "A prior development.",
+        }
+
+    def check(self, item=None):
+        emitted = canonicalize_item_archetype(
+            item or self.item,
+            requested_archetype="CAUSE_OF_SOURCE",
+        )
+        return checks.run_checks(
+            emitted,
+            self.source,
+            requested_archetype="CAUSE_OF_SOURCE",
+        )
+
+    def test_complete_exact_schema_passes(self) -> None:
+        result = self.check()
+        self.assertTrue(result["schema_valid"])
+        self.assertTrue(result["schema_ok"])
+
+    def test_missing_field_and_wrong_exact_type_fail(self) -> None:
+        missing = dict(self.item)
+        missing.pop("requires_outside_knowledge")
+        wrong_type = dict(self.item, period=True)
+        self.assertFalse(self.check(missing)["required_fields_present"])
+        self.assertFalse(self.check(wrong_type)["field_types_exact"])
+
+    def test_invalid_theme_wrong_period_and_archetype_fail(self) -> None:
+        self.assertFalse(self.check(dict(self.item, theme="POL"))["theme_valid"])
+        self.assertFalse(self.check(dict(self.item, period=7))["period_matches_source"])
+        mismatch = canonicalize_item_archetype(
+            dict(self.item, archetype="EFFECT_OF_SOURCE"),
+            requested_archetype="CAUSE_OF_SOURCE",
+        )
+        result = checks.run_checks(mismatch, self.source)
+        self.assertFalse(result["archetype_matches_request"])
+        self.assertFalse(result["schema_valid"])
+        self.assertTrue(result["schema_ok"])
+
+    def test_options_answer_and_rationale_require_exact_contract_types(self) -> None:
+        bad_options = dict(self.item, options=["one", "two", "three", 4])
+        bad_answer = dict(self.item, answer="A.")
+        bad_rationale = dict(
+            self.item,
+            rationale={**self.item["rationale"], "D": 4},
+        )
+        self.assertFalse(self.check(bad_options)["four_string_options"])
+        self.assertFalse(self.check(bad_answer)["answer_key_valid"])
+        self.assertFalse(self.check(bad_rationale)["rationale_mapping_complete"])
 
 
 class DateDirectionTests(unittest.TestCase):

@@ -23,6 +23,20 @@ PARENTHETICAL_DATE_LABEL = re.compile(
 )
 
 VALID_TRAP_TYPES = {"WRONG_ERA", "TRUE_BUT_IRRELEVANT", "SCOPE_MISMATCH", "PARTIALLY_TRUE"}
+VALID_THEMES = {"NAT", "WXT", "GEO", "MIG", "PCE", "WOR", "ARC", "SOC"}
+
+REQUIRED_ITEM_FIELDS = {
+    "archetype": str,
+    "period": int,
+    "theme": str,
+    "stem": str,
+    "options": list,
+    "answer": str,
+    "answer_dating": str,
+    "rationale": dict,
+    "trap_types": list,
+    "requires_outside_knowledge": str,
+}
 
 CAUSE_ARCHETYPES = {"CAUSE_OF_SOURCE", "CONTEXT_SITUATION", "CONTEXT_INFLUENCED_BY"}
 EFFECT_ARCHETYPES = {"EFFECT_OF_SOURCE", "LONGTERM_LEGACY", "COMPARATIVE_ANALOG",
@@ -30,7 +44,7 @@ EFFECT_ARCHETYPES = {"EFFECT_OF_SOURCE", "LONGTERM_LEGACY", "COMPARATIVE_ANALOG"
 
 
 def _strip_label(opt: str) -> str:
-    return re.sub(r"^\s*[A-D][).:]?\s+", "", opt or "").strip()
+    return re.sub(r"^\s*[A-D][).:]?\s+", "", str(opt or "")).strip()
 
 
 def _answer_index(item: dict):
@@ -84,6 +98,8 @@ def source_leak(item: dict, source: dict) -> bool:
     i.e. the item asks the source back to itself."""
     idx = _answer_index(item)
     opts = item.get("options", [])
+    if not isinstance(opts, list):
+        return False
     if idx is None or idx >= len(opts):
         return False
     ans = _norm(_strip_label(opts[idx]))
@@ -92,16 +108,127 @@ def source_leak(item: dict, source: dict) -> bool:
     return ans in _norm(source.get("text", ""))
 
 
-def run_checks(item: dict, source: dict) -> dict:
+def validate_item_schema(
+    item: dict,
+    source: dict,
+    requested_archetype: str | None = None,
+) -> dict:
+    """Validate the emitted product schema without coercing model output.
+
+    Tolerant extraction is useful for diagnostics, but certification requires
+    exact JSON field types and the source/request contract. Booleans do not count
+    as integers for ``period`` even though ``bool`` subclasses ``int`` in Python.
+    """
+    required_fields_present = all(field in item for field in REQUIRED_ITEM_FIELDS)
+    field_types_exact = all(
+        field in item and type(item[field]) is expected_type
+        for field, expected_type in REQUIRED_ITEM_FIELDS.items()
+    )
+
+    options = item.get("options")
+    four_string_options = bool(
+        type(options) is list
+        and len(options) == 4
+        and all(type(option) is str and option.strip() for option in options)
+    )
+    answer = item.get("answer")
+    answer_key_valid = bool(type(answer) is str and answer in {"A", "B", "C", "D"})
+
+    rationale = item.get("rationale")
+    rationale_keys = ("A", "B", "C", "D")
+    rationale_mapping_complete = bool(
+        type(rationale) is dict
+        and all(
+            key in rationale
+            and type(rationale[key]) is str
+            and rationale[key].strip()
+            for key in rationale_keys
+        )
+    )
+    rationale_correct_present = bool(
+        type(rationale) is dict
+        and type(rationale.get("correct")) is str
+        and rationale["correct"].strip()
+    )
+    rationale_marks_answer = _rationale_marks_key(item)
+
+    emitted_archetype = item.get("_model_archetype", item.get("archetype"))
+    requested = requested_archetype or item.get("_requested_archetype")
+    archetype_matches_request = bool(
+        type(emitted_archetype) is str
+        and (requested is None or emitted_archetype == requested)
+    )
+
+    source_period = source.get("period")
+    period_matches_source = bool(
+        type(item.get("period")) is int
+        and type(source_period) is int
+        and item["period"] == source_period
+    )
+    theme_valid = bool(type(item.get("theme")) is str and item["theme"] in VALID_THEMES)
+
+    nonempty_string_fields = all(
+        type(item.get(field)) is str and item[field].strip()
+        for field in (
+            "archetype",
+            "theme",
+            "stem",
+            "answer",
+            "answer_dating",
+            "requires_outside_knowledge",
+        )
+    )
+    trap_types_are_strings = bool(
+        type(item.get("trap_types")) is list
+        and all(type(trap) is str and trap.strip() for trap in item["trap_types"])
+    )
+
+    schema_valid = all((
+        required_fields_present,
+        field_types_exact,
+        four_string_options,
+        answer_key_valid,
+        rationale_mapping_complete,
+        rationale_correct_present,
+        rationale_marks_answer,
+        archetype_matches_request,
+        period_matches_source,
+        theme_valid,
+        nonempty_string_fields,
+        trap_types_are_strings,
+    ))
+    return {
+        "required_fields_present": required_fields_present,
+        "field_types_exact": field_types_exact,
+        "four_string_options": four_string_options,
+        "answer_key_valid": answer_key_valid,
+        "rationale_mapping_complete": rationale_mapping_complete,
+        "rationale_correct_present": rationale_correct_present,
+        "rationale_marks_answer": rationale_marks_answer,
+        "archetype_matches_request": archetype_matches_request,
+        "period_matches_source": period_matches_source,
+        "theme_valid": theme_valid,
+        "nonempty_string_fields": nonempty_string_fields,
+        "trap_types_are_strings": trap_types_are_strings,
+        "schema_valid": schema_valid,
+    }
+
+
+def run_checks(
+    item: dict,
+    source: dict,
+    requested_archetype: str | None = None,
+) -> dict:
     """Return a dict of check_name -> result. `disqualifying_ok` summarizes the
     hard programmatic gates (the ones that alone can fail an item)."""
-    opts = item.get("options", [])
+    raw_opts = item.get("options", [])
+    opts = raw_opts if isinstance(raw_opts, list) else []
     idx = _answer_index(item)
     labels = [_strip_label(o) for o in opts] if opts else []
 
     four_options = isinstance(opts, list) and len(opts) == 4
     one_key = idx is not None and (0 <= idx < len(opts))
-    no_all_none = not any(ABSOLUTE_OR_ALLNONE.search(o or "") for o in opts)
+    no_all_none = not any(ABSOLUTE_OR_ALLNONE.search(str(o or "")) for o in opts)
 
     # homogeneous length: correct option not > 1.7x the median distractor length
     homogeneous = True
@@ -112,7 +239,8 @@ def run_checks(item: dict, source: dict) -> dict:
             mid = distractor_lens[len(distractor_lens) // 2] or 1
             homogeneous = len(labels[idx]) <= 1.7 * mid
 
-    traps_raw = item.get("trap_types", []) or []
+    raw_traps = item.get("trap_types", [])
+    traps_raw = raw_traps if isinstance(raw_traps, list) else []
     traps = [str(t).strip().upper() for t in traps_raw if str(t).strip()]
     trap_count_3 = len(traps) == 3
     trap_types_valid = bool(traps) and all(t in VALID_TRAP_TYPES for t in traps)
@@ -126,7 +254,9 @@ def run_checks(item: dict, source: dict) -> dict:
     # still a clean, distillable label.
     wrong_era_n = sum(1 for t in traps if t == "WRONG_ERA")
     wrong_era_le1 = wrong_era_n <= 1
-    no_parenthetical_option_dates = not any(PARENTHETICAL_DATE_LABEL.search(o or "") for o in opts)
+    no_parenthetical_option_dates = not any(
+        PARENTHETICAL_DATE_LABEL.search(str(o or "")) for o in opts
+    )
 
     leak = source_leak(item, source)
     date = date_direction(item, source)
@@ -138,7 +268,11 @@ def run_checks(item: dict, source: dict) -> dict:
                         and not leak and date != "fail")
     craft_ok = (trap_count_3 and trap_types_valid and trap_diversity
                 and wrong_era_le1 and no_parenthetical_option_dates)
-    schema_ok = rationale_complete and rationale_marks_key
+    schema = validate_item_schema(item, source, requested_archetype)
+    legacy_schema_ok = rationale_complete and rationale_marks_key
+    # Historical artifact metrics used schema_ok for the rationale-only shape.
+    # Keep that meaning stable while schema_valid carries the full product schema.
+    schema_ok = legacy_schema_ok
 
     return {
         "four_options": four_options,
@@ -152,9 +286,11 @@ def run_checks(item: dict, source: dict) -> dict:
         "no_parenthetical_option_dates": no_parenthetical_option_dates,  # craft gate: date ranges in options are tells
         "rationale_complete": rationale_complete,  # schema gate
         "rationale_marks_key": rationale_marks_key,  # schema gate
+        "legacy_schema_ok": legacy_schema_ok,
         "source_leak": leak,                     # hard (bad if True)
         "date_direction": date,                  # hard if 'fail'
         "disqualifying_ok": disqualifying_ok,
         "schema_ok": schema_ok,
         "craft_ok": craft_ok and schema_ok,
+        **schema,
     }

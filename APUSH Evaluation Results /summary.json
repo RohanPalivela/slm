@@ -1,0 +1,428 @@
+{
+  "meta": {
+    "timestamp": "2026-07-11T17:39:55.502682+00:00",
+    "split": "EVAL_HELDOUT",
+    "runs": 3,
+    "teacher_runs": 1,
+    "limit": 0,
+    "n": 2,
+    "source_ids": [
+      "federalist_10_1787",
+      "carnegie_gospel_wealth_1889",
+      "chief_joseph_1877",
+      "addams_hull_house_1910",
+      "us_constitution_1787",
+      "bill_of_rights_1791",
+      "articles_confederation_1777",
+      "treaty_paris_1783",
+      "marbury_madison_1803",
+      "mcculloch_maryland_1819",
+      "missouri_compromise_1820",
+      "indian_removal_act_1830",
+      "worcester_georgia_1832",
+      "treaty_guadalupe_hidalgo_1848",
+      "dred_scott_1857",
+      "emancipation_proclamation_1863",
+      "fourteenth_amendment_1868",
+      "dawes_act_1887",
+      "plessy_ferguson_1896",
+      "clayton_antitrust_act_1914",
+      "schenck_us_1919",
+      "immigration_act_1924",
+      "social_security_act_1935",
+      "executive_order_9066_1942",
+      "executive_order_9981_1948",
+      "civil_rights_act_1964",
+      "voting_rights_act_1965",
+      "war_powers_resolution_1973"
+    ],
+    "github_ref": "main",
+    "prompt_sha256": "b2ffe5cb1ec5c29c736059c9a5e8d80f720a07a474cdab38d7303ed4ecb030be",
+    "splits_sha256": "a30488caef3dc0f71072d37ee91c8ca43eba8f00d64a9fd54879faa54b6933e8",
+    "seed_stimuli_sha256": "b2f85aefd2cadbf470d30b93384510f119161bea7752a2896a94fd308fce637b",
+    "eval_seed": 20260710,
+    "expected_attempts_per_model": 168,
+    "expected_attempts_by_model": {
+      "qwen3-4b-base": 168,
+      "qwen3-apush-tuned": 168,
+      "teacher": 56
+    },
+    "evaluator_file_sha256": {
+      "eval/date_utils.py": "7ad0eac51fc22b982e76cf63984029e6869fc59f3e5e7b739a9d02121e6669e5",
+      "eval/checks.py": "d9ec7124c2e5a4348931c5e62f951d9092995bffc8561cfd3ac571cb9cb81a35",
+      "eval/prompt_loader.py": "480c77835cbe329675e76ab921da03a084e11fed18b0ac74a3b2736778372ac2",
+      "eval/judge.py": "de7c19e1d8b6899ba41001917e0c71d87982386189641674c2915bb5148f98c8",
+      "eval/providers.py": "73703beb80bd82ce977f19c21fb9b8b8fb810658f19629070e3863ae0f6b3f3e",
+      "eval/source_utils.py": "e71540fdb1e20b3e06921b7592a9e7b1a6fbcd1fe50e9573d253bd21e333b456",
+      "eval/notebook_runtime.py": "72e6f351ea4ec102920015921c4a29bf43930d03f175d619c84b76f926a24676"
+    },
+    "base_model_id": "unsloth/Qwen3-4B",
+    "base_model_revision": "64033659d5caf1b8ed7f929b29de705e93a4d468",
+    "adapter_id": "rohanpalviela/qwen3-4b-apush-v4-semantic-lora",
+    "adapter_revision": "7a42984265f971b3e8bcec3678c2108a512679ee",
+    "temperature": 0.2,
+    "max_new_tokens": 768,
+    "keep_no_think_prefill": false,
+    "force_json_array_prefix": true,
+    "stop_after_complete_json_array": true,
+    "hf_repetition_batch_size": 3,
+    "hf_seed_strategy": "matched per-prompt batch seed with run-indexed return sequences",
+    "api_max_workers": 6,
+    "checkpoint": {
+      "id": "f707fa1d6c0a11f4",
+      "generation_path": "/content/drive/MyDrive/apush_eval_checkpoints/eval_heldout_f707fa1d6c0a11f4_generation.jsonl",
+      "scoring_path": "/content/drive/MyDrive/apush_eval_checkpoints/eval_heldout_f707fa1d6c0a11f4_scoring.jsonl",
+      "resumed_generation_attempts": 0,
+      "resumed_scored_items": 0
+    },
+    "use_no_think_soft_switch": false,
+    "teacher_model": "claude-group/claude-opus-4-8",
+    "judge_model": "openai-group/gpt-5.5",
+    "failure_buckets": {
+      "qwen3-4b-base": {},
+      "qwen3-apush-tuned": {
+        "key_not_unique": 60,
+        "not_single_best": 53,
+        "distractor_trap_invalid": 52,
+        "key_factually_wrong": 38,
+        "distractor_period_implausible": 31,
+        "skill_mismatch": 25,
+        "programmatic_craft_fail": 19,
+        "no_outside_knowledge": 7
+      },
+      "teacher": {
+        "programmatic_craft_fail": 16,
+        "distractor_period_implausible": 2,
+        "key_not_unique": 1,
+        "no_outside_knowledge": 1,
+        "not_single_best": 1
+      }
+    }
+  },
+  "results": {
+    "qwen3-4b-base": {
+      "n_items": 1,
+      "n_judged": 1,
+      "judge_unavailable": 0,
+      "expert_grade": 1.0,
+      "near_miss": 1.0,
+      "key_valid": 1.0,
+      "distillable_item_valid": 1.0,
+      "craft_fail": 0.0,
+      "schema_fail": 0.0,
+      "date_fail": 0.0,
+      "leak": 0.0,
+      "archetype_label_fail": 0.0,
+      "by_arch": {
+        "EFFECT_OF_SOURCE": 1.0
+      },
+      "by_genre": {
+        "law_or_constitution": {
+          "n": 1,
+          "near_miss": 1.0,
+          "key_valid": 1.0
+        }
+      },
+      "generation": {
+        "calls": 168,
+        "zero_item_calls": 167,
+        "parse_empty_rate": 0.9940476190476191,
+        "parsed_items_per_call": 0.005952380952380952,
+        "judge_inconclusive_calls": 0,
+        "resolved_attempts": 168,
+        "attempted_prompt_near_miss": 0.005952380952380952,
+        "attempted_prompt_near_miss_lower_bound": 0.005952380952380952,
+        "near_miss_per_resolved_attempt": 0.005952380952380952,
+        "strict_array_rate": 0.0,
+        "format_buckets": {
+          "truncated_or_unclosed": 167,
+          "complete_item_then_unclosed_trailing_output": 1
+        }
+      }
+    },
+    "qwen3-apush-tuned": {
+      "n_items": 135,
+      "n_judged": 135,
+      "judge_unavailable": 0,
+      "expert_grade": 0.26666666666666666,
+      "near_miss": 0.34814814814814815,
+      "key_valid": 0.5333333333333333,
+      "distillable_item_valid": 0.4740740740740741,
+      "craft_fail": 0.14074074074074075,
+      "schema_fail": 0.0,
+      "date_fail": 0.06666666666666667,
+      "leak": 0.0,
+      "archetype_label_fail": 0.0,
+      "by_arch": {
+        "CAUSE_OF_SOURCE": 0.379746835443038,
+        "EFFECT_OF_SOURCE": 0.30357142857142855
+      },
+      "by_genre": {
+        "court_opinion": {
+          "n": 28,
+          "near_miss": 0.17857142857142858,
+          "key_valid": 0.39285714285714285
+        },
+        "executive_action": {
+          "n": 15,
+          "near_miss": 0.4,
+          "key_valid": 0.4666666666666667
+        },
+        "law_or_constitution": {
+          "n": 63,
+          "near_miss": 0.3968253968253968,
+          "key_valid": 0.5555555555555556
+        },
+        "other_primary_text": {
+          "n": 13,
+          "near_miss": 0.5384615384615384,
+          "key_valid": 0.7692307692307693
+        },
+        "speech_or_argument": {
+          "n": 5,
+          "near_miss": 0.4,
+          "key_valid": 0.4
+        },
+        "treaty_or_compact": {
+          "n": 11,
+          "near_miss": 0.18181818181818182,
+          "key_valid": 0.6363636363636364
+        }
+      },
+      "generation": {
+        "calls": 168,
+        "zero_item_calls": 33,
+        "parse_empty_rate": 0.19642857142857142,
+        "parsed_items_per_call": 0.8035714285714286,
+        "judge_inconclusive_calls": 0,
+        "resolved_attempts": 168,
+        "attempted_prompt_near_miss": 0.27976190476190477,
+        "attempted_prompt_near_miss_lower_bound": 0.27976190476190477,
+        "near_miss_per_resolved_attempt": 0.27976190476190477,
+        "strict_array_rate": 0.8095238095238095,
+        "format_buckets": {
+          "strict_array": 136,
+          "invalid_json": 32
+        }
+      }
+    },
+    "teacher": {
+      "n_items": 56,
+      "n_judged": 56,
+      "judge_unavailable": 0,
+      "expert_grade": 0.6607142857142857,
+      "near_miss": 0.6607142857142857,
+      "key_valid": 0.9821428571428571,
+      "distillable_item_valid": 0.6964285714285714,
+      "craft_fail": 0.2857142857142857,
+      "schema_fail": 0.0,
+      "date_fail": 0.0,
+      "leak": 0.0,
+      "archetype_label_fail": 0.0,
+      "by_arch": {
+        "CAUSE_OF_SOURCE": 0.75,
+        "EFFECT_OF_SOURCE": 0.5714285714285714
+      },
+      "by_genre": {
+        "court_opinion": {
+          "n": 12,
+          "near_miss": 0.75,
+          "key_valid": 1.0
+        },
+        "executive_action": {
+          "n": 6,
+          "near_miss": 0.5,
+          "key_valid": 1.0
+        },
+        "law_or_constitution": {
+          "n": 26,
+          "near_miss": 0.6153846153846154,
+          "key_valid": 0.9615384615384616
+        },
+        "other_primary_text": {
+          "n": 6,
+          "near_miss": 0.8333333333333334,
+          "key_valid": 1.0
+        },
+        "speech_or_argument": {
+          "n": 2,
+          "near_miss": 0.5,
+          "key_valid": 1.0
+        },
+        "treaty_or_compact": {
+          "n": 4,
+          "near_miss": 0.75,
+          "key_valid": 1.0
+        }
+      },
+      "generation": {
+        "calls": 56,
+        "zero_item_calls": 0,
+        "parse_empty_rate": 0.0,
+        "parsed_items_per_call": 1.0,
+        "judge_inconclusive_calls": 0,
+        "resolved_attempts": 56,
+        "attempted_prompt_near_miss": 0.6607142857142857,
+        "attempted_prompt_near_miss_lower_bound": 0.6607142857142857,
+        "near_miss_per_resolved_attempt": 0.6607142857142857,
+        "strict_array_rate": 1.0,
+        "format_buckets": {
+          "strict_array": 56
+        }
+      }
+    },
+    "_comparison": {
+      "base_model": "qwen3-4b-base",
+      "tuned_model": "qwen3-apush-tuned",
+      "near_miss_delta_tuned_minus_base": -0.6518518518518519,
+      "key_valid_delta_tuned_minus_base": -0.4666666666666667,
+      "distillable_item_valid_delta_tuned_minus_base": -0.5259259259259259,
+      "paired_tests": {
+        "near_miss": {
+          "paired_prompts": 1,
+          "base_fail_tuned_pass": 0,
+          "base_pass_tuned_fail": 0,
+          "exact_mcnemar_p": 1.0
+        },
+        "key_valid": {
+          "paired_prompts": 1,
+          "base_fail_tuned_pass": 0,
+          "base_pass_tuned_fail": 0,
+          "exact_mcnemar_p": 1.0
+        },
+        "distillable_item_valid": {
+          "paired_prompts": 1,
+          "base_fail_tuned_pass": 0,
+          "base_pass_tuned_fail": 0,
+          "exact_mcnemar_p": 1.0
+        }
+      },
+      "source_clustered_tests": {
+        "near_miss": {
+          "sources": 1,
+          "mean_delta": 0,
+          "bootstrap_95_ci": [
+            0,
+            0
+          ],
+          "sign_flip_p": 1.0
+        },
+        "key_valid": {
+          "sources": 1,
+          "mean_delta": 0,
+          "bootstrap_95_ci": [
+            0,
+            0
+          ],
+          "sign_flip_p": 1.0
+        },
+        "distillable_item_valid": {
+          "sources": 1,
+          "mean_delta": 0,
+          "bootstrap_95_ci": [
+            0,
+            0
+          ],
+          "sign_flip_p": 1.0
+        }
+      },
+      "attempt_level_paired_tests": {
+        "parse_success": {
+          "mcnemar": {
+            "shared_prompts": 168,
+            "paired_prompts": 168,
+            "inconclusive_excluded": 0,
+            "base_fail_tuned_pass": 134,
+            "base_pass_tuned_fail": 0,
+            "exact_mcnemar_p": 9.183549615799121e-41
+          },
+          "source_clustered": {
+            "sources": 28,
+            "mean_delta": 0.7976190476190477,
+            "bootstrap_95_ci": [
+              0.7559523809523809,
+              0.8392857142857143
+            ],
+            "sign_flip_p": 9.999000099990002e-05
+          }
+        },
+        "strict_array_contract": {
+          "mcnemar": {
+            "shared_prompts": 168,
+            "paired_prompts": 168,
+            "inconclusive_excluded": 0,
+            "base_fail_tuned_pass": 136,
+            "base_pass_tuned_fail": 0,
+            "exact_mcnemar_p": 2.2958874039497803e-41
+          },
+          "source_clustered": {
+            "sources": 28,
+            "mean_delta": 0.8095238095238095,
+            "bootstrap_95_ci": [
+              0.7678571428571429,
+              0.8452380952380952
+            ],
+            "sign_flip_p": 9.999000099990002e-05
+          }
+        },
+        "near_miss_end_to_end": {
+          "mcnemar": {
+            "shared_prompts": 168,
+            "paired_prompts": 168,
+            "inconclusive_excluded": 0,
+            "base_fail_tuned_pass": 46,
+            "base_pass_tuned_fail": 0,
+            "exact_mcnemar_p": 2.842170943040401e-14
+          },
+          "source_clustered": {
+            "sources": 28,
+            "mean_delta": 0.2738095238095238,
+            "bootstrap_95_ci": [
+              0.20833333333333331,
+              0.3333333333333333
+            ],
+            "sign_flip_p": 9.999000099990002e-05
+          }
+        },
+        "key_valid_end_to_end": {
+          "mcnemar": {
+            "shared_prompts": 168,
+            "paired_prompts": 168,
+            "inconclusive_excluded": 0,
+            "base_fail_tuned_pass": 71,
+            "base_pass_tuned_fail": 0,
+            "exact_mcnemar_p": 8.470329472543003e-22
+          },
+          "source_clustered": {
+            "sources": 28,
+            "mean_delta": 0.4226190476190476,
+            "bootstrap_95_ci": [
+              0.3392857142857143,
+              0.5059523809523809
+            ],
+            "sign_flip_p": 9.999000099990002e-05
+          }
+        },
+        "distillable_end_to_end": {
+          "mcnemar": {
+            "shared_prompts": 168,
+            "paired_prompts": 168,
+            "inconclusive_excluded": 0,
+            "base_fail_tuned_pass": 63,
+            "base_pass_tuned_fail": 0,
+            "exact_mcnemar_p": 2.168404344971009e-19
+          },
+          "source_clustered": {
+            "sources": 28,
+            "mean_delta": 0.375,
+            "bootstrap_95_ci": [
+              0.2976190476190476,
+              0.4523809523809524
+            ],
+            "sign_flip_p": 9.999000099990002e-05
+          }
+        }
+      }
+    }
+  }
+}

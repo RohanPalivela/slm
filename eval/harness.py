@@ -23,7 +23,6 @@ import statistics
 import sys
 import threading
 import time
-from collections import Counter
 from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -40,6 +39,12 @@ from prompt_loader import (  # noqa: E402
     canonicalize_item_archetype,
     extract_items,
     generation_format_diagnostics,
+)
+from notebook_runtime import (  # noqa: E402
+    aggregate_attempt_metrics,
+    attempt_contract_outcome,
+    attempt_seed,
+    source_clustered_paired_ci,
 )
 
 DEFAULT_ARCHETYPES = "CAUSE_OF_SOURCE, EFFECT_OF_SOURCE"
@@ -397,14 +402,18 @@ def write_report(results, meta, out_dir):
                  f"{a['date_fail_rate']:.0%} | {a['source_leak_rate']:.0%} |")
     L.append("")
     L.append("### End-to-end prompt reliability")
-    L.append("| Model | Attempted prompts | Near-miss successes / attempt | Strict JSON arrays | Format buckets |")
-    L.append("| :--- | ---: | ---: | ---: | :--- |")
+    L.append("| Model | Attempted prompts | Near-miss / attempt | Strict arrays | Exact contract | Schema valid | Product contract | Judge unavailable | Format buckets |")
+    L.append("| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |")
     for name, value in results.items():
         aggregate_value = value["agg"]
         L.append(
             f"| {name} | {aggregate_value.get('attempted_prompts', 0)} | "
             f"{pct(aggregate_value.get('attempted_prompt_near_miss_rate'))} | "
             f"{pct(aggregate_value.get('strict_array_rate'))} | "
+            f"{pct(aggregate_value.get('exact_contract_rate'))} | "
+            f"{pct(aggregate_value.get('schema_valid_rate'))} | "
+            f"{pct(aggregate_value.get('product_contract_rate'))} | "
+            f"{aggregate_value.get('judge_unavailable_attempts', 0)} | "
             f"`{json.dumps(aggregate_value.get('format_buckets', {}), sort_keys=True)}` |"
         )
     L.append("")
@@ -526,30 +535,56 @@ def main():
                        no_judge=args.no_judge, concurrency=args.judge_concurrency)
 
     results = {}
+    attempt_comparison = None
     for role, cfg in roster:
         model_scored = [x for x in scored if x["model"] == cfg["name"]]
         model_attempts = [x for x in generation_attempts if x["model"] == cfg["name"]]
         agg = aggregate(model_scored)
-        passed_prompts = {
-            (x["run"], x["source_id"], x["item"].get("_requested_archetype"))
-            for x in model_scored
-            if x.get("near_miss") is True
-        }
-        format_buckets = Counter(
-            (attempt.get("format") or {}).get("bucket", "unknown")
-            for attempt in model_attempts
-        )
-        agg["attempted_prompts"] = len(model_attempts)
-        agg["attempted_prompt_near_miss_rate"] = (
-            len(passed_prompts) / len(model_attempts) if model_attempts else None
-        )
-        agg["strict_array_rate"] = (
-            sum(bool((attempt.get("format") or {}).get("strict_array_contract")) for attempt in model_attempts)
-            / len(model_attempts)
-            if model_attempts else None
-        )
-        agg["format_buckets"] = dict(format_buckets)
+        agg.update(aggregate_attempt_metrics(model_attempts, model_scored))
         results[cfg["name"]] = {"role": role, "agg": agg}
+
+    # Keep the CLI comparison on the same fail-closed attempt outcomes and
+    # source-clustered interval implementation as the GPU notebook.
+    candidate_names = [cfg["name"] for role, cfg in roster if role == "candidate"]
+    if len(candidate_names) >= 2:
+        left_name, right_name = candidate_names[:2]
+        paired = {}
+        for metric in ("exact_contract", "product_contract_valid", "near_miss"):
+            maps = []
+            for model_name in (left_name, right_name):
+                attempts = [a for a in generation_attempts if a["model"] == model_name]
+                model_scored = [x for x in scored if x["model"] == model_name]
+                rows_by_key = {}
+                for row in model_scored:
+                    key = (
+                        row["run"],
+                        row["source_id"],
+                        row["item"].get("_requested_archetype", row["item"].get("archetype")),
+                    )
+                    rows_by_key.setdefault(key, []).append(row)
+                maps.append({
+                    (a["run"], a["source_id"], a["archetype"]): attempt_contract_outcome(
+                        a,
+                        rows_by_key.get((a["run"], a["source_id"], a["archetype"]), ()),
+                    )[metric]
+                    for a in attempts
+                })
+            paired[metric] = source_clustered_paired_ci(
+                maps[0],
+                maps[1],
+                seed=attempt_seed(
+                    42,
+                    0,
+                    left_name,
+                    right_name,
+                    namespace=f"cli-comparison-{metric}",
+                ),
+            )
+        attempt_comparison = {
+            "base_model": left_name,
+            "tuned_model": right_name,
+            "attempt_level_source_clustered_ci": paired,
+        }
 
     item_records = []
     for x in scored:
@@ -573,6 +608,7 @@ def main():
         "n_sources": len(sources[:args.limit] if args.limit else sources),
         "archetypes": DEFAULT_ARCHETYPES, "dry_run": args.dry_run,
         "no_judge": args.no_judge, "fewshot": args.fewshot, "repair": args.repair,
+        "attempt_comparison": attempt_comparison,
     }
     md_path, door, why = write_report(results, meta, args.out)
     items_path = os.path.join(args.out, "litmus_items.jsonl")

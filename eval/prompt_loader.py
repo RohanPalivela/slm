@@ -255,12 +255,27 @@ def generation_format_diagnostics(text: str) -> dict:
         bucket = "tolerant_only"
     else:
         bucket = "invalid_json"
+    strict_top_level_array = bool(
+        strict_json and isinstance(strict_value, list) and not fenced
+    )
+    exact_item_count = len(strict_value) if strict_top_level_array else None
+    exact_one_dictionary = bool(
+        strict_top_level_array
+        and exact_item_count == 1
+        and isinstance(strict_value[0], dict)
+    )
+    no_think_tags = "<think" not in raw.lower() and "</think" not in raw.lower()
+    exact_contract_valid = bool(exact_one_dictionary and no_think_tags)
     return {
         "bucket": bucket,
         "strict_json": strict_json,
-        "strict_array_contract": bool(
-            strict_json and isinstance(strict_value, list) and not fenced
-        ),
+        # Keep the historical name for saved-artifact compatibility.
+        "strict_array_contract": strict_top_level_array,
+        "strict_top_level_array": strict_top_level_array,
+        "exact_item_count": exact_item_count,
+        "exact_one_dictionary": exact_one_dictionary,
+        "no_think_tags": no_think_tags,
+        "exact_contract_valid": exact_contract_valid,
         "top_level_type": type(strict_value).__name__ if strict_json else None,
         "tolerant_item_count": len(tolerant_items),
         "starts_array": starts_array,
@@ -270,5 +285,5 @@ def generation_format_diagnostics(text: str) -> dict:
         "square_balance": square_balance,
         "curly_balance": curly_balance,
         "contains_markdown_fence": fenced,
-        "contains_think_tag": "<think" in raw.lower() or "</think" in raw.lower(),
+        "contains_think_tag": not no_think_tags,
     }
