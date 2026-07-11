@@ -80,6 +80,23 @@ class V4DatasetTests(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(match.group(1), expected)
 
+    def test_training_notebook_disables_unsloth_model_remapping(self) -> None:
+        notebook = json.loads(
+            (ROOT / "train/qlora_qwen3_4b.ipynb").read_text(encoding="utf-8")
+        )
+        code = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in notebook["cells"]
+            if cell.get("cell_type") == "code"
+        )
+        self.assertIn('BASE_MODEL_NAME = "unsloth/Qwen3-4B"', code)
+        self.assertIn(
+            'BASE_MODEL_REVISION = "64033659d5caf1b8ed7f929b29de705e93a4d468"',
+            code,
+        )
+        self.assertIn("BASE_MODEL_USE_EXACT_NAME = True", code)
+        self.assertIn("use_exact_model_name=BASE_MODEL_USE_EXACT_NAME", code)
+
     def test_prompt_fewshots_use_only_closed_archetypes(self) -> None:
         prompt = (ROOT / "prompts/litmus_generation_prompt.md").read_text(encoding="utf-8")
         self.assertNotIn("EVIDENCE_SUPPORTS_CLAIM", prompt)

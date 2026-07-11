@@ -75,6 +75,11 @@ The full analysis is in `docs/07_v3_evaluation_postmortem.md`.
 - Quality metrics need an attempted-prompt denominator alongside the parsed-item denominator.
 - A single deterministic run is insufficient for a confident production decision.
 
+## Evaluation runtime lesson
+
+- The standalone GPU evaluator originally ran 504 generations and every judge call serially at batch size one, which underused the L4 and made long runs fragile.
+- Keep candidate repetitions batched, use a separately counted teacher reference pass, bound API concurrency, and preserve append-only checkpoints on persistent storage.
+
 ## Next iteration priorities
 
 1. Run an independent current-rubric semantic audit over the v4 targets, preserving raw responses and replacing rather than silently accepting failed records.
