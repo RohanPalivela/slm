@@ -21,6 +21,7 @@ from notebook_runtime import (  # noqa: E402
     attempt_seed,
     dedupe_rows,
     load_jsonl_groups,
+    matched_candidate_exclusions,
     runs_for_model,
     score_key,
     source_clustered_paired_ci,
@@ -30,15 +31,40 @@ from source_utils import source_genre  # noqa: E402
 
 
 class NotebookRuntimeTests(unittest.TestCase):
-    def test_gpu_notebook_uses_batched_resumable_execution(self) -> None:
+    @staticmethod
+    def _gpu_notebook_code() -> str:
         notebook = json.loads(
             (ROOT / "notebooks/eval_hf_gpu.ipynb").read_text(encoding="utf-8")
         )
-        code = "\n".join(
+        return "\n".join(
             "".join(cell.get("source", []))
             for cell in notebook["cells"]
             if cell.get("cell_type") == "code"
         )
+
+    @staticmethod
+    def _selected_notebook_nodes(code: str, names: set[str]) -> object:
+        tree = ast.parse(code)
+        selected = []
+        for node in tree.body:
+            if (
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.name in names
+            ):
+                selected.append(node)
+            elif isinstance(node, ast.Assign) and any(
+                isinstance(target, ast.Name) and target.id in names
+                for target in node.targets
+            ):
+                selected.append(node)
+        return compile(
+            ast.Module(body=selected, type_ignores=[]),
+            "selected_notebook.py",
+            "exec",
+        )
+
+    def test_gpu_notebook_uses_batched_resumable_execution(self) -> None:
+        code = self._gpu_notebook_code()
         compile(code, "eval_hf_gpu.ipynb", "exec")
         self.assertIn("RUNS = 2", code)
         self.assertIn("TEACHER_RUNS = 1", code)
@@ -47,7 +73,8 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("PREFLIGHT_PASSED", code)
         self.assertNotIn("PREFLIGHT_SOURCE_LIMIT", code)
         self.assertIn("if execution_failures:", code)
-        self.assertIn("if outcome_failures:", code)
+        self.assertNotIn("if outcome_failures:", code)
+        self.assertIn("if protocol_failures:", code)
         self.assertIn("'outcome_reasons':sorted(set(outcome_reasons))", code)
         self.assertNotIn("if failures:\n", code)
         self.assertIn("ThreadPoolExecutor(max_workers=API_MAX_WORKERS)", code)
@@ -69,6 +96,15 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("force_json_array_prefix=False", code)
         self.assertIn("use_no_think_soft_switch=False", code)
         self.assertIn("stopping_enabled=True", code)
+        self.assertIn("MAX_CONTRACT_ATTEMPTS = 8", code)
+        self.assertIn("ensure_contract_valid_attempt", code)
+        self.assertIn("first_pass_contract_valid", code)
+        self.assertIn("generation_trials", code)
+        self.assertIn("conditional-valid-pair-exclusion-v6", code)
+        self.assertIn("exclude_matched_candidate_prompt_and_continue", code)
+        self.assertNotIn("raise RuntimeError(f\"Contract-valid generation exhausted", code)
+        self.assertIn("if attempt['judging_excluded']: continue", code)
+        self.assertIn("judging_excluded_attempts_by_model", code)
         self.assertIn(
             "os.environ['APUSH_GITHUB_REF'] = "
             "'REPLACE_WITH_FULL_40_CHARACTER_COMMIT_SHA'",
@@ -126,9 +162,210 @@ class NotebookRuntimeTests(unittest.TestCase):
                 }
             ),
         )
-        years = [int(re.search(r"(\d{4})$", source_id).group(1)) for source_id in cohort]
-        for start, end in ((1776, 1800), (1801, 1848), (1849, 1877), (1878, 1945), (1946, 1980)):
+        years = [
+            int(re.search(r"(\d{4})$", source_id).group(1))
+            for source_id in cohort
+        ]
+        for start, end in (
+            (1776, 1800),
+            (1801, 1848),
+            (1849, 1877),
+            (1878, 1945),
+            (1946, 1980),
+        ):
             self.assertTrue(any(start <= year <= end for year in years))
+
+    def test_contract_validation_feedback_is_mechanical_only(self) -> None:
+        code = self._gpu_notebook_code()
+        namespace = {
+            "json": json,
+            "generation_format_diagnostics": lambda raw: {
+                "exact_contract_valid": True,
+                "no_think_tags": True,
+            },
+            "extract_items": lambda raw: [{"period": 2}],
+            "canonicalize_item_archetype": lambda item, requested_archetype: item,
+            "run_checks": lambda item, source, requested_archetype: {
+                "schema_valid": False,
+                "period_matches_source": False,
+                **{
+                    key: True
+                    for key in (
+                        "required_fields_present",
+                        "field_types_exact",
+                        "four_string_options",
+                        "answer_key_valid",
+                        "rationale_mapping_complete",
+                        "rationale_correct_present",
+                        "rationale_marks_answer",
+                        "archetype_matches_request",
+                        "theme_valid",
+                        "nonempty_string_fields",
+                        "trap_types_are_strings",
+                    )
+                },
+            },
+        }
+        exec(
+            self._selected_notebook_nodes(
+                code,
+                {
+                    "SCHEMA_VALIDATION_KEYS",
+                    "contract_constrained_user",
+                    "inspect_contract_trace",
+                },
+            ),
+            namespace,
+        )
+        trace = {"raw": '[{"period": 2}]', "finish_reason": "json_stop"}
+        validation = namespace["inspect_contract_trace"](
+            trace,
+            {"period": 3},
+            "CAUSE_OF_SOURCE",
+        )
+        self.assertFalse(validation["contract_valid"])
+        self.assertEqual(validation["failed_schema_checks"], ["period_matches_source"])
+        retry = namespace["contract_constrained_user"](
+            "original prompt",
+            {"period": 3},
+            "CAUSE_OF_SOURCE",
+            validation,
+        )
+        self.assertIn("period integer 3", retry)
+        self.assertIn("CAUSE_OF_SOURCE", retry)
+        self.assertNotIn("correct answer", retry.lower())
+
+    def test_contract_retry_selects_first_valid_and_preserves_trials(self) -> None:
+        code = self._gpu_notebook_code()
+        generated = iter([{"raw": "valid"}])
+        seen_namespaces = []
+        seen_token_limits = []
+
+        def make_attempt(model, run_idx, source, arch, trace, batch_repetitions):
+            valid = trace["raw"] == "valid"
+            return {
+                "model": model["name"],
+                "run": run_idx,
+                "source_id": source["id"],
+                "archetype": arch,
+                "seed": trace.get("seed"),
+                "finish_reason": "json_stop",
+                "generated_token_count": 1,
+                "prompt_token_count": 1,
+                "rendered_prompt_sha256": "hash",
+                "n_items": 1 if valid else 0,
+                "contract_valid": valid,
+                "contract_reasons": [] if valid else ["token_ceiling"],
+                "failed_schema_checks": [],
+                "format": {},
+                "schema": {"schema_valid": valid},
+                "raw_preview": trace["raw"],
+                "raw": trace["raw"],
+            }
+
+        def attempt_seed(base_seed, run_idx, source_id, arch, namespace):
+            seen_namespaces.append(namespace)
+            return 123
+
+        def generate_model(model, system, user, seed, max_new_tokens):
+            seen_token_limits.append(max_new_tokens)
+            return next(generated)
+
+        namespace = {
+            "MAX_CONTRACT_ATTEMPTS": 3,
+            "MAX_NEW_TOKENS": 768,
+            "EVAL_SEED": 1,
+            "make_attempt": make_attempt,
+            "attempt_seed": attempt_seed,
+            "generate_model": generate_model,
+            "contract_constrained_user": lambda user, source, arch, validation: "retry",
+        }
+        exec(
+            self._selected_notebook_nodes(
+                code,
+                {"contract_trial_snapshot", "ensure_contract_valid_attempt"},
+            ),
+            namespace,
+        )
+        result = namespace["ensure_contract_valid_attempt"](
+            {"name": "base"},
+            0,
+            {"id": "source"},
+            "CAUSE_OF_SOURCE",
+            "system",
+            "user",
+            {"raw": "invalid"},
+            2,
+        )
+        self.assertTrue(result["contract_valid"])
+        self.assertFalse(result["first_pass_contract_valid"])
+        self.assertEqual(result["generation_attempt_count"], 2)
+        self.assertEqual(len(result["generation_trials"]), 2)
+        self.assertEqual(seen_namespaces, ["contract-retry-1"])
+        self.assertEqual(seen_token_limits, [1536])
+
+    def test_contract_exhaustion_excludes_the_matched_candidate_prompt(self) -> None:
+        attempts = [
+            {
+                "model": "base",
+                "run": 0,
+                "source_id": "s1",
+                "archetype": "CAUSE_OF_SOURCE",
+                "contract_valid": False,
+            },
+            {
+                "model": "tuned",
+                "run": 0,
+                "source_id": "s1",
+                "archetype": "CAUSE_OF_SOURCE",
+                "contract_valid": True,
+            },
+            {
+                "model": "base",
+                "run": 0,
+                "source_id": "s2",
+                "archetype": "CAUSE_OF_SOURCE",
+                "contract_valid": True,
+            },
+            {
+                "model": "tuned",
+                "run": 0,
+                "source_id": "s2",
+                "archetype": "CAUSE_OF_SOURCE",
+                "contract_valid": True,
+            },
+        ]
+        exclusions = matched_candidate_exclusions(attempts, ["base", "tuned"])
+        self.assertEqual(
+            exclusions,
+            {
+                (0, "s1", "CAUSE_OF_SOURCE"): {
+                    "reason": "matched_candidate_contract_exhaustion",
+                    "invalid_models": ["base"],
+                }
+            },
+        )
+
+    def test_unjudged_valid_attempt_retains_contract_metrics(self) -> None:
+        attempt = {
+            "model": "base",
+            "run": 0,
+            "source_id": "s1",
+            "archetype": "CAUSE_OF_SOURCE",
+            "n_items": 1,
+            "finish_reason": "json_stop",
+            "schema": {"schema_valid": True},
+            "format": {
+                "strict_top_level_array": True,
+                "exact_contract_valid": True,
+            },
+            "judging_excluded": True,
+        }
+        outcome = attempt_contract_outcome(attempt)
+        self.assertTrue(outcome["exact_contract"])
+        self.assertTrue(outcome["schema_valid"])
+        self.assertTrue(outcome["product_contract_valid"])
+        self.assertFalse(outcome["judge_available"])
 
     def test_canonical_cell_hashes_match_function_definitions_only(self) -> None:
         notebook = json.loads(

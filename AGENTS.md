@@ -119,9 +119,11 @@ The semantic-audit command must use an auditor family absent from the legacy pro
 ## Evaluator protocol correction
 
 The July 11 base-versus-tuned run is not a valid semantic comparison because the base generation path stripped Qwen's native no-thinking prefill, forced an opening array token, and failed to reject the resulting thinking output.
-Use the pinned base tokenizer for both adapter states, retain the native no-thinking prefill, leave the forced array prefix off, and require the full generation-only LITMUS preflight to pass before teacher or judge calls.
+Use the pinned base tokenizer for both adapter states, retain the native no-thinking prefill, leave the forced array prefix off, and require the full generation-only LITMUS execution/protocol preflight to pass before teacher or judge calls.
 The semantic evaluation notebook hardcodes this production generation protocol; run protocol ablations in a separate generation-only notebook.
 The default semantic run uses a frozen 14-source representative subset of `EVAL_HELDOUT`, retaining all six source genres and two matched candidate repetitions for 140 scored generation attempts.
+The default comparison conditions expert quality on the first mechanically contract-valid output from a shared bounded retry policy; preserve and report every raw trial, first-pass validity, and retry burden separately for base and tuned.
+If either candidate exhausts the retry budget, exclude that exact matched run-source-archetype prompt from judging for both candidates, preserve the failed trials, report the exclusion, and continue the run.
 Treat the tuned malformed-suffix cause as unresolved until the separate GPU inference ablation is complete.
 
 ## Memory maintenance rules

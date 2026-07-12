@@ -60,6 +60,33 @@ def score_key(row: dict) -> tuple[str, int, str, str, int, str]:
     )
 
 
+def matched_candidate_exclusions(
+    attempts: Iterable[dict],
+    candidate_models: Iterable[str],
+) -> dict[tuple[int, str, str], dict]:
+    """Return matched prompts that cannot be judged fairly across candidates."""
+    required_models = tuple(str(model) for model in candidate_models)
+    by_prompt: dict[tuple[int, str, str], dict[str, dict]] = defaultdict(dict)
+    for attempt in attempts:
+        model = str(attempt.get("model"))
+        if model in required_models:
+            by_prompt[_prompt_key(attempt)][model] = attempt
+    exclusions = {}
+    for prompt, model_attempts in by_prompt.items():
+        invalid_models = [
+            model
+            for model in required_models
+            if model not in model_attempts
+            or model_attempts[model].get("contract_valid") is not True
+        ]
+        if invalid_models:
+            exclusions[prompt] = {
+                "reason": "matched_candidate_contract_exhaustion",
+                "invalid_models": invalid_models,
+            }
+    return exclusions
+
+
 def _prompt_key(row: dict) -> tuple[int, str, str]:
     archetype = row.get("archetype")
     if archetype is None and isinstance(row.get("item"), dict):
@@ -92,19 +119,28 @@ def attempt_contract_outcome(
             ),
         )
     )
-    exact_one_row = len(rows) == 1 and attempt.get("n_items", len(rows)) == 1
+    exact_one_generated = attempt.get("n_items", len(rows)) == 1
+    exact_one_row = len(rows) == 1 and exact_one_generated
     row = rows[0] if exact_one_row else None
+    attempt_schema = attempt.get("schema") or {}
     schema_valid = bool(
-        exact_one_row
-        and (row.get("prog") or {}).get(
-            "schema_valid",
-            (row.get("prog") or {}).get("schema_ok", False),
+        exact_one_generated
+        and (
+            (row.get("prog") or {}).get(
+                "schema_valid",
+                (row.get("prog") or {}).get("schema_ok", False),
+            )
+            if row
+            else attempt_schema.get(
+                "schema_valid",
+                attempt_schema.get("schema_ok", False),
+            )
         )
     )
     finish_reason = attempt.get("finish_reason")
     generation_complete = finish_reason != "max_new_tokens"
     product_contract_valid = bool(
-        exact_contract and exact_one_row and schema_valid and generation_complete
+        exact_contract and exact_one_generated and schema_valid and generation_complete
     )
 
     judgment = row.get("judge") if row else None
