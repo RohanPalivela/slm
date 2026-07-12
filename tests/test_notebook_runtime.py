@@ -59,6 +59,11 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("force_json_array_prefix=False", code)
         self.assertIn("use_no_think_soft_switch=False", code)
         self.assertIn("stopping_enabled=True", code)
+        self.assertIn(
+            "os.environ['APUSH_GITHUB_REF'] = "
+            "'REPLACE_WITH_FULL_40_CHARACTER_COMMIT_SHA'",
+            code,
+        )
         self.assertIn("re.fullmatch(r'[0-9a-f]{40}', GITHUB_REF)", code)
         self.assertIn("training_run_metadata.json", code)
         self.assertIn(
