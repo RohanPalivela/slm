@@ -119,6 +119,7 @@ The semantic-audit command must use an auditor family absent from the legacy pro
 
 The July 11 base-versus-tuned run is not a valid semantic comparison because the base generation path stripped Qwen's native no-thinking prefill, forced an opening array token, and failed to reject the resulting thinking output.
 Use the pinned base tokenizer for both adapter states, retain the native no-thinking prefill, leave the forced array prefix off, and require the full generation-only LITMUS preflight to pass before teacher or judge calls.
+The semantic evaluation notebook hardcodes this production generation protocol; run protocol ablations in a separate generation-only notebook.
 Treat the tuned malformed-suffix cause as unresolved until the separate GPU inference ablation is complete.
 
 ## Memory maintenance rules
