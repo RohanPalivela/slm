@@ -85,7 +85,7 @@ The full analysis is in `docs/07_v3_evaluation_postmortem.md`.
 1. Run an independent current-rubric semantic audit over the v4 targets, preserving raw responses and replacing rather than silently accepting failed records.
 2. Rejudge the unavailable v3 evaluations before treating the v3 semantic regression buckets as confirmed.
 3. Train the versioned v4 semantic-preservation adapter from the immutable base revision.
-4. Run three matched low-temperature repetitions over the unchanged held-out split.
+4. Run two matched low-temperature repetitions over the frozen 14-source representative subset of the unchanged held-out split.
 5. Report attempted-prompt, parsed-item, and successfully judged denominators together.
 6. Compare v4 against the matched base model and the preserved v3 baseline without contaminating the held-out sources.
 7. Write a new dated postmortem after the complete v4 artifacts arrive.
@@ -120,6 +120,7 @@ The semantic-audit command must use an auditor family absent from the legacy pro
 The July 11 base-versus-tuned run is not a valid semantic comparison because the base generation path stripped Qwen's native no-thinking prefill, forced an opening array token, and failed to reject the resulting thinking output.
 Use the pinned base tokenizer for both adapter states, retain the native no-thinking prefill, leave the forced array prefix off, and require the full generation-only LITMUS preflight to pass before teacher or judge calls.
 The semantic evaluation notebook hardcodes this production generation protocol; run protocol ablations in a separate generation-only notebook.
+The default semantic run uses a frozen 14-source representative subset of `EVAL_HELDOUT`, retaining all six source genres and two matched candidate repetitions for 140 scored generation attempts.
 Treat the tuned malformed-suffix cause as unresolved until the separate GPU inference ablation is complete.
 
 ## Memory maintenance rules

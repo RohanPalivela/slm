@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 
@@ -24,6 +26,7 @@ from notebook_runtime import (  # noqa: E402
     source_clustered_paired_ci,
     stable_hash,
 )
+from source_utils import source_genre  # noqa: E402
 
 
 class NotebookRuntimeTests(unittest.TestCase):
@@ -37,12 +40,14 @@ class NotebookRuntimeTests(unittest.TestCase):
             if cell.get("cell_type") == "code"
         )
         compile(code, "eval_hf_gpu.ipynb", "exec")
+        self.assertIn("RUNS = 2", code)
         self.assertIn("TEACHER_RUNS = 1", code)
         self.assertNotIn("num_return_sequences", code)
         self.assertIn("run_generation_preflight", code)
         self.assertIn("PREFLIGHT_PASSED", code)
-        self.assertIn("PREFLIGHT_SOURCE_LIMIT = 1", code)
+        self.assertNotIn("PREFLIGHT_SOURCE_LIMIT", code)
         self.assertIn("if execution_failures:", code)
+        self.assertIn("if outcome_failures:", code)
         self.assertIn("'outcome_reasons':sorted(set(outcome_reasons))", code)
         self.assertNotIn("if failures:\n", code)
         self.assertIn("ThreadPoolExecutor(max_workers=API_MAX_WORKERS)", code)
@@ -50,6 +55,7 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("load_jsonl_groups(scoring_path)", code)
         self.assertIn("aggregate_attempt_metrics", code)
         self.assertIn("source_clustered_paired_ci", code)
+        self.assertNotIn("statistics.mean", code)
         self.assertIn("from hf_local import HFLocalEngine", code)
         self.assertNotIn("KEEP_NO_THINK_PREFILL", code)
         self.assertNotIn("FORCE_JSON_ARRAY_PREFIX", code)
@@ -76,6 +82,49 @@ class NotebookRuntimeTests(unittest.TestCase):
             code,
         )
         self.assertIn("TRAINING_RUN_METADATA.get('use_audited_data') is not True", code)
+
+        tree = ast.parse(code)
+        cohort = next(
+            ast.literal_eval(node.value)
+            for node in tree.body
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name)
+                and target.id == "REPRESENTATIVE_EVAL_SOURCE_IDS"
+                for target in node.targets
+            )
+        )
+        splits = json.loads((ROOT / "data/splits.json").read_text(encoding="utf-8"))
+        heldout = set(splits["splits"]["EVAL_HELDOUT"]["source_ids"])
+        self.assertEqual(len(cohort), 14)
+        self.assertEqual(len(set(cohort)), 14)
+        self.assertLessEqual(set(cohort), heldout)
+        stimuli = {
+            row["id"]: row
+            for row in (
+                json.loads(line)
+                for line in (ROOT / "data/seed_stimuli.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if line.strip()
+            )
+        }
+        self.assertEqual(
+            Counter(source_genre(stimuli[source_id]) for source_id in cohort),
+            Counter(
+                {
+                    "law_or_constitution": 6,
+                    "court_opinion": 3,
+                    "executive_action": 2,
+                    "other_primary_text": 1,
+                    "treaty_or_compact": 1,
+                    "speech_or_argument": 1,
+                }
+            ),
+        )
+        years = [int(re.search(r"(\d{4})$", source_id).group(1)) for source_id in cohort]
+        for start, end in ((1776, 1800), (1801, 1848), (1849, 1877), (1878, 1945), (1946, 1980)):
+            self.assertTrue(any(start <= year <= end for year in years))
 
     def test_canonical_cell_hashes_match_function_definitions_only(self) -> None:
         notebook = json.loads(

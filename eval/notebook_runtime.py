@@ -10,7 +10,6 @@ import hashlib
 import json
 import os
 import random
-import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
@@ -241,7 +240,7 @@ def source_clustered_paired_ci(
         by_source[source_id].append(
             int(bool(tuned_outcomes[key])) - int(bool(base_outcomes[key]))
         )
-    source_deltas = [statistics.mean(values) for values in by_source.values()]
+    source_deltas = [sum(values) / len(values) for values in by_source.values()]
     if not source_deltas:
         return {
             "paired_prompts": 0,
@@ -254,7 +253,7 @@ def source_clustered_paired_ci(
     rng = random.Random(seed)
     n_sources = len(source_deltas)
     bootstrap = sorted(
-        statistics.mean(rng.choice(source_deltas) for _ in range(n_sources))
+        sum(rng.choice(source_deltas) for _ in range(n_sources)) / n_sources
         for _ in range(draws)
     )
     low_index = int(0.025 * draws)
@@ -262,7 +261,7 @@ def source_clustered_paired_ci(
     return {
         "paired_prompts": len(paired),
         "sources": n_sources,
-        "mean_delta": statistics.mean(source_deltas),
+        "mean_delta": sum(source_deltas) / n_sources,
         "bootstrap_95_ci": [bootstrap[low_index], bootstrap[high_index]],
     }
 
