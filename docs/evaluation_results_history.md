@@ -185,7 +185,7 @@ The evidence does not support a statistically validated claim that v3 was the be
 
 The audited-v4 checkpoint is rejected for promotion because its contract gain came with a large semantic regression.
 V5 removes legacy model-generated survivors and repeated target exposures, retains only independently audited expert-grade curated anchors, and reduces LoRA capacity and cumulative training pressure.
-The v5 evaluator reports all-logical-prompt mechanical rates separately from shared-exclusion semantic rates and applies an explicit no-semantic-regression acceptance gate.
+The v5 evaluator gives each model four total generation attempts, counts exhaustion as that model's failure, judges the other candidate independently, and applies an explicit no-semantic-regression acceptance gate over all logical prompts.
 
 ## Bottom line
 

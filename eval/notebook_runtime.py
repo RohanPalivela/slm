@@ -60,33 +60,6 @@ def score_key(row: dict) -> tuple[str, int, str, str, int, str]:
     )
 
 
-def matched_candidate_exclusions(
-    attempts: Iterable[dict],
-    candidate_models: Iterable[str],
-) -> dict[tuple[int, str, str], dict]:
-    """Return matched prompts that cannot be judged fairly across candidates."""
-    required_models = tuple(str(model) for model in candidate_models)
-    by_prompt: dict[tuple[int, str, str], dict[str, dict]] = defaultdict(dict)
-    for attempt in attempts:
-        model = str(attempt.get("model"))
-        if model in required_models:
-            by_prompt[_prompt_key(attempt)][model] = attempt
-    exclusions = {}
-    for prompt, model_attempts in by_prompt.items():
-        invalid_models = [
-            model
-            for model in required_models
-            if model not in model_attempts
-            or model_attempts[model].get("contract_valid") is not True
-        ]
-        if invalid_models:
-            exclusions[prompt] = {
-                "reason": "matched_candidate_contract_exhaustion",
-                "invalid_models": invalid_models,
-            }
-    return exclusions
-
-
 def _prompt_key(row: dict) -> tuple[int, str, str]:
     archetype = row.get("archetype")
     if archetype is None and isinstance(row.get("item"), dict):

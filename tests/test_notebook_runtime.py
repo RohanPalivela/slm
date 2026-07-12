@@ -21,7 +21,6 @@ from notebook_runtime import (  # noqa: E402
     attempt_seed,
     dedupe_rows,
     load_jsonl_groups,
-    matched_candidate_exclusions,
     runs_for_model,
     score_key,
     source_clustered_paired_ci,
@@ -96,15 +95,15 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("force_json_array_prefix=False", code)
         self.assertIn("use_no_think_soft_switch=False", code)
         self.assertIn("stopping_enabled=True", code)
-        self.assertIn("MAX_CONTRACT_ATTEMPTS = 8", code)
+        self.assertIn("MAX_CONTRACT_ATTEMPTS = 4", code)
         self.assertIn("ensure_contract_valid_attempt", code)
         self.assertIn("first_pass_contract_valid", code)
         self.assertIn("generation_trials", code)
-        self.assertIn("v5-denominator-correction-v7", code)
-        self.assertIn("exclude_matched_candidate_prompt_and_continue", code)
+        self.assertIn("v5-four-attempt-fail-closed-v8", code)
+        self.assertIn("count_model_failure_and_continue", code)
         self.assertNotIn("raise RuntimeError(f\"Contract-valid generation exhausted", code)
-        self.assertIn("if attempt['judging_excluded']: continue", code)
-        self.assertIn("judging_excluded_attempts_by_model", code)
+        self.assertIn("if attempt['contract_failure']: continue", code)
+        self.assertIn("contract_failed_attempts_by_model", code)
         self.assertIn(
             "os.environ['APUSH_GITHUB_REF'] = "
             "'REPLACE_WITH_FULL_40_CHARACTER_COMMIT_SHA'",
@@ -124,10 +123,15 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("TRAINING_RUN_METADATA.get('dataset_version') != 'v5'", code)
         self.assertIn("independent_current_rubric_expert_curated_only_v1", code)
         self.assertIn("semantic_preservation_with_contract_learning", code)
-        self.assertIn("Near/all (LB)", code)
-        self.assertIn("Near/eligible", code)
+        self.assertIn("Near/all", code)
+        self.assertIn("Near/valid output", code)
+        self.assertIn("Expert/all", code)
+        self.assertIn("Key valid/all", code)
+        self.assertIn("Label clean/all", code)
         self.assertIn("aggregate_attempt_metrics(calls, model_scored)", code)
-        self.assertIn("eligible_generation = aggregate_attempt_metrics", code)
+        self.assertIn("valid_generation = aggregate_attempt_metrics", code)
+        self.assertIn("Primary all-prompt paired tests:", code)
+        self.assertNotIn("matched_candidate_exclusions", code)
         self.assertIn("V5 acceptance gate:", code)
 
         tree = ast.parse(code)
@@ -312,47 +316,86 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertEqual(seen_namespaces, ["contract-retry-1"])
         self.assertEqual(seen_token_limits, [1536])
 
-    def test_contract_exhaustion_excludes_the_matched_candidate_prompt(self) -> None:
-        attempts = [
-            {
-                "model": "base",
-                "run": 0,
-                "source_id": "s1",
-                "archetype": "CAUSE_OF_SOURCE",
+    def test_contract_exhaustion_counts_as_a_model_failure(self) -> None:
+        attempt = {
+            "model": "base",
+            "run": 0,
+            "source_id": "s1",
+            "archetype": "CAUSE_OF_SOURCE",
+            "n_items": 1,
+            "finish_reason": "json_stop",
+            "schema": {"schema_valid": False},
+            "format": {
+                "strict_top_level_array": True,
+                "exact_contract_valid": True,
+            },
+            "contract_retry_exhausted": True,
+        }
+        outcome = attempt_contract_outcome(attempt)
+        self.assertFalse(outcome["product_contract_valid"])
+        self.assertFalse(outcome["near_miss"])
+        self.assertFalse(outcome["key_valid"])
+        self.assertFalse(outcome["label_clean"])
+
+    def test_contract_retry_stops_after_four_total_attempts(self) -> None:
+        code = self._gpu_notebook_code()
+        generated_retries = []
+
+        def make_attempt(model, run_idx, source, arch, trace, batch_repetitions):
+            return {
+                "model": model["name"],
+                "run": run_idx,
+                "source_id": source["id"],
+                "archetype": arch,
+                "seed": trace.get("seed"),
+                "finish_reason": "json_stop",
+                "generated_token_count": 1,
+                "prompt_token_count": 1,
+                "rendered_prompt_sha256": "hash",
+                "n_items": 1,
                 "contract_valid": False,
-            },
-            {
-                "model": "tuned",
-                "run": 0,
-                "source_id": "s1",
-                "archetype": "CAUSE_OF_SOURCE",
-                "contract_valid": True,
-            },
-            {
-                "model": "base",
-                "run": 0,
-                "source_id": "s2",
-                "archetype": "CAUSE_OF_SOURCE",
-                "contract_valid": True,
-            },
-            {
-                "model": "tuned",
-                "run": 0,
-                "source_id": "s2",
-                "archetype": "CAUSE_OF_SOURCE",
-                "contract_valid": True,
-            },
-        ]
-        exclusions = matched_candidate_exclusions(attempts, ["base", "tuned"])
-        self.assertEqual(
-            exclusions,
-            {
-                (0, "s1", "CAUSE_OF_SOURCE"): {
-                    "reason": "matched_candidate_contract_exhaustion",
-                    "invalid_models": ["base"],
-                }
-            },
+                "contract_reasons": ["schema_invalid"],
+                "failed_schema_checks": ["trap_rationales_align"],
+                "format": {"exact_contract_valid": True},
+                "schema": {"schema_valid": False},
+                "raw_preview": "invalid",
+                "raw": "invalid",
+            }
+
+        def generate_model(*args, **kwargs):
+            generated_retries.append(kwargs["seed"])
+            return {"raw": "invalid", "seed": kwargs["seed"]}
+
+        namespace = {
+            "MAX_CONTRACT_ATTEMPTS": 4,
+            "MAX_NEW_TOKENS": 768,
+            "EVAL_SEED": 1,
+            "make_attempt": make_attempt,
+            "attempt_seed": lambda *args, **kwargs: len(generated_retries) + 10,
+            "generate_model": generate_model,
+            "contract_constrained_user": lambda *args, **kwargs: "retry",
+        }
+        exec(
+            self._selected_notebook_nodes(
+                code,
+                {"contract_trial_snapshot", "ensure_contract_valid_attempt"},
+            ),
+            namespace,
         )
+        result = namespace["ensure_contract_valid_attempt"](
+            {"name": "base"},
+            0,
+            {"id": "source"},
+            "CAUSE_OF_SOURCE",
+            "system",
+            "user",
+            {"raw": "invalid", "seed": 1},
+            2,
+        )
+        self.assertTrue(result["contract_retry_exhausted"])
+        self.assertEqual(result["generation_attempt_count"], 4)
+        self.assertEqual(result["contract_retry_count"], 3)
+        self.assertEqual(len(generated_retries), 3)
 
     def test_unjudged_valid_attempt_retains_contract_metrics(self) -> None:
         attempt = {
@@ -367,7 +410,6 @@ class NotebookRuntimeTests(unittest.TestCase):
                 "strict_top_level_array": True,
                 "exact_contract_valid": True,
             },
-            "judging_excluded": True,
         }
         outcome = attempt_contract_outcome(attempt)
         self.assertTrue(outcome["exact_contract"])

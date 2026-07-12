@@ -30,7 +30,7 @@ The next experimental candidate is `rohanpalviela/qwen3-4b-apush-v5-semantic-pre
 3. Evaluate from Hugging Face with `notebooks/eval_hf_gpu.ipynb`.
 
    The notebook runs two matched low-temperature repetitions over a frozen 14-source representative subset of the unchanged held-out split.
-   This produces 56 logical prompts per candidate and reports all-prompt mechanical rates separately from shared-exclusion semantic rates.
+   This produces 56 logical prompts per candidate and counts failure to produce a valid output within four total attempts as a model failure.
    It uses deterministic per-prompt HF seeds and reports source-clustered paired tests for parsed-item quality and end-to-end attempt outcomes.
    Judge responses are retried, saved raw, and treated as inconclusive if parsing still fails.
 

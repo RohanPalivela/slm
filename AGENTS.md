@@ -87,7 +87,7 @@ The full analysis is in `docs/07_v3_evaluation_postmortem.md`.
 2. Train the versioned v5 semantic-preservation adapter from the immutable base revision and pinned v5 dataset hash.
 3. Run the unchanged two-repetition evaluation over the frozen 14-source representative subset.
 4. Require v5 to avoid regressions against base on near-miss, key validity, and label cleanliness while retaining the contract improvement.
-5. Report all-logical-prompt mechanical rates separately from shared-exclusion semantic rates.
+5. Report all-logical-prompt mechanical and semantic rates, counting contract exhaustion as a model failure.
 6. Inspect every base-pass and v5-fail pair before accepting or redesigning v5.
 7. Write a new dated postmortem after the complete v5 artifacts arrive.
 
@@ -121,9 +121,9 @@ The semantic-audit command must use an auditor family absent from the legacy pro
 The July 11 base-versus-tuned run is not a valid semantic comparison because the base generation path stripped Qwen's native no-thinking prefill, forced an opening array token, and failed to reject the resulting thinking output.
 Use the pinned base tokenizer for both adapter states, retain the native no-thinking prefill, leave the forced array prefix off, and require the full generation-only LITMUS execution/protocol preflight to pass before teacher or judge calls.
 The semantic evaluation notebook hardcodes this production generation protocol; run protocol ablations in a separate generation-only notebook.
-The default semantic run uses a frozen 14-source representative subset of `EVAL_HELDOUT`, retaining all six source genres and two matched candidate repetitions for 140 scored generation attempts.
-The default comparison conditions expert quality on the first mechanically contract-valid output from a shared bounded retry policy; preserve and report every raw trial, first-pass validity, and retry burden separately for base and tuned.
-If either candidate exhausts the retry budget, exclude that exact matched run-source-archetype prompt from judging for both candidates, preserve the failed trials, report the exclusion, and continue the run.
+The default semantic run uses a frozen 14-source representative subset of `EVAL_HELDOUT`, retaining all six source genres and two matched candidate repetitions for 140 logical outcomes across candidates and teacher.
+The default comparison uses the first mechanically contract-valid output from a four-attempt retry policy; preserve and report every raw trial, first-pass validity, and retry burden separately for base and tuned.
+If a candidate exhausts four total attempts, count that candidate's logical prompt as a quality and contract failure, preserve the failed trials, judge the other candidate if valid, and continue the run.
 Treat the tuned malformed-suffix cause as unresolved until the separate GPU inference ablation is complete.
 
 ## Corrected audited-v4 result and v5 decision
@@ -142,7 +142,7 @@ It removes all legacy model-generated survivors, repeated target exposure, and t
 The v5 set contains 32 cause and 32 effect examples, 16 examples at each answer position, and one exposure per target.
 The v5 notebook uses LoRA rank 8, alpha 16, an effective batch size of four, one epoch, and a `4e-5` learning rate to reduce cumulative update pressure after the v4 semantic regression.
 The evaluator now treats `trap_types` order and wrong-option rationale prefixes as a mechanical schema contract.
-It also labels all-prompt lower bounds and shared-exclusion semantic rates separately so excluded prompts cannot silently change the denominator behind an attempted-prompt column.
+It reports primary semantic and mechanical rates over every logical prompt so retry exhaustion cannot silently disappear from the comparison denominator.
 
 ## Memory maintenance rules
 
