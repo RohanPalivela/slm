@@ -182,6 +182,22 @@ def validate_item_schema(
         type(item.get("trap_types")) is list
         and all(type(trap) is str and trap.strip() for trap in item["trap_types"])
     )
+    trap_rationales_align = False
+    if answer_key_valid and trap_types_are_strings and type(rationale) is dict:
+        expected_traps = []
+        for label in "ABCD":
+            if label == str(item.get("answer", "")).strip().upper():
+                continue
+            text = rationale.get(label)
+            match = re.match(
+                r"^\s*(WRONG_ERA|TRUE_BUT_IRRELEVANT|SCOPE_MISMATCH|PARTIALLY_TRUE)\s*:",
+                text if type(text) is str else "",
+                flags=re.I,
+            )
+            expected_traps.append(match.group(1).upper() if match else None)
+        trap_rationales_align = expected_traps == [
+            str(trap).strip().upper() for trap in item["trap_types"]
+        ]
 
     schema_valid = all((
         required_fields_present,
@@ -196,6 +212,7 @@ def validate_item_schema(
         theme_valid,
         nonempty_string_fields,
         trap_types_are_strings,
+        trap_rationales_align,
     ))
     return {
         "required_fields_present": required_fields_present,
@@ -210,6 +227,7 @@ def validate_item_schema(
         "theme_valid": theme_valid,
         "nonempty_string_fields": nonempty_string_fields,
         "trap_types_are_strings": trap_types_are_strings,
+        "trap_rationales_align": trap_rationales_align,
         "schema_valid": schema_valid,
     }
 

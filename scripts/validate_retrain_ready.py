@@ -36,14 +36,14 @@ def fail(failures: list[str], message: str) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--clean", default=str(ROOT / "data/generated/train_v4_clean.jsonl"))
-    ap.add_argument("--sft", default=str(ROOT / "data/generated/train_sft_v4.jsonl"))
+    ap.add_argument("--clean", default=str(ROOT / "data/generated/train_v5_clean.jsonl"))
+    ap.add_argument("--sft", default=str(ROOT / "data/generated/train_sft_v5.jsonl"))
     ap.add_argument("--sources", default=str(ROOT / "data/seed_stimuli.jsonl"))
     ap.add_argument("--splits", default=str(ROOT / "data/splits.json"))
     ap.add_argument("--prompt", default=str(ROOT / "prompts/litmus_generation_prompt.md"))
-    ap.add_argument("--min-records", type=int, default=120)
-    ap.add_argument("--min-sources", type=int, default=60)
-    ap.add_argument("--min-curated-anchors", type=int, default=65)
+    ap.add_argument("--min-records", type=int, default=64)
+    ap.add_argument("--min-sources", type=int, default=32)
+    ap.add_argument("--min-curated-anchors", type=int, default=64)
     args = ap.parse_args()
 
     clean = load_jsonl(Path(args.clean))

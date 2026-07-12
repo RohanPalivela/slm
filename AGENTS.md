@@ -83,13 +83,13 @@ The full analysis is in `docs/07_v3_evaluation_postmortem.md`.
 
 ## Next iteration priorities
 
-1. Run an independent current-rubric semantic audit over the v4 targets, preserving raw responses and replacing rather than silently accepting failed records.
-2. Rejudge the unavailable v3 evaluations before treating the v3 semantic regression buckets as confirmed.
-3. Train the versioned v4 semantic-preservation adapter from the immutable base revision.
-4. Run two matched low-temperature repetitions over the frozen 14-source representative subset of the unchanged held-out split.
-5. Report attempted-prompt, parsed-item, and successfully judged denominators together.
-6. Compare v4 against the matched base model and the preserved v3 baseline without contaminating the held-out sources.
-7. Write a new dated postmortem after the complete v4 artifacts arrive.
+1. Preserve the complete corrected audited-v4 result archive before beginning the v5 run.
+2. Train the versioned v5 semantic-preservation adapter from the immutable base revision and pinned v5 dataset hash.
+3. Run the unchanged two-repetition evaluation over the frozen 14-source representative subset.
+4. Require v5 to avoid regressions against base on near-miss, key validity, and label cleanliness while retaining the contract improvement.
+5. Report all-logical-prompt mechanical rates separately from shared-exclusion semantic rates.
+6. Inspect every base-pass and v5-fail pair before accepting or redesigning v5.
+7. Write a new dated postmortem after the complete v5 artifacts arrive.
 
 ## Current v4 experiment
 
@@ -125,6 +125,24 @@ The default semantic run uses a frozen 14-source representative subset of `EVAL_
 The default comparison conditions expert quality on the first mechanically contract-valid output from a shared bounded retry policy; preserve and report every raw trial, first-pass validity, and retry burden separately for base and tuned.
 If either candidate exhausts the retry budget, exclude that exact matched run-source-archetype prompt from judging for both candidates, preserve the failed trials, report the exclusion, and continue the run.
 Treat the tuned malformed-suffix cause as unresolved until the separate GPU inference ablation is complete.
+
+## Corrected audited-v4 result and v5 decision
+
+The corrected audited-v4 evaluation completed on July 12, 2026 over the frozen 14-source cohort with two matched candidate repetitions.
+The base model exhausted the bounded contract retry policy on 12 of 56 prompts, while the tuned model exhausted none.
+Those 12 prompts were excluded from semantic judging for both candidates, leaving 44 matched judged prompts per candidate and no judge outages.
+Audited v4 improved first-pass contract validity from 39% to 82% and improved all-prompt product-contract validity by 21 percentage points.
+It regressed from 50% to 27% on matched near-miss quality and from 45% to 23% on expert-grade quality.
+The paired near-miss result had 5 improvements and 15 regressions with exact McNemar `p = 0.041`.
+The source-clustered near-miss mean delta was -20.8 percentage points with a 95% bootstrap interval from -39.9 to -2.4 points and a marginal sign-flip `p = 0.066` across 14 sources.
+Reject the audited-v4 checkpoint for promotion.
+
+V5 uses only the 64 independently audited expert-grade curated causal anchors.
+It removes all legacy model-generated survivors, repeated target exposure, and the one audited record that failed a strict expert gate.
+The v5 set contains 32 cause and 32 effect examples, 16 examples at each answer position, and one exposure per target.
+The v5 notebook uses LoRA rank 8, alpha 16, an effective batch size of four, one epoch, and a `4e-5` learning rate to reduce cumulative update pressure after the v4 semantic regression.
+The evaluator now treats `trap_types` order and wrong-option rationale prefixes as a mechanical schema contract.
+It also labels all-prompt lower bounds and shared-exclusion semantic rates separately so excluded prompts cannot silently change the denominator behind an attempted-prompt column.
 
 ## Memory maintenance rules
 

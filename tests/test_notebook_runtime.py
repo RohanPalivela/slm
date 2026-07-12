@@ -100,7 +100,7 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("ensure_contract_valid_attempt", code)
         self.assertIn("first_pass_contract_valid", code)
         self.assertIn("generation_trials", code)
-        self.assertIn("conditional-valid-pair-exclusion-v6", code)
+        self.assertIn("v5-denominator-correction-v7", code)
         self.assertIn("exclude_matched_candidate_prompt_and_continue", code)
         self.assertNotIn("raise RuntimeError(f\"Contract-valid generation exhausted", code)
         self.assertIn("if attempt['judging_excluded']: continue", code)
@@ -113,15 +113,22 @@ class NotebookRuntimeTests(unittest.TestCase):
         self.assertIn("re.fullmatch(r'[0-9a-f]{40}', GITHUB_REF)", code)
         self.assertIn("training_run_metadata.json", code)
         self.assertIn(
-            "APUSH_ADAPTER_ID = 'rohanpalviela/qwen3-4b-apush-v4-semantic-audited-lora'",
+            "APUSH_ADAPTER_ID = 'rohanpalviela/qwen3-4b-apush-v5-semantic-preservation-lora'",
             code,
         )
         self.assertIn(
             "EXPECTED_ADAPTER_TRAINING_DATA_SHA256 = "
-            "'fb49a00b5edb413cfd004f398261cc409a193da6d1afd8a2187166b206a8e608'",
+            "'06cfe7196256efaa94aca36550355b67deb54b42c418f9037e24cce7f0a21e44'",
             code,
         )
-        self.assertIn("TRAINING_RUN_METADATA.get('use_audited_data') is not True", code)
+        self.assertIn("TRAINING_RUN_METADATA.get('dataset_version') != 'v5'", code)
+        self.assertIn("independent_current_rubric_expert_curated_only_v1", code)
+        self.assertIn("semantic_preservation_with_contract_learning", code)
+        self.assertIn("Near/all (LB)", code)
+        self.assertIn("Near/eligible", code)
+        self.assertIn("aggregate_attempt_metrics(calls, model_scored)", code)
+        self.assertIn("eligible_generation = aggregate_attempt_metrics", code)
+        self.assertIn("V5 acceptance gate:", code)
 
         tree = ast.parse(code)
         cohort = next(
@@ -202,6 +209,7 @@ class NotebookRuntimeTests(unittest.TestCase):
                         "theme_valid",
                         "nonempty_string_fields",
                         "trap_types_are_strings",
+                        "trap_rationales_align",
                     )
                 },
             },

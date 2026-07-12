@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import hashlib
 import json
-import re
 import sys
 import unittest
 from collections import Counter
@@ -65,20 +63,11 @@ class V4DatasetTests(unittest.TestCase):
             65,
         )
 
-    def test_training_notebook_pins_current_sft_hash(self) -> None:
-        sft_path = ROOT / "data/generated/train_sft_v4.jsonl"
-        expected = hashlib.sha256(sft_path.read_bytes()).hexdigest()
-        notebook = json.loads(
-            (ROOT / "train/qlora_qwen3_4b.ipynb").read_text(encoding="utf-8")
-        )
-        code = "\n".join(
-            "".join(cell.get("source", []))
-            for cell in notebook["cells"]
-            if cell.get("cell_type") == "code"
-        )
-        match = re.search(r'EXPECTED_PROVISIONAL_DATASET_SHA256 = "([0-9a-f]{64})"', code)
-        self.assertIsNotNone(match)
-        self.assertEqual(match.group(1), expected)
+    def test_v4_artifacts_remain_preserved_for_reproducibility(self) -> None:
+        sft_rows = load_jsonl(ROOT / "data/generated/train_sft_v4.jsonl")
+        self.assertEqual(len(self.rows), 122)
+        self.assertEqual(len(sft_rows), 124)
+        self.assertTrue(all(row.get("dataset_version") == "v4" for row in self.rows))
 
     def test_training_notebook_disables_unsloth_model_remapping(self) -> None:
         notebook = json.loads(

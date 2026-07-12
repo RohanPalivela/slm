@@ -1,0 +1,40 @@
+{
+  "dataset_version": "v5",
+  "selection_policy": "independent_current_rubric_expert_curated_only_v1",
+  "input_audited_v4_sha256": "b4d44bddc98d1a4d8d1e575b271e606f45e1c83baae8af65fa56fa19a2e5d99c",
+  "source_corpus_sha256": "b2f85aefd2cadbf470d30b93384510f119161bea7752a2896a94fd308fce637b",
+  "input_audited_v4_records": 121,
+  "input_current_rubric_expert_records": 120,
+  "excluded_legacy_or_generated_records": 56,
+  "excluded_non_expert_records": 1,
+  "output_records": 64,
+  "source_count": 33,
+  "archetype_distribution": {
+    "CAUSE_OF_SOURCE": 32,
+    "EFFECT_OF_SOURCE": 32
+  },
+  "answer_distribution": {
+    "A": 16,
+    "B": 16,
+    "C": 16,
+    "D": 16
+  },
+  "source_genres": {
+    "law_or_constitution": 14,
+    "court_opinion": 10,
+    "executive_action": 2,
+    "speech_or_argument": 2,
+    "treaty_or_compact": 5
+  },
+  "sft_repeats": {
+    "1": 64
+  },
+  "design_decisions": [
+    "Use only records that passed every current-rubric expert gate.",
+    "Use only manually curated causal anchors with independent audit provenance.",
+    "Remove legacy model-generated survivors and repeated target exposure.",
+    "Keep exactly one target per source and archetype.",
+    "Use one SFT exposure per retained target."
+  ],
+  "output_sha256": "9daccca569f53e331446af425368f5da5e4203f1c06adaee88bf504c3189c280"
+}

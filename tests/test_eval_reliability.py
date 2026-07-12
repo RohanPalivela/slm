@@ -128,6 +128,14 @@ class ItemSchemaTests(unittest.TestCase):
         result = self.check()
         self.assertTrue(result["schema_valid"])
         self.assertTrue(result["schema_ok"])
+        self.assertTrue(result["trap_rationales_align"])
+
+    def test_trap_types_must_match_wrong_option_rationale_order(self) -> None:
+        item = dict(self.item)
+        item["trap_types"] = list(reversed(self.item["trap_types"]))
+        result = self.check(item)
+        self.assertFalse(result["trap_rationales_align"])
+        self.assertFalse(result["schema_valid"])
 
     def test_missing_field_and_wrong_exact_type_fail(self) -> None:
         missing = dict(self.item)

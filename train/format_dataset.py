@@ -14,7 +14,7 @@ prompt shape the harness/inference uses.
 
 Usage:
     python train/format_dataset.py
-    python train/format_dataset.py --in data/generated/train_v4_clean.jsonl --out data/generated/train_sft_v4.jsonl
+    python train/format_dataset.py --in data/generated/train_v5_clean.jsonl --out data/generated/train_sft_v5.jsonl
 """
 from __future__ import annotations
 import argparse
@@ -102,8 +102,8 @@ def _infer_trap_types(item: dict) -> list[str] | None:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--in", dest="inp", default=os.path.join(ROOT, "data", "generated", "train_v4_clean.jsonl"))
-    ap.add_argument("--out", default=os.path.join(ROOT, "data", "generated", "train_sft_v4.jsonl"))
+    ap.add_argument("--in", dest="inp", default=os.path.join(ROOT, "data", "generated", "train_v5_clean.jsonl"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "data", "generated", "train_sft_v5.jsonl"))
     ap.add_argument("--sources", default=os.path.join(ROOT, "data", "seed_stimuli.jsonl"))
     ap.add_argument("--fewshot", action="store_true", help="include the few-shot block in the system prompt")
     args = ap.parse_args()

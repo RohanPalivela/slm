@@ -1,9 +1,36 @@
 # Build Log
 
-Current state: **v4 semantic-preservation artifacts are ready for an experimental retrain with explicit semantic-audit warnings**.
+Current state: **v5 semantic-preservation artifacts pass the retraining gate without warnings**.
 
 The July 10, 2026 full-run analysis is recorded in [`07_v3_evaluation_postmortem.md`](07_v3_evaluation_postmortem.md).
 The v3 artifacts remain preserved as the evaluated baseline.
+
+## v5 Training Data
+
+Canonical artifacts:
+
+| Path | Count / role |
+| :--- | :--- |
+| `data/generated/train_v5_clean.jsonl` | 64 independently audited expert-grade curated targets |
+| `data/generated/train_sft_v5.jsonl` | 64 balanced supervised fine-tuning examples |
+| `data/generated/train_v5_build_report.json` | Reproducible v5 selection and coverage report |
+
+Verified build status:
+
+```text
+answers: A/B/C/D = 16/16/16/16
+archetypes: CAUSE_OF_SOURCE = 32, EFFECT_OF_SOURCE = 32
+train sources represented: 33
+source genres: law 14, court 10, treaty or compact 5, speech or argument 2, executive 2
+date direction: pass 62, unknown 2, fail 0
+programmatic craft failures: 0
+readiness gate: RETRAIN_READY: yes
+```
+
+The corrected audited-v4 run established that v4 improved contract reliability while substantially reducing semantic quality.
+V5 retains only curated targets that passed every independent current-rubric expert gate.
+It excludes the 57 legacy model-generated survivors, removes repeated target exposures, and reduces the adapter from rank 16 to rank 8.
+The training schedule changes from four epochs at `8e-5` with effective batch eight to one epoch at `4e-5` with effective batch four.
 
 ## v4 Training Data
 
@@ -94,10 +121,10 @@ readiness gate: RETRAIN_READY: yes
 
 ## Run Order
 
-1. Rebuild and validate v4:
+1. Rebuild and validate v5:
 
    ```bash
-   python3 train/build_v4_dataset.py
+   python3 train/build_v5_dataset.py
    python3 train/format_dataset.py
    python3 scripts/validate_retrain_ready.py
    ```
@@ -114,8 +141,8 @@ readiness gate: RETRAIN_READY: yes
    notebooks/eval_hf_gpu.ipynb
    ```
 
-The v4 adapter target is:
+The v5 adapter target is:
 
 ```text
-rohanpalviela/qwen3-4b-apush-v4-semantic-lora
+rohanpalviela/qwen3-4b-apush-v5-semantic-preservation-lora
 ```

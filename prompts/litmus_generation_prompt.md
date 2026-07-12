@@ -62,6 +62,8 @@ draft fails any gate, silently discard it and write another.
        directly") or too narrow (one example when it asks for a trend).
      - PARTIALLY_TRUE: one clause accurate and one fabricated/overstated, or the
        right topic with the wrong direction/magnitude.
+       The rationale must name the accurate part and the false or overstated part.
+       If it cannot name both parts, rewrite the option or use a different trap.
    HARD SUBTLETY TEST (apply to every distractor): "Could a well-prepared student
    eliminate this in under one second purely because it is from an obviously
    different century or an obviously different topic?" If YES, it is a giveaway -
@@ -86,6 +88,11 @@ draft fails any gate, silently discard it and write another.
    correct under a reasonable reading, rewrite the options. The rationale must
    name the causal link that makes the key more direct, not merely repeat that it
    is associated with the source.
+
+   PAIRWISE UNIQUENESS TEST. Compare the key separately against A, B, C, and D.
+   For each wrong option, state the one concrete fact that makes it inferior.
+   If a wrong option independently satisfies the stem under a reasonable APUSH
+   reading, rewrite it instead of relying on the keyed rationale to dismiss it.
 
 7. HOMOGENEOUS OPTIONS, NO TELLS. All four options are the same category (all
    developments, or all purposes, or all responses), similar length and grammar;
@@ -150,7 +157,9 @@ Before finalizing each item, silently verify all 7 gates, that every distractor 
 labeled with one of the four allowed trap ids, that there are exactly 3
 `trap_types`, that the rationale object contains all four keys A/B/C/D, that the
 keyed option's rationale is exactly "correct", and that no option uses a
-parenthetical date label/range. Discard and rewrite any item that fails. Return
+parenthetical date label/range. List `trap_types` in A-D option order while
+skipping the keyed answer, and make each entry exactly match the corresponding
+wrong-option rationale prefix. Discard and rewrite any item that fails. Return
 only the JSON array.
 ```
 

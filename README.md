@@ -2,50 +2,35 @@
 
 Notebook-first workflow for training and evaluating a Qwen3-4B AP U.S. History item writer.
 
-The evaluated baseline is `rohanpalviela/qwen3-4b-apush-v3-clean-lora`.
-The next experimental candidate is `rohanpalviela/qwen3-4b-apush-v4-semantic-lora`.
+The matched baseline is the immutable `unsloth/Qwen3-4B` revision recorded in `AGENTS.md`.
+The next experimental candidate is `rohanpalviela/qwen3-4b-apush-v5-semantic-preservation-lora`.
 
 ## Current Workflow
 
-1. Rebuild and validate the v4 artifacts.
+1. Rebuild and validate the v5 artifacts.
 
    ```bash
-   python3 train/build_v4_dataset.py
+   python3 train/build_v5_dataset.py
    python3 train/format_dataset.py
    python3 scripts/validate_retrain_ready.py
    ```
 
-   The committed v4 artifact passes all deterministic gates and reports the remaining semantic-audit limitations explicitly.
+   The committed v5 artifact passes all deterministic gates and contains only independently audited expert-grade curated anchors.
 
    ```text
-   RETRAIN_READY: yes_with_warnings
-   ```
-
-   To remove those warnings before training, run the complete third-family audit, apply its quarantine, reformat the audited output, and validate the resulting files.
-   The audit refuses correlated fallback models and saves a metadata sidecar with the exact dataset, source, rubric, and auditor hashes.
-
-   ```bash
-   python3 scripts/rejudge_training_sample.py --n 0
-   python3 scripts/apply_training_semantic_audit.py
-   python3 train/format_dataset.py \
-     --in data/generated/train_v4_audited_clean.jsonl \
-     --out data/generated/train_sft_v4_audited.jsonl
-   python3 scripts/validate_retrain_ready.py \
-     --clean data/generated/train_v4_audited_clean.jsonl \
-     --sft data/generated/train_sft_v4_audited.jsonl
+   RETRAIN_READY: yes
    ```
 
 2. Train in Colab with `train/qlora_qwen3_4b.ipynb`.
 
-   The notebook reads `data/generated/train_sft_v4.jsonl` and publishes `rohanpalviela/qwen3-4b-apush-v4-semantic-lora`.
-   Set `USE_AUDITED_DATA = True` only when the audited artifacts above exist; the notebook then uses a separate `-audited` run name so checkpoints cannot mix.
-   The provisional path refreshes the repository, verifies the exact SFT SHA-256, and namespaces checkpoints by dataset hash before training.
-   It trains for four lower-learning-rate epochs at `8e-5` with an effective batch size of eight so the compact dataset receives enough updates without aggressively overriding base-model historical knowledge.
+   The notebook reads `data/generated/train_sft_v5.jsonl` and publishes `rohanpalviela/qwen3-4b-apush-v5-semantic-preservation-lora`.
+   It refreshes the repository, verifies the exact SFT SHA-256, and namespaces checkpoints by dataset hash before training.
+   It uses LoRA rank 8, alpha 16, an effective batch size of four, one epoch, and a `4e-5` learning rate to reduce semantic drift.
 
 3. Evaluate from Hugging Face with `notebooks/eval_hf_gpu.ipynb`.
 
-   The notebook runs three matched low-temperature repetitions over the unchanged 28-source held-out split.
-   This produces 168 attempted prompts per model and reports attempted, parsed, and successfully judged denominators separately.
+   The notebook runs two matched low-temperature repetitions over a frozen 14-source representative subset of the unchanged held-out split.
+   This produces 56 logical prompts per candidate and reports all-prompt mechanical rates separately from shared-exclusion semantic rates.
    It uses deterministic per-prompt HF seeds and reports source-clustered paired tests for parsed-item quality and end-to-end attempt outcomes.
    Judge responses are retried, saved raw, and treated as inconclusive if parsing still fails.
 
@@ -68,33 +53,27 @@ The next experimental candidate is `rohanpalviela/qwen3-4b-apush-v4-semantic-lor
 
    The rejudge command also writes a metadata sidecar with input, output, source, rubric, code, and judge-configuration hashes.
 
-## v4 Training Decision
+## v5 Training Decision
 
-The v3 adapter learned schema and distractor packaging but did not show a statistically significant semantic gain.
-The v4 iteration therefore changes supervision quality and exposure rather than increasing adapter capacity.
+The corrected audited-v4 adapter learned the product contract but regressed from 50% to 27% on matched near-miss quality and from 45% to 23% on expert-grade quality.
+V5 preserves the independently reviewed portion of the data while sharply reducing content exposure and adapter update pressure.
 
-- The active clean set has 122 unique examples across 64 heldout-disjoint training sources.
-- It retains 57 manually selected v3 survivors and adds 65 curated cause-and-effect anchors.
-- Training coverage now includes 10 court opinions, 18 laws or constitutional texts, 5 treaties or compacts, and 2 executive actions.
-- Generic speeches no longer provide effect supervision unless they announce a concrete policy or official action with a defensible downstream consequence.
-- The SFT artifact contains 62 cause and 62 effect examples.
-- SFT answer positions are exactly balanced at 31 examples each.
-- The prompt now requires a concrete causal chain and an adversarial unique-key check.
+- The active clean set has 64 examples across 33 heldout-disjoint training sources.
+- Every retained target passed all independent current-rubric expert gates.
+- Legacy model-generated survivors and repeated source exposures are excluded.
+- The SFT artifact contains 32 cause and 32 effect examples.
+- SFT answer positions are exactly balanced at 16 examples each.
+- The prompt requires pairwise key uniqueness and exact trap-to-rationale alignment.
 - The SFT and inference paths use the same empty-think handling and strict JSON-array contract.
-
-The readiness warning is intentional.
-The 57 legacy survivors contain the older partial judge record and used the same model as judge and verifier.
-Their outside-knowledge field is normalized from the keyed development while the original value remains preserved for traceability.
-The 65 curated anchors also need an independent current-rubric semantic audit before any production decision.
-The next evaluation remains useful as an experimental test of the v4 hypothesis, but these limitations must stay visible.
 
 ## Canonical Data
 
 | Path | Role |
 | :--- | :--- |
-| `data/generated/train_v4_clean.jsonl` | 122 unique deterministically screened v4 item records |
-| `data/generated/train_sft_v4.jsonl` | 124 balanced supervised fine-tuning examples |
-| `data/generated/train_v4_build_report.json` | Reproducible v4 selection and coverage report |
+| `data/generated/train_v5_clean.jsonl` | 64 independently audited expert-grade v5 item records |
+| `data/generated/train_sft_v5.jsonl` | 64 balanced supervised fine-tuning examples |
+| `data/generated/train_v5_build_report.json` | Reproducible v5 selection and coverage report |
+| `data/generated/train_v4_audited_clean.jsonl` | Preserved audited-v4 input to the v5 selector |
 | `data/curated/v4_causal_claims.json` | Traceable court, law, treaty, compact, executive, and policy causal anchors |
 | `data/training_archetype_policy.json` | Training-only source and archetype eligibility policy |
 | `data/generated/train_clean.jsonl` | Preserved 728-record v3 clean set |
@@ -105,15 +84,16 @@ The next evaluation remains useful as an experimental test of the v4 hypothesis,
 ## Evaluation History
 
 - [`docs/07_v3_evaluation_postmortem.md`](docs/07_v3_evaluation_postmortem.md) records the July 10, 2026 full-run results, evaluator limitations, decision, and next actions.
+- [`docs/evaluation_results_history.md`](docs/evaluation_results_history.md) consolidates the historical runs and the corrected audited-v4 result.
 - [`AGENTS.md`](AGENTS.md) records the durable iteration cycle, project instructions, and current verified baseline.
 
 ## Local Ollama Export
 
-After training uploads v4, register the Hugging Face artifact locally only if a Mac or Ollama smoke test is needed.
+After training uploads v5, register the Hugging Face artifact locally only if a Mac or Ollama smoke test is needed.
 
 ```bash
 python3 scripts/register_ollama_from_hf.py \
-  --repo rohanpalviela/qwen3-4b-apush-v4-semantic-lora \
-  --local-dir models/qwen3-apush-v4-semantic \
-  --model-name qwen3-apush-v4-semantic:latest
+  --repo rohanpalviela/qwen3-4b-apush-v5-semantic-preservation-lora \
+  --local-dir models/qwen3-apush-v5-semantic-preservation \
+  --model-name qwen3-apush-v5-semantic-preservation:latest
 ```
