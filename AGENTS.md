@@ -79,6 +79,7 @@ The full analysis is in `docs/07_v3_evaluation_postmortem.md`.
 
 - The standalone GPU evaluator originally ran 504 generations and every judge call serially at batch size one, which underused the L4 and made long runs fragile.
 - Keep candidate repetitions batched, use a separately counted teacher reference pass, bound API concurrency, and preserve append-only checkpoints on persistent storage.
+- After installing or repairing GPU dependencies in Colab, restart the Python runtime before importing Transformers; otherwise stale `huggingface_hub` modules can mix with newly installed package files.
 
 ## Next iteration priorities
 
